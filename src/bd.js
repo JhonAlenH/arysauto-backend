@@ -13007,6 +13007,7 @@ SearchPlanValue: async(searchData) => {
         return { result: query };
               
     }catch(err){
+        console.log(err.message)
         return { error: err.message };
         }
 },
@@ -13417,6 +13418,19 @@ dataContractsCollectedQuery: async(data) => {
             .input('cpais', sql.Int, data.cpais)
             .input('ccompania', sql.Int, data.ccompania)
             .query('SELECT COUNT(CCONTRATOFLOTA) AS NPERSONAS_COBRADAS FROM VWBUSCARSUCONTRATOFLOTADATA WHERE CESTATUSGENERAL = 7 AND CPAIS = @cpais AND CCOMPANIA = @ccompania');
+        //sql.close()
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+dataNotificationsQuery: async(data) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cpais', sql.Int, data.cpais)
+            .input('ccompania', sql.Int, data.ccompania)
+            .query('SELECT COUNT(CNOTIFICACION) AS NNOTIFICACION FROM VWBUSCARNOTIFICACIONDATA WHERE CCOMPANIA = @ccompania');
         //sql.close()
         return { result: result };
     }catch(err){
