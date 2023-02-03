@@ -40,6 +40,11 @@
         "route": "/api/company"
     },
     {
+        "name": "Home Route",
+        "router": "../routes/home",
+        "route": "/api/home"
+    },
+    {
         "name": "Department Route",
         "router": "../routes/department",
         "route": "/api/department"

@@ -13397,5 +13397,31 @@ createPaymentQuery: async(paymentList) => {
         return { error: err.message };
     }
 },
+dataPendingContractQuery: async(data) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cpais', sql.Int, data.cpais)
+            .input('ccompania', sql.Int, data.ccompania)
+            .query('SELECT COUNT(CCONTRATOFLOTA) AS NPERSONAS_PENDIENTES FROM VWBUSCARSUCONTRATOFLOTADATA WHERE CESTATUSGENERAL = 13 AND CPAIS = @cpais AND CCOMPANIA = @ccompania');
+        //sql.close()
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+dataContractsCollectedQuery: async(data) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cpais', sql.Int, data.cpais)
+            .input('ccompania', sql.Int, data.ccompania)
+            .query('SELECT COUNT(CCONTRATOFLOTA) AS NPERSONAS_COBRADAS FROM VWBUSCARSUCONTRATOFLOTADATA WHERE CESTATUSGENERAL = 7 AND CPAIS = @cpais AND CCOMPANIA = @ccompania');
+        //sql.close()
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
 }
 
