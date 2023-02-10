@@ -45,6 +45,11 @@
         "route": "/api/home"
     },
     {
+        "name": "Plan Route",
+        "router": "../routes/plan",
+        "route": "/api/plan"
+    },
+    {
         "name": "Department Route",
         "router": "../routes/department",
         "route": "/api/department"

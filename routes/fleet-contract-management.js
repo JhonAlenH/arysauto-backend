@@ -1930,4 +1930,117 @@ const operationCancellations = async(authHeader, requestBody) => {
     return { status: true }; 
 }
 
+router.route('/create/quote').post((req, res) => {
+    operationCreateQuote(req.header('Authorization'), req.body).then((result) => {
+        if(!result.status){
+            res.status(result.code).json({ data: result });
+            return;
+        }
+        res.json({ data: result });
+    }).catch((err) => {
+        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationCreateQuote' } });
+    });
+});
+
+const operationCreateQuote = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    
+    let userData = {
+        xnombre: requestBody.xnombre.toUpperCase(),
+        xapellido: requestBody.xapellido.toUpperCase(),
+        cano: requestBody.cano ? requestBody.cano : undefined,
+        xcolor: requestBody.xcolor ? requestBody.xcolor : undefined,
+        cmarca: requestBody.cmarca ? requestBody.cmarca : undefined,
+        cmodelo: requestBody.cmodelo ? requestBody.cmodelo : undefined,
+        cversion: requestBody.cversion ? requestBody.cversion : undefined,
+        xrif_cliente: requestBody.xrif_cliente ? requestBody.xrif_cliente : undefined,
+        email: requestBody.email ? requestBody.email : undefined,
+        xtelefono_prop: requestBody.xtelefono_prop ? requestBody.xtelefono_prop : undefined,
+        xdireccionfiscal: requestBody.xdireccionfiscal.toUpperCase(),
+        xserialmotor: requestBody.xserialmotor.toUpperCase(),
+        xserialcarroceria: requestBody.xserialcarroceria.toUpperCase(),
+        xplaca: requestBody.xplaca.toUpperCase(),
+        xtelefono_emp: requestBody.xtelefono_emp,
+        cplan: requestBody.cplan,
+        ccorredor: requestBody.ccorredor ? requestBody.ccorredor : undefined,
+        mgrua: requestBody.mgrua ? requestBody.mgrua : undefined,
+        xcedula:requestBody.xcedula,
+        xcobertura: requestBody.xcobertura.toUpperCase(),
+        ncapacidad_p: requestBody.ncapacidad_p,
+        ctarifa_exceso: requestBody.ctarifa_exceso,
+        cmetodologiapago: requestBody.cmetodologiapago ? requestBody.cmetodologiapago : undefined,
+        msuma_aseg: requestBody.msuma_aseg ? requestBody.msuma_aseg : undefined,
+        pcasco: requestBody.pcasco ? requestBody.pcasco : undefined,
+        mprima_casco: requestBody.mprima_casco ? requestBody.mprima_casco : undefined,
+        mcatastrofico: requestBody.mcatastrofico ? requestBody.mcatastrofico : undefined,
+        pdescuento: requestBody.pdescuento ? requestBody.pdescuento : undefined,
+        ifraccionamiento: requestBody.ifraccionamiento ? requestBody.ifraccionamiento : undefined,
+        ncuotas: requestBody.ncuotas ? requestBody.ncuotas : undefined,
+        mprima_bruta: requestBody.mprima_bruta ? requestBody.mprima_bruta : undefined,
+        mprima_blindaje: requestBody.mprima_blindaje ? requestBody.mprima_blindaje : undefined,
+        msuma_blindaje: requestBody.msuma_blindaje ? requestBody.msuma_blindaje : undefined,
+        pcatastrofico: requestBody.pcatastrofico ? requestBody.pcatastrofico : undefined,
+        pmotin: requestBody.pmotin ? requestBody.pmotin : undefined,
+        mmotin: requestBody.mmotin ? requestBody.mmotin : undefined,
+        pblindaje: requestBody.pblindaje ? requestBody.pblindaje : undefined,
+        cestado: requestBody.cestado ? requestBody.cestado : undefined,
+        cciudad: requestBody.cciudad ? requestBody.cciudad : undefined,
+        cpais: requestBody.cpais ? requestBody.cpais : undefined,
+        icedula: requestBody.icedula ? requestBody.icedula : undefined,
+        femision: requestBody.femision ,
+        ivigencia: requestBody.ivigencia ? requestBody.ivigencia : undefined,
+        cproductor: requestBody.cproductor ? requestBody.cproductor : undefined,
+        ccodigo_ubii: requestBody.ccodigo_ubii ? requestBody.ccodigo_ubii : undefined,
+        ctomador: requestBody.ctomador ? requestBody.ctomador : undefined,
+        cusuario: requestBody.cusuario ? requestBody.cusuario : undefined,
+        xzona_postal: requestBody.xzona_postal ? requestBody.xzona_postal : undefined,
+        cuso: requestBody.cuso ? requestBody.cuso : undefined,
+        ctipovehiculo: requestBody.ctipovehiculo ? requestBody.ctipovehiculo : undefined,
+        nkilometraje: requestBody.nkilometraje ? requestBody.nkilometraje : undefined,
+        cclase: requestBody.cclase ? requestBody.cclase : undefined,
+        cestatusgeneral: 21
+    };
+    if(userData){
+        let operationCreateQuoteQuery = await bd.createQuoteQuery(userData).then((res) => res);
+        if(operationCreateQuoteQuery.error){ return { status: false, code: 500, message: operationCreateQuoteQuery.error }; }
+    }
+    if(requestBody.accessory){
+        let accessoryData = [];
+        for(let i = 0; i < requestBody.accessory.length; i++){
+            accessoryData.push({
+                caccesorio:  requestBody.accessory[i].caccesorio,
+                msuma_accesorio:  requestBody.accessory[i].msuma_aseg,
+                mprima_accesorio:  requestBody.accessory[i].mprima,
+                ptasa:  requestBody.accessory[i].ptasa
+            })
+        }
+        let createAccesories = await bd.createAccesoriesFromFleetContractIndividual(accessoryData).then((res) => res);
+        if(createAccesories.error){ return { status: false, code: 500, message: createAccesories.error }; }
+    }
+    let lastQuote = await bd.getLastQuoteQuery();
+    if(lastQuote.error){ return { status: false, code: 500, message: lastQuote.error }; }
+    return { 
+        status: true, 
+        code: 200, 
+        xnombre: lastQuote.result.recordset[0].XNOMBRE, 
+        xapellido: lastQuote.result.recordset[0].XAPELLIDO, 
+        icedula: lastQuote.result.recordset[0].ICEDULA, 
+        xcedula: lastQuote.result.recordset[0].XCEDULA, 
+        xserialcarroceria: lastQuote.result.recordset[0].XSERIALCARROCERIA, 
+        xserialmotor: lastQuote.result.recordset[0].XSERIALMOTOR, 
+        xplaca: lastQuote.result.recordset[0].XPLACA, 
+        xmarca: lastQuote.result.recordset[0].XMARCA, 
+        xmodelo: lastQuote.result.recordset[0].XMODELO, 
+        xversion: lastQuote.result.recordset[0].XVERISON, 
+        cano: lastQuote.result.recordset[0].CANO, 
+        xestatusgeneral: lastQuote.result.recordset[0].XESTATUSGENERAL, 
+        xtipovehiculo: lastQuote.result.recordset[0].XTIPOVEHICULO, 
+        xuso: lastQuote.result.recordset[0].XUSO, 
+        xclase: lastQuote.result.recordset[0].XCLASE, 
+        xtomador: lastQuote.result.recordset[0].XTOMADOR, 
+        xprofesion: lastQuote.result.recordset[0].XPROFESION, 
+        xrif: lastQuote.result.recordset[0].XRIF, 
+    };
+}
+
 module.exports = router;

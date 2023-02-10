@@ -1,6 +1,6 @@
 const { request } = require('express');
 const sql = require('mssql');
-const { search } = require('../routes/administration-collection');
+
 const config = {
     user: process.env.USER_BD,
     password: process.env.PASSWORD_BD,
@@ -13432,6 +13432,171 @@ dataNotificationsQuery: async(data) => {
             .input('ccompania', sql.Int, data.ccompania)
             .query('SELECT COUNT(CNOTIFICACION) AS NNOTIFICACION FROM VWBUSCARNOTIFICACIONDATA WHERE CCOMPANIA = @ccompania');
         //sql.close()
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+datauserQuery: async(data) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cusuario', sql.Int, data.cusuario)
+            .query('SELECT * FROM VWBUSCARUSUARIODATA WHERE CUSUARIO = @cusuario');
+        //sql.close()
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+
+amountsPaidQuery: async() => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .query('SELECT DATEPART(month, FDESDE_POL) as MES, SUM(MPRIMA_PAGADA) as MPRIMA_PAGADA FROM SURECIBO GROUP BY DATEPART(month, FDESDE_POL)');
+        //sql.close()
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+amountsOutstandingQuery: async() => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .query('SELECT DATEPART(month, FDESDE_POL) as MES, SUM(MPRIMA_ANUAL) as MPRIMA_ANUAL FROM SURECIBO GROUP BY DATEPART(month, FDESDE_POL)');
+        //sql.close()
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+
+countNotificationsQuery: async() => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .query('SELECT DATEPART(month, FCREACION) as MES, COUNT(CNOTIFICACION) as NOTIFICACIONES FROM EVNOTIFICACION GROUP BY DATEPART(month, FCREACION)');
+        //sql.close()
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+
+createQuoteQuery: async(userData) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        let insert = await pool.request()
+            .input('xnombre', sql.NVarChar, userData.xnombre ? userData.xnombre: undefined)
+            .input('xapellido', sql.NVarChar, userData.xapellido)
+            .input('cano', sql.Numeric(11, 0), userData.cano)
+            .input('xcolor', sql.NVarChar, userData.xcolor)
+            .input('cmarca', sql.Int, userData.cmarca)
+            .input('cmodelo', sql.Int, userData.cmodelo)
+            .input('cversion', sql.Int, userData.cversion)
+            .input('xrif_cliente', sql.NVarChar, userData.xrif_cliente)
+            .input('email', sql.NVarChar, userData.email)
+            .input('xtelefono_prop', sql.NVarChar , userData.xtelefono_prop)
+            .input('xdireccionfiscal', sql.NVarChar, userData.xdireccionfiscal)
+            .input('xserialmotor', sql.NVarChar, userData.xserialmotor)
+            .input('xserialcarroceria', sql.NVarChar, userData.xserialcarroceria)
+            .input('xplaca', sql.NVarChar, userData.xplaca)
+            .input('xtelefono_emp', sql.NVarChar, userData.xtelefono_emp)
+            .input('cplan', sql.Numeric(11, 0), userData.cplan)
+            .input('ccorredor', sql.Numeric(11, 0), userData.ccorredor)
+            .input('xcedula', sql.NVarChar, userData.xcedula)
+            .input('cproductor', sql.Numeric(11, 0), userData.cproductor)
+            .input('xcobertura', sql.NVarChar, userData.xcobertura)
+            .input('cestatusgeneral', sql.Int, userData.cestatusgeneral)
+            .input('ncapacidad_p', sql.NVarChar, userData.ncapacidad_p)
+            .input('ctarifa_exceso', sql.Int, userData.ctarifa_exceso)
+            .input('finicio',  sql.DateTime, new Date())
+            .input('femision',  sql.DateTime, userData.femision)
+            .input('cmetodologiapago', sql.Numeric(11, 0), userData.cmetodologiapago)
+            .input('msuma_aseg', sql.Numeric(11, 2), userData.msuma_aseg)
+            .input('pcasco', sql.Numeric(11, 2), userData.pcasco)
+            .input('mprima_casco', sql.Numeric(11, 2), userData.mprima_casco)
+            .input('mcatastrofico', sql.Numeric(11, 2), userData.mcatastrofico)
+            .input('pdescuento', sql.Numeric(17, 2), userData.pdescuento)
+            .input('ifraccionamiento', sql.Bit, userData.ifraccionamiento)
+            .input('ncuotas', sql.Int, userData.ncuotas)
+            .input('mprima_blindaje', sql.Numeric(11, 2), userData.mprima_blindaje)
+            .input('msuma_blindaje', sql.Numeric(11, 2), userData.msuma_blindaje)
+            .input('mprima_bruta', sql.Numeric(11, 2), userData.mprima_bruta)
+            .input('pcatastrofico', sql.Numeric(11, 2), userData.pcatastrofico)
+            .input('pmotin', sql.Numeric(11, 2), userData.pmotin)
+            .input('mmotin', sql.Numeric(11, 2), userData.mmotin)
+            .input('pblindaje', sql.Numeric(11, 2), userData.pblindaje)
+            .input('cestado', sql.Numeric(11, 0), userData.cestado)
+            .input('cciudad', sql.Numeric(11, 0), userData.cciudad)
+            .input('cpais', sql.Numeric(11, 0), userData.cpais)
+            .input('icedula', sql.NVarChar, userData.icedula)
+            .input('ivigencia', sql.Int, userData.ivigencia)
+            .input('mgrua', sql.NVarChar ,userData.mgrua)
+            .input('ctomador', sql.Int, userData.ctomador ? userData.ctomador: 0)
+            .input('cusuariocreacion', sql.Int, userData.cusuario ? userData.cusuario: 0)
+            .input('xzona_postal', sql.NVarChar, userData.xzona_postal)
+            .input('cuso', sql.NVarChar, userData.cuso)
+            .input('ctipovehiculo', sql.Int, userData.ctipovehiculo)
+            .input('nkilometraje', sql.Numeric(18, 2), userData.nkilometraje)
+            .input('cclase', sql.Int, userData.cclase)
+            .input('fcreacion', sql.DateTime, new Date())
+            .query('insert into CTCOTIZACION(XNOMBRE, XAPELLIDO, CANO, XCOLOR, CMARCA, CMODELO, CVERSION, XRIF_CLIENTE, EMAIL, XTELEFONO_PROP, XDIRECCIONFISCAL, XSERIALMOTOR, XSERIALCARROCERIA, XPLACA, XTELEFONO_EMP, CPLAN, CCORREDOR, XCEDULA, XCOBERTURA, NCAPACIDAD_P, CTARIFA_EXCESO, FINICIO, CMETODOLOGIAPAGO, MSUMA_ASEG, PCASCO, MPRIMA_CASCO, MCATASTROFICO, PDESCUENTO, IFRACCIONAMIENTO, NCUOTAS, MPRIMA_BLINDAJE, MSUMA_BLINDAJE, MPRIMA_BRUTA, PCATASTROFICO, PMOTIN, MMOTIN, PBLINDAJE, CESTADO, CCIUDAD, CPAIS, ICEDULA, FEMISION, IVIGENCIA, MGRUA, CESTATUSGENERAL, CTOMADOR, XZONA_POSTAL,CUSO ,CTIPOVEHICULO, FCREACION, CUSUARIOCREACION, NKILOMETRAJE, CCLASE) values (@xnombre, @xapellido, @cano, @xcolor, @cmarca, @cmodelo, @cversion, @xrif_cliente, @email, @xtelefono_prop, @xdireccionfiscal, @xserialmotor, @xserialcarroceria, @xplaca, @xtelefono_emp, @cplan, @ccorredor, @xcedula, @xcobertura, @ncapacidad_p, @ctarifa_exceso, @finicio, @cmetodologiapago, @msuma_aseg, @pcasco, @mprima_casco, @mcatastrofico, @pdescuento, @ifraccionamiento, @ncuotas, @mprima_blindaje, @msuma_blindaje, @mprima_bruta,@pcatastrofico ,@pmotin, @mmotin, @pblindaje, @cestado, @cciudad, @cpais, @icedula, @femision, @ivigencia, @mgrua, @cestatusgeneral, @ctomador, @xzona_postal, @cuso, @ctipovehiculo, @fcreacion, @cusuariocreacion, @nkilometraje, @cclase)')                
+             return { result: { rowsAffected: rowsAffected, status: true } };
+    }
+    catch(err){
+        console.log(err.message)
+        return { error: err.message };
+    }
+},
+getLastQuoteQuery: async() => {
+    try {
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .query('SELECT TOP 1 * FROM VWBUSCARCOTIZACION ORDER BY XNOMBRE DESC')
+        return { result: result };
+    }catch(err) {
+        console.log(err.message);
+        return { error: err.message };
+    }
+},
+searchPlanQuery: async(searchData) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cpais', sql.Numeric(4, 0), searchData.cpais)
+            .input('ccompania', sql.Int, searchData.ccompania)
+            .input('ctipoplan', sql.Int, searchData.ctipoplan ? searchData.ctipoplan : null)
+            .input('xplan', sql.NVarChar, searchData.xplan ? searchData.xplan : null)
+            .query(`select * from POPLAN where CPAIS = @cpais and CCOMPANIA = @ccompania${ searchData.ctipoplan ? ' and CTIPOPLAN = @CTIPOPLAN' : '' }${ searchData.xplan ? ' and XPLAN = @xplan' : '' }`);
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+getPlanServicesInsurersDataQuery: async(cplan) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cplan', sql.Int, cplan)
+            .query('select * from VWBUSCARSERVICIOASEGURADORAXPLANDATA where CPLAN = @cplan');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+getServiceFromPlanQuery: async(ctiposervicio) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('ctiposervicio', sql.Int, ctiposervicio)
+            .query('select * from MASERVICIO where CTIPOSERVICIO = @ctiposervicio');
+        //sql.close();
         return { result: result };
     }catch(err){
         return { error: err.message };
