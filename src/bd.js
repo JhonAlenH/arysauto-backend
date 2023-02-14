@@ -11088,7 +11088,7 @@ module.exports = {
             let pool = await sql.connect(config);
             let result = await pool.request()
                 .input('cplan', sql.Int, cplan)
-                .query('select * from VWBUSCARSERVICIOXPLANDATA where CPLAN = @cplan');
+                .query('select * from VWBUSCARTIPOSERVICIOSXPLAN where CPLAN = @cplan');
             //sql.close();
             return { result: result };
         }catch(err){
@@ -13597,6 +13597,144 @@ getServiceFromPlanQuery: async(ctiposervicio) => {
             .input('ctiposervicio', sql.Int, ctiposervicio)
             .query('select * from MASERVICIO where CTIPOSERVICIO = @ctiposervicio');
         //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+createServiceFromPlanQuery: async(serviceList, dataList, cplan) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < serviceList.length; i++){
+            let insert = await pool.request()
+                .input('cplan', sql.Int, cplan)
+                .input('ctiposervicio', sql.Int, serviceList[i].ctiposervicio)
+                .input('bactivo', sql.Bit, dataList.bactivo)
+                .input('cusuariocreacion', sql.Int, dataList.cusuario)
+                .input('fcreacion', sql.DateTime, new Date())
+                .query('insert into POTIPOSERVICIOS (CPLAN, CTIPOSERVICIO, BACTIVO, CUSUARIOCREACION, FCREACION) values (@cplan, @ctiposervicio, @bactivo, @cusuariocreacion, @fcreacion)')
+            rowsAffected = rowsAffected + insert.rowsAffected;
+        }
+        //sql.close();
+        return { result: { rowsAffected: rowsAffected } };
+    }
+    catch(err){
+        console.log(err.message)
+        return { error: err.message };
+    }
+},
+createPlanQuery: async(dataList, cplan) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cplan', sql.Int, cplan)
+            .input('xplan', sql.NVarChar, dataList.xplan)
+            .input('ctipoplan', sql.Int, dataList.ctipoplan)
+            .input('binternacional', sql.Bit, dataList.binternacional ? dataList.binternacional: 0)
+            .input('brcv', sql.Int, dataList.brcv)
+            .input('cpais', sql.Int, dataList.cpais)
+            .input('ccompania', sql.Int, dataList.ccompania)
+            .input('mcosto', sql.Numeric(18, 2), dataList.mcosto)
+            .input('mcosto_mensual', sql.Numeric(18, 2), dataList.mcosto_mensual)
+            .input('parys', sql.Numeric(18, 2), dataList.parys)
+            .input('paseguradora', sql.Numeric(18, 2), dataList.paseguradora)
+            .input('cmoneda', sql.Int, dataList.cmoneda)
+            .input('bactivo', sql.Bit, dataList.bactivo)
+            .input('cusuariocreacion', sql.Int, dataList.cusuario)
+            .input('fcreacion', sql.DateTime, new Date())
+            .query('insert into POPLAN (CPLAN, XPLAN, CTIPOPLAN, BINTERNACIONAL, BRCV, CPAIS, CCOMPANIA, MCOSTO, MCOSTO_MENSUAL, PARYS, PASEGURADORA, CMONEDA, BACTIVO, CUSUARIOCREACION, FCREACION ) values (@cplan, @xplan, @ctipoplan, @binternacional, @brcv, @cpais, @ccompania, @mcosto, @mcosto_mensual, @parys, @paseguradora, @cmoneda, @bactivo, @cusuariocreacion, @fcreacion)')
+
+            return { result: result, cplan};
+    }
+    catch(err){
+        console.log()
+        return { error: err.message };
+    }
+},
+searchCodePlanQuery: async() => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .query('select MAX(CPLAN) AS CPLAN from POPLAN');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+searchLastPlanQuery: async() => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .query('select MAX(CPLAN) AS CPLAN, MAX(XPLAN) AS XPLAN from POPLAN');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+createServicePlanRcvQuery: async(dataList, plan) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cplan', sql.Int, plan.cplan)
+            .input('cservicio_aseg', sql.Int, dataList.cservicio_aseg)
+            .input('cplan_rc', sql.Int, plan.cplan)
+            .input('ctiposervicio', sql.Int, dataList.ctiposervicio)
+            .input('ctipoagotamientoservicio', sql.Int, dataList.ctipoagotamientoservicio)
+            .input('ncantidad', sql.Int, dataList.ncantidad)
+            .input('pservicio', sql.Numeric(5, 2), dataList.pservicio)
+            .input('mmaximocobertura', sql.Numeric(11, 2), dataList.mmaximocobertura)
+            .input('mdeducible', sql.Numeric(11, 2), dataList.mdeducible)
+            .input('bserviciopadre', sql.Bit, dataList.bserviciopadre)
+            .input('bactivo', sql.Bit, dataList.bactivo)
+            .input('cusuariocreacion', sql.Int, dataList.cusuario)
+            .input('fcreacion', sql.DateTime, new Date())
+            .query('INSERT INTO POSERVICIOPLAN_RC (CPLAN, CSERVICIO_ASEG, CPLAN_RC, CTIPOSERVICIO, CTIPOAGOTAMIENTOSERVICIO, NCANTIDAD, PSERVICIO, MMAXIMOCOBERTURA, MDEDUCIBLE, BSERVICIOPADRE, BACTIVO, FCREACION, CUSUARIOCREACION  ) values (@cplan, @cservicio_aseg, @cplan_rc, @ctiposervicio, @ctipoagotamientoservicio, @ncantidad, @pservicio, @mmaximocobertura, @mdeducible, @bserviciopadre, @bactivo, @fcreacion, @cusuariocreacion)')
+
+            return { result: result};
+    }
+    catch(err){
+        console.log(err.message)
+        return { error: err.message };
+    }
+},
+createPlanRcvQuery: async(dataList, rcv, plan) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cplan_rc', sql.Int, plan.cplan)
+            .input('xplan_rc', sql.NVarChar, plan.xplan)
+            .input('msuma_dc', sql.Numeric(22, 2), rcv.msuma_dc)
+            .input('msuma_personas', sql.Numeric(22, 2), rcv.msuma_personas)
+            .input('msuma_exceso', sql.Numeric(22, 2), rcv.msuma_exceso)
+            .input('msuma_dp', sql.Numeric(22, 2), rcv.msuma_dp)
+            .input('msuma_muerte', sql.Numeric(22, 2), rcv.msuma_muerte)
+            .input('msuma_invalidez', sql.Numeric(22, 2), rcv.msuma_invalidez)
+            .input('msuma_gm', sql.Numeric(22, 2), rcv.msuma_gm)
+            .input('msuma_gf', sql.Numeric(22, 2), rcv.msuma_gf)
+            .input('bactivo', sql.Bit, dataList.bactivo)
+            .input('cusuariocreacion', sql.Int, dataList.cusuario)
+            .input('fcreacion', sql.DateTime, new Date())
+            .query('INSERT INTO PRPLAN_RC (CPLAN_RC, XPLAN_RC, MSUMA_DC, MSUMA_PERSONAS, MSUMA_EXCESO, MSUMA_DP, MSUMA_MUERTE, MSUMA_INVALIDEZ, MSUMA_GM, MSUMA_GF, BACTIVO, FCREACION, CUSUARIOCREACION  ) values (@cplan_rc, @xplan_rc, @msuma_personas, @msuma_exceso, @msuma_dp, @msuma_muerte, @msuma_invalidez, @msuma_dc, @msuma_gm, @msuma_gf, @bactivo, @fcreacion, @cusuariocreacion)')
+
+            return { result: result};
+    }
+    catch(err){
+        return { error: err.message };
+    }
+},
+searchLast2PlanQuery: async() => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .query('SELECT TOP 1 * FROM POPLAN ORDER BY CPLAN DESC');
+        //sql.close();
+        console.log(result)
         return { result: result };
     }catch(err){
         return { error: err.message };
