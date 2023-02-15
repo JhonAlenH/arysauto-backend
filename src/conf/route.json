@@ -40,6 +40,11 @@
         "route": "/api/company"
     },
     {
+        "name": "Contract Arys Route",
+        "router": "../routes/contract-arys",
+        "route": "/api/contract-arys"
+    },
+    {
         "name": "Home Route",
         "router": "../routes/home",
         "route": "/api/home"

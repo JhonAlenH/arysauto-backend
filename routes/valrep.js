@@ -2716,6 +2716,39 @@ const operationValrepPlan = async(authHeader, requestBody) => {
     return { status: true, list: jsonArray }
 }
 
+router.route('/plan-contract').post((req, res) => {
+    if(!req.header('Authorization')){ 
+        res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } })
+        return;
+    }else{
+        operationValrepPlanContract(req.header('Authorization'), req.body).then((result) => {
+            if(!result.status){ 
+                res.status(result.code).json({ data: result });
+                return;
+            }
+            res.json({ data: result });
+        }).catch((err) => {
+            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationValrepPlanContract' } });
+        });
+    }
+});
+
+const operationValrepPlanContract = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    // if(!helper.validateRequestObj(requestBody, ['cpais', 'ccompania', 'ctipoplan'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
+    let searchData = {
+        cpais: requestBody.cpais,
+        ccompania: requestBody.ccompania
+    };
+    let valrepPlanWithoutRcv = await bd.valrepPlanWithoutRcvQuery(searchData).then((res) => res);
+    if(valrepPlanWithoutRcv.error){ return { status: false, code: 500, message: valrepPlanWithoutRcv.error }; }
+    let jsonArray = [];
+    for(let i = 0; i < valrepPlanWithoutRcv.result.recordset.length; i++){
+        jsonArray.push({ cplan: valrepPlanWithoutRcv.result.recordset[i].CPLAN, xplan: valrepPlanWithoutRcv.result.recordset[i].XPLAN, binternacional: valrepPlanWithoutRcv.result.recordset[i].BINTERNACIONAL, bactivo: valrepPlanWithoutRcv.result.recordset[i].BACTIVO, control: i,  mcosto: valrepPlanWithoutRcv.result.recordset[i].MCOSTO});
+    }
+    return { status: true, list: jsonArray }
+}
+
 router.route('/insurer').post((req, res) => {
     if(!req.header('Authorization')){ 
         res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } })
