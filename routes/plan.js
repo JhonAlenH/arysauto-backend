@@ -175,7 +175,8 @@ const operationCreatePlan = async(authHeader, requestBody) => {
         bactivo: requestBody.bactivo,
         cpais: requestBody.cpais,
         ccompania: requestBody.ccompania,
-        cusuario: requestBody.cusuario
+        cusuario: requestBody.cusuario,
+        cmoneda: 2
     }
     //Busca código del plan
     let searchCodePlan = await bd.searchCodePlanQuery().then((res) => res);

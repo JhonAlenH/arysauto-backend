@@ -43,6 +43,7 @@ router.route('/create').post((req, res) => {
         }
         res.json({ data: result });
     }).catch((err) => {
+        console.log(err.message)
         res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationCreate' } });
     });
 });
@@ -82,29 +83,29 @@ const operationCreate = async(authHeader, requestBody) => {
         let createContractServiceArys = await bd.createContractServiceArysQuery(userData).then((res) => res);
         if(createContractServiceArys.error){ return { status: false, code: 500, message: createContractServiceArys.error }; }
     }
-    let lastQuote = await bd.getLastQuoteQuery();
-    if(lastQuote.error){ return { status: false, code: 500, message: lastQuote.error }; }
+    // let lastQuote = await bd.getLastQuoteQuery();
+    // if(lastQuote.error){ return { status: false, code: 500, message: lastQuote.error }; }
     return { 
         status: true, 
         code: 200, 
-        xnombre: lastQuote.result.recordset[0].XNOMBRE, 
-        xapellido: lastQuote.result.recordset[0].XAPELLIDO, 
-        icedula: lastQuote.result.recordset[0].ICEDULA, 
-        xcedula: lastQuote.result.recordset[0].XCEDULA, 
-        xserialcarroceria: lastQuote.result.recordset[0].XSERIALCARROCERIA, 
-        xserialmotor: lastQuote.result.recordset[0].XSERIALMOTOR, 
-        xplaca: lastQuote.result.recordset[0].XPLACA, 
-        xmarca: lastQuote.result.recordset[0].XMARCA, 
-        xmodelo: lastQuote.result.recordset[0].XMODELO, 
-        xversion: lastQuote.result.recordset[0].XVERISON, 
-        cano: lastQuote.result.recordset[0].CANO, 
-        xestatusgeneral: lastQuote.result.recordset[0].XESTATUSGENERAL, 
-        xtipovehiculo: lastQuote.result.recordset[0].XTIPOVEHICULO, 
-        xuso: lastQuote.result.recordset[0].XUSO, 
-        xclase: lastQuote.result.recordset[0].XCLASE, 
-        xtomador: lastQuote.result.recordset[0].XTOMADOR, 
-        xprofesion: lastQuote.result.recordset[0].XPROFESION, 
-        xrif: lastQuote.result.recordset[0].XRIF, 
+        // xnombre: lastQuote.result.recordset[0].XNOMBRE, 
+        // xapellido: lastQuote.result.recordset[0].XAPELLIDO, 
+        // icedula: lastQuote.result.recordset[0].ICEDULA, 
+        // xcedula: lastQuote.result.recordset[0].XCEDULA, 
+        // xserialcarroceria: lastQuote.result.recordset[0].XSERIALCARROCERIA, 
+        // xserialmotor: lastQuote.result.recordset[0].XSERIALMOTOR, 
+        // xplaca: lastQuote.result.recordset[0].XPLACA, 
+        // xmarca: lastQuote.result.recordset[0].XMARCA, 
+        // xmodelo: lastQuote.result.recordset[0].XMODELO, 
+        // xversion: lastQuote.result.recordset[0].XVERISON, 
+        // cano: lastQuote.result.recordset[0].CANO, 
+        // xestatusgeneral: lastQuote.result.recordset[0].XESTATUSGENERAL, 
+        // xtipovehiculo: lastQuote.result.recordset[0].XTIPOVEHICULO, 
+        // xuso: lastQuote.result.recordset[0].XUSO, 
+        // xclase: lastQuote.result.recordset[0].XCLASE, 
+        // xtomador: lastQuote.result.recordset[0].XTOMADOR, 
+        // xprofesion: lastQuote.result.recordset[0].XPROFESION, 
+        // xrif: lastQuote.result.recordset[0].XRIF, 
     };
 }
 

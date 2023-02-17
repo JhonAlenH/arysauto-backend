@@ -2744,7 +2744,7 @@ const operationValrepPlanContract = async(authHeader, requestBody) => {
     if(valrepPlanWithoutRcv.error){ return { status: false, code: 500, message: valrepPlanWithoutRcv.error }; }
     let jsonArray = [];
     for(let i = 0; i < valrepPlanWithoutRcv.result.recordset.length; i++){
-        jsonArray.push({ cplan: valrepPlanWithoutRcv.result.recordset[i].CPLAN, xplan: valrepPlanWithoutRcv.result.recordset[i].XPLAN, binternacional: valrepPlanWithoutRcv.result.recordset[i].BINTERNACIONAL, bactivo: valrepPlanWithoutRcv.result.recordset[i].BACTIVO, control: i,  mcosto: valrepPlanWithoutRcv.result.recordset[i].MCOSTO});
+        jsonArray.push({ cplan: valrepPlanWithoutRcv.result.recordset[i].CPLAN, xplan: valrepPlanWithoutRcv.result.recordset[i].XPLAN, binternacional: valrepPlanWithoutRcv.result.recordset[i].BINTERNACIONAL, bactivo: valrepPlanWithoutRcv.result.recordset[i].BACTIVO, control: i,  mcosto: valrepPlanWithoutRcv.result.recordset[i].MCOSTO, xmoneda: valrepPlanWithoutRcv.result.recordset[i].xmoneda});
     }
     return { status: true, list: jsonArray }
 }
