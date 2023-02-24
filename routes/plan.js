@@ -156,7 +156,7 @@ router.route('/create').post((req, res) => {
             }
             res.json({ data: result });
         }).catch((err) => {
-            console.log(err.message)
+            // console.log(err.message)
             res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationCreatePlan' } });
         });
     }
@@ -189,16 +189,31 @@ const operationCreatePlan = async(authHeader, requestBody) => {
         let createPlan = await bd.createPlanQuery(dataList, cplan).then((res) => res);
         if(createPlan.error){return { status: false, code: 500, message: createPlan.error }; }
         if(createPlan.result.rowsAffected > 0){  
-            if(requestBody.services){
+            if(requestBody.servicesType){
                 //Crea los servicios del plan
-                let serviceList = [];
-                for(let i = 0; i < requestBody.services.length; i++){
-                    serviceList.push({
-                        ctiposervicio: requestBody.services[i].ctiposervicio,
+                let serviceTypeList = [];
+                for(let i = 0; i < requestBody.servicesType.length; i++){
+                    serviceTypeList.push({
+                        ctiposervicio: requestBody.servicesType[i].ctiposervicio,
                     })
                 }
-                let createService = await bd.createServiceFromPlanQuery(serviceList, dataList, cplan).then((res) => res);
-                if(createService.error){ return  { status: false, code: 500, message: createService.error }; }
+                let createTypeService = await bd.createServiceTypeFromPlanQuery(serviceTypeList, dataList, cplan).then((res) => res);
+                if(createTypeService.error){ return  { status: false, code: 500, message: createTypeService.error }; }
+
+                // if(serviceTypeList){
+                //     let searchServiceFromTypeService = await bd.searchServiceFromTypeServiceQuery(serviceTypeList).then((res) => res);
+                //     if(searchServiceFromTypeService.error){ return  { status: false, code: 500, message: searchServiceFromTypeService.error }; }
+                //     if(searchServiceFromTypeService.result){
+                //         let serviceList = [];
+                //         for(let i = 0; i < searchServiceFromTypeService.result.length; i++){
+                //             serviceList.push({
+                //                 cservicio: searchServiceFromTypeService.result[i].cservicio
+                //             })
+                //         }
+                //         let createService = await bd.createServiceFromPlanQuery(serviceList, serviceTypeList, dataList, cplan).then((res) => res);
+                //         if(createService.error){ return  { status: false, code: 500, message: createService.error }; }
+                //     }
+                // }
             }
             let searchLastPlan = await bd.searchLastPlanQuery().then((res) => res);
             if(searchLastPlan.error){ return  { status: false, code: 500, message: searchLastPlan.error }; }

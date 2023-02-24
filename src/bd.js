@@ -13602,14 +13602,14 @@ getServiceFromPlanQuery: async(ctiposervicio) => {
         return { error: err.message };
     }
 },
-createServiceFromPlanQuery: async(serviceList, dataList, cplan) => {
+createServiceTypeFromPlanQuery: async(serviceTypeList, dataList, cplan) => {
     try{
         let rowsAffected = 0;
         let pool = await sql.connect(config);
-        for(let i = 0; i < serviceList.length; i++){
+        for(let i = 0; i < serviceTypeList.length; i++){
             let insert = await pool.request()
                 .input('cplan', sql.Int, cplan)
-                .input('ctiposervicio', sql.Int, serviceList[i].ctiposervicio)
+                .input('ctiposervicio', sql.Int, serviceTypeList[i].ctiposervicio)
                 .input('bactivo', sql.Bit, dataList.bactivo)
                 .input('cusuariocreacion', sql.Int, dataList.cusuario)
                 .input('fcreacion', sql.DateTime, new Date())
@@ -13620,7 +13620,6 @@ createServiceFromPlanQuery: async(serviceList, dataList, cplan) => {
         return { result: { rowsAffected: rowsAffected } };
     }
     catch(err){
-        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -13767,7 +13766,6 @@ valrepPlanWithoutRcvQuery: async(searchData) => {
     }
 },
 createContractServiceArysQuery: async(userData) => {
-    console.log(userData)
     try{
         let rowsAffected = 0;
         let pool = await sql.connect(config);
@@ -13803,6 +13801,71 @@ createContractServiceArysQuery: async(userData) => {
             .input('fcreacion', sql.DateTime, new Date())
             .query('insert into TMEMISION_SERVICIOS(XRIF_CLIENTE, XNOMBRE, XAPELLIDO, CMARCA, CMODELO, CVERSION, CANO, XCOLOR, EMAIL, XTELEFONO_PROP, XDIRECCIONFISCAL, XSERIALMOTOR, XSERIALCARROCERIA, XPLACA, XTELEFONO_EMP, CPLAN, XCEDULA, FINICIO, CESTADO, CCIUDAD, CPAIS, ICEDULA, FEMISION, CESTATUSGENERAL, XZONA_POSTAL, FCREACION, CUSUARIOCREACION) values (@xrif_cliente, @xnombre, @xapellido, @cmarca, @cmodelo, @cversion, @cano, @xcolor, @email, @xtelefono_prop, @xdireccionfiscal, @xserialmotor, @xserialcarroceria, @xplaca, @xtelefono_emp, @cplan, @xcedula, @finicio, @cestado, @cciudad, @cpais, @icedula, @femision, @cestatusgeneral, @xzona_postal, @fcreacion, @cusuariocreacion )')                
              return { result: { rowsAffected: rowsAffected} };
+    }
+    catch(err){
+        return { error: err.message };
+    }
+},
+// searchServiceFromTypeServiceQuery: async(serviceTypeList) => {
+//     try{
+//         let pool = await sql.connect(config);
+//         let result = await pool.request()
+//         .input('ctiposervicio', sql.Int, serviceTypeList.ctiposervicio)
+//         .query('select * from MASERVICIO where CTIPOSERVICIO = @ctiposervicio')
+//         //sql.close();
+//         console.log(result)
+//         return { result: result };
+//     }catch(err){
+//         console.log(err.message)
+//         return { error: err.message };
+//     }
+// },
+searchServiceFromTypeServiceQuery: async(serviceTypeList) => {
+    try{
+        let pool = await sql.connect(config);
+        let tiposervicios = [];
+        for(let i = 0; i < serviceTypeList.length; i++){
+            let result = await pool.request()
+                .input('ctiposervicio', sql.Int, serviceTypeList[i].ctiposervicio)
+                .query('select * from MASERVICIO where CTIPOSERVICIO = @ctiposervicio')
+            if(result.recordset.lenght != 0) {
+                for(let i = 0; i < result.recordset.length; i++) {
+                    tiposervicios.push({
+                        cservicio: result.recordset[i].CSERVICIO
+                    })
+                }
+                
+            }
+        }
+        return { result: tiposervicios };
+    }
+    catch(err){
+        return { error: err.message };
+    }
+},
+createServiceFromPlanQuery: async(serviceList, serviceTypeList, dataList, cplan) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        let service = {}
+        for(let i = 0; i < serviceList.length; i++){
+            service = {
+                cservicio: serviceList[i]
+            }
+        }
+        for(let i = 0; i < serviceTypeList.length; i++){
+            console.log(service)
+            let insert = await pool.request()
+            .input('cplan', sql.Int, cplan) 
+            .input('cservicio', sql.Int, service.cservicio) 
+            .input('ctiposervicio', sql.Int, serviceTypeList[i].ctiposervicio)
+            .input('bactivo', sql.Bit, dataList.bactivo)
+            .input('cusuariocreacion', sql.Int, dataList.cusuario)
+            .input('fcreacion', sql.DateTime, new Date())
+            .query('insert into POSERVICIOS (CPLAN, CTIPOSERVICIO, CSERVICIO, BACTIVO, CUSUARIOCREACION, FCREACION) values (@cplan, @ctiposervicio, @cservicio, @bactivo, @cusuariocreacion, @fcreacion)')
+            rowsAffected = rowsAffected + insert.rowsAffected;
+        }
+        return { result: { rowsAffected: rowsAffected } };
     }
     catch(err){
         console.log(err.message)
