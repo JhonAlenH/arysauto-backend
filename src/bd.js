@@ -9098,65 +9098,55 @@ module.exports = {
             return { error: err.message };
         }
     },
-    createChargeQuery: async(chargeList, ccliente, ctiporecibo, npoliza) => {
+    createChargeQuery: async(chargeList, ccarga, clote) => {
         try{
             if(chargeList){
                 let rowsAffected = 0;
                 let pool = await sql.connect(config);
                 for(let i = 0; i < chargeList.length; i++){
-                    if (chargeList[i].TARIFA) {
-                        chargeList[i].TARIFA = chargeList[i].TARIFA.replace("%", "")
-                        if (isNaN(chargeList[i].TARIFA)) {
-                            chargeList[i].TARIFA = 0;
-                        }
-                    }
-                    else {chargeList[i].TARIFA = 0}
+
                     let insert = await pool.request()
-                        .input('id', sql.Int, chargeList[i].ID + 38) //falta ver como agregar ccontratoflota
-                        .input('ccliente', sql.Int, ccliente)
-                        .input('ctiporecibo', sql.Int, ctiporecibo)
-                        .input('npoliza', sql.Int, npoliza)
-                        .input('xcliente', sql.NVarChar, chargeList[i].XCLIENTE)
-                        .input('xrif_cliente', sql.NVarChar, chargeList[i].RIF_EMPRESA)
-                        .input('xnombre', sql.NVarChar, chargeList[i].NOMBRE)
-                        .input('xapellido', sql.NVarChar, chargeList[i].APELLIDO)
+                        .input('id', sql.Int, chargeList[i].No)
+                        .input('ccarga', sql.Int, ccarga)
+                        .input('clote', sql.Int, clote)
+                        .input('xpoliza', sql.NVarChar, chargeList[i].POLIZA)
+                        .input('xcertificado', sql.NVarChar, chargeList[i].CERTIFICADO)
+                        .input('xrif_cliente', sql.NVarChar, chargeList[i].RIF_CLIENTE)
+                        .input('xnombre', sql.NVarChar, chargeList[i].PROPIETARIO)
+                        .input('icedula', sql.NVarChar, chargeList[i].letra)
                         .input('xcedula', sql.NVarChar, chargeList[i].CEDULA)
-                        .input('fnac', sql.DateTime, chargeList[i].FECHA_NAC ? chargeList[i].FECHA_NAC : undefined)
-                        .input('xdireccionfiscal', sql.NVarChar, chargeList[i].XDIRECCION)
-                        .input('xtelefono_emp', sql.NVarChar, chargeList[i].XTELEFONO_EMP)
-                        .input('xtelefono_prop', sql.NVarChar, chargeList[i].XTELEFONO_PROP)
-                        .input('cplan', sql.Int, chargeList[i].PLAN) //cambiar a cplan_real
+                        .input('fnac', sql.DateTime, chargeList[i].FNAC ? chargeList[i].FNAC : undefined)
+                        .input('cplan', sql.Int, chargeList[i].CPLAN)
                         .input('xserialcarroceria', sql.NVarChar, chargeList[i]["SERIAL CARROCERIA"])
                         .input('xserialmotor', sql.NVarChar, chargeList[i]["SERIAL MOTOR"])
                         .input('xplaca', sql.NVarChar, chargeList[i].PLACA)
                         .input('cmarca', sql.Int, chargeList[i].CMARCA)
-                        .input('xmarca', sql.NVarChar, chargeList[i].MARCA)
                         .input('cmodelo', sql.Int, chargeList[i].CMODELO)
-                        .input('xmodelo', sql.NVarChar, chargeList[i].MODELO)
                         .input('cversion', sql.Int, chargeList[i].CVERSION)
-                        .input('xversion', sql.NVarChar, chargeList[i].VERSION)
+                        .input('xmarca', sql.NVarChar, chargeList[i].XMARCA)
+                        .input('xmodelo', sql.NVarChar, chargeList[i].XMODELO)
+                        .input('xversion', sql.NVarChar, chargeList[i].XVERSION)
                         .input('cano', sql.Int, chargeList[i]["AÑO"])
-                        .input('xcolor', sql.NVarChar, chargeList[i].XCOLOR)
-                        .input('xtipo', sql.NVarChar, chargeList[i].XTIPO)
-                        .input('cmoneda', sql.Int, chargeList[i].CMONEDA)
-                        .input('xcobertura', sql.NVarChar, chargeList[i].XCOBERTURA)
-                        .input('msuma_aseg', sql.Numeric(11, 2), chargeList[i].SUMA_ASEGURADA)
-                        .input('mtarifa', sql.Numeric(11, 2), chargeList[i].TARIFA)
-                        .input('mprima_casco', sql.Numeric(11, 2), chargeList[i].PRIMA_CASCO)
-                        .input('msuma_accesorios', sql.Numeric(11, 2), chargeList[i].SA_ACCESORIOS)
-                        .input('mprima_accesorios', sql.Numeric(11, 2), chargeList[i].PRIMA_ACCESORIOS)
-                        .input('mcatastrofico', sql.Numeric(11, 2), chargeList[i].MCATASTROFICO)
-                        .input('email', sql.NVarChar, chargeList[i].EMAIL ? chargeList[i].EMAIL : undefined)
-                        .input('finicio', sql.DateTime, undefined) //chargeList[i].FECHA_EMISION
-                        .input('fdesde_pol', sql.DateTime, chargeList[i].FDESDE_POL)
-                        .input('fhasta_pol', sql.DateTime, chargeList[i].FHASTA_POL)
-                        .input('fdesde_rec', sql.DateTime, chargeList[i].FDESDE_REC)
-                        .input('fhasta_rec', sql.DateTime, chargeList[i].FHASTA_REC)
-                        .input('ncapacidad_p', sql.Int, chargeList[i].CAPACIDAD_PAS)
-                        .input('mcapacidad_c', sql.Numeric(11, 2), chargeList[i].CAPACIDAD_CARGA ? chargeList[i].CAPACIDAD_CARGA: undefined)
-                        .input('xuso', sql.NVarChar, chargeList[i].USO)
-                        .input('ccorredor', sql.Int, chargeList[i].CORREDOR)
-                        .query('insert into tmcontrato_flota (id, ccliente, ctiporecibo, npoliza, xcliente, xrif_cliente, xnombre, xapellido, xcedula, fnac, cplan, xserialcarroceria, xserialmotor, xplaca, cmarca, xmarca, cmodelo, xmodelo, cversion, xversion, cano, xcolor, xtipo, cmoneda, xcobertura, msuma_aseg, mtarifa, mprima_casco, msuma_accesorios, mprima_accesorios, mcatastrofico, xdireccionfiscal, finicio, xtelefono_emp, xtelefono_prop, email, fdesde_pol, fhasta_pol, fdesde_rec, fhasta_rec, ncapacidad_p, mcapacidad_c, xuso, ccorredor) values (@id, @ccliente, @ctiporecibo, @npoliza, @xcliente, @xrif_cliente, @xnombre, @xapellido, @xcedula, @fnac, @cplan, @xserialcarroceria, @xserialmotor, @xplaca, @cmarca, @xmarca, @cmodelo, @xmodelo, @cversion, @xversion, @cano, @xcolor, @xtipo, @cmoneda, @xcobertura, @msuma_aseg, @mtarifa, @mprima_casco, @msuma_accesorios, @mprima_accesorios, @mcatastrofico, @xdireccionfiscal, @finicio, @xtelefono_emp, @xtelefono_prop, @email, @fdesde_pol, @fhasta_pol, @fdesde_rec, @fhasta_rec, @ncapacidad_p, @mcapacidad_c, @xuso, @ccorredor)')
+                        .input('xcolor', sql.NVarChar, chargeList[i].COLOR)
+                        .input('xtipo', sql.NVarChar, chargeList[i]["Tipo Vehiculo"])
+                        .input('xclase', sql.NVarChar, chargeList[i].CLASE)
+                        .input('ncapacidad_p', sql.NVarChar, chargeList[i].PTOS)
+                        .input('xtelefono_emp', sql.NVarChar, chargeList[i].XTELEFONO1 ? chargeList[i].XTELEFONO1 : undefined)
+                        .input('xtelefono_prop', sql.NVarChar, chargeList[i].XTELEFONO2)
+                        .input('xdireccionfiscal', sql.NVarChar, chargeList[i].XDIRECCION)
+                        .input('email', sql.NVarChar, chargeList[i].EMAIL)
+                        .input('femision', sql.DateTime, chargeList[i].FEMISION)
+                        .input('fdesde_pol', sql.DateTime, chargeList[i].FPOLIZA_DES)
+                        .input('fhasta_pol', sql.DateTime, chargeList[i].FPOLIZA_HAS)
+                        .input('caseguradora', sql.Int, chargeList[i].CASEGURADORA)
+                        .input('msuma_a_casco', sql.Numeric(11, 2), chargeList[i]["SUMA ASEGURADA"])
+                        .input('msuma_otros', sql.Numeric(11, 2), chargeList[i]["SUMA ASEGURADA OTROS"] ? chargeList[i]["SUMA ASEGURADA"] : undefined)
+                        .input('mdeducible', sql.Numeric(11, 2), chargeList[i]["MONTO DEDUCIBLE"])
+                        .input('xtipo_deducible', sql.NVarChar, chargeList[i].XTIPO_DEDUCIBLE)
+                        .input('fcreacion', sql.DateTime, chargeList[i].FCREACION)
+                        .input('cusuariocreacion', sql.Int, chargeList[i].CUSUARIOCREACION)
+                        .query('insert into tmcontrato_flota (id, ccarga, clote, xpoliza, xcertificado, xrif_cliente, xnombre, icedula, xcedula, fnac, cplan, xserialcarroceria, xserialmotor, xplaca, cmarca, cmodelo, cversion, xmarca, xmodelo, xversion, cano, xcolor, xtipo, xclase, ncapacidad_p, xtelefono_emp, xtelefono_prop, xdireccionfiscal, email, femision, fdesde_pol, fhasta_pol, caseguradora, msuma_a_casco, msuma_otros, mdeducible, xtipo_deducible, fcreacion, cusuariocreacion)' 
+                                            + 'values (@id, @ccarga, @clote, @xpoliza, @xcertificado, @xrif_cliente, @xnombre, @icedula, @xcedula, @fnac, @cplan, @xserialcarroceria, @xserialmotor, @xplaca, @cmarca, @cmodelo, @cversion, @xmarca, @xmodelo, @xversion, @cano, @xcolor, @xtipo, @xclase, @ncapacidad_p, @xtelefono_emp, @xtelefono_prop, @xdireccionfiscal, @email, @femision, @fdesde_pol, @fhasta_pol, @caseguradora, @msuma_a_casco, @msuma_otros, @mdeducible, @xtipo_deducible, @fcreacion, @cusuariocreacion)')
                         rowsAffected = rowsAffected + insert.rowsAffected;
                 }
                 return { result: {query: query, rowsAffected: rowsAffected} };
