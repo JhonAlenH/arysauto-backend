@@ -107,6 +107,12 @@ const operationDetailPlan = async(authHeader, requestBody) => {
         servicesInsurers: servicesInsurers,
         parys: getPlanData.result.recordset[0].PARYS, 
         paseguradora: getPlanData.result.recordset[0].PASEGURADORA,
+        cmoneda: getPlanData.result.recordset[0].CMONEDA,
+        ptasa_casco: getPlanData.result.recordset[0].PTASA_CASCO,
+        ptasa_catastrofico: getPlanData.result.recordset[0].PTASA_CATASTROFICO,
+        msuma_recuperacion: getPlanData.result.recordset[0].MSUMA_RECUPERACION,
+        mprima_recuperacion: getPlanData.result.recordset[0].MPRIMA_RECUPERACION,
+        mdeducible: getPlanData.result.recordset[0].MDEDUCIBLE,
     }
 }
 
@@ -156,7 +162,7 @@ router.route('/create').post((req, res) => {
             }
             res.json({ data: result });
         }).catch((err) => {
-            // console.log(err.message)
+            console.log(err.message)
             res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationCreatePlan' } });
         });
     }
@@ -168,15 +174,20 @@ const operationCreatePlan = async(authHeader, requestBody) => {
         cplan: requestBody.cplan,
         ctipoplan: requestBody.ctipoplan,
         xplan: requestBody.xplan,
-        paseguradora: requestBody.paseguradora,
-        parys: requestBody.parys,
+        paseguradora: requestBody.paseguradora ? requestBody.paseguradora: 0,
+        parys: requestBody.parys ? requestBody.parys: 100,
         mcosto: requestBody.mcosto,
         brcv: requestBody.brcv,
         bactivo: requestBody.bactivo,
         cpais: requestBody.cpais,
         ccompania: requestBody.ccompania,
         cusuario: requestBody.cusuario,
-        cmoneda: 2
+        cmoneda: requestBody.cmoneda,
+        ptasa_casco: requestBody.ptasa_casco ? requestBody.ptasa_casco: 0,
+        ptasa_catastrofico: requestBody.ptasa_catastrofico ? requestBody.ptasa_catastrofico: 0,
+        msuma_recuperacion: requestBody.msuma_recuperacion ? requestBody.msuma_recuperacion: 0,
+        mprima_recuperacion: requestBody.mprima_recuperacion ? requestBody.mprima_recuperacion: 0,
+        mdeducible: requestBody.mdeducible ? requestBody.mdeducible: 0,
     }
     //Busca código del plan
     let searchCodePlan = await bd.searchCodePlanQuery().then((res) => res);
@@ -185,12 +196,13 @@ const operationCreatePlan = async(authHeader, requestBody) => {
 
         //Crea el plan
         let cplan = searchCodePlan.result.recordset[0].CPLAN + 1;
+        let apovList = [];
 
         let createPlan = await bd.createPlanQuery(dataList, cplan).then((res) => res);
         if(createPlan.error){return { status: false, code: 500, message: createPlan.error }; }
         if(createPlan.result.rowsAffected > 0){  
             if(requestBody.servicesType){
-                //Crea los servicios del plan
+                //Crea los tipos de servicios del plan
                 let serviceTypeList = [];
                 for(let i = 0; i < requestBody.servicesType.length; i++){
                     serviceTypeList.push({
@@ -199,25 +211,22 @@ const operationCreatePlan = async(authHeader, requestBody) => {
                 }
                 let createTypeService = await bd.createServiceTypeFromPlanQuery(serviceTypeList, dataList, cplan).then((res) => res);
                 if(createTypeService.error){ return  { status: false, code: 500, message: createTypeService.error }; }
-
-                // if(serviceTypeList){
-                //     let searchServiceFromTypeService = await bd.searchServiceFromTypeServiceQuery(serviceTypeList).then((res) => res);
-                //     if(searchServiceFromTypeService.error){ return  { status: false, code: 500, message: searchServiceFromTypeService.error }; }
-                //     if(searchServiceFromTypeService.result){
-                //         let serviceList = [];
-                //         for(let i = 0; i < searchServiceFromTypeService.result.length; i++){
-                //             serviceList.push({
-                //                 cservicio: searchServiceFromTypeService.result[i].cservicio
-                //             })
-                //         }
-                //         let createService = await bd.createServiceFromPlanQuery(serviceList, serviceTypeList, dataList, cplan).then((res) => res);
-                //         if(createService.error){ return  { status: false, code: 500, message: createService.error }; }
-                //     }
-                // }
+            }
+            if(requestBody.quantity){
+                //Crea la cantidad de servicios que presta.
+                let quantityList = [];
+                for(let i = 0; i < requestBody.quantity.length; i++){
+                    quantityList.push({
+                        ncantidad: requestBody.quantity[i].ncantidad,
+                        cservicio: requestBody.quantity[i].cservicio,
+                    })
+                }
+                let updateServiceFromQuantity = await bd.updateServiceFromQuantityQuery(quantityList, cplan).then((res) => res);
+                if(updateServiceFromQuantity.error){ return  { status: false, code: 500, message: updateServiceFromQuantity.error }; }
             }
             let searchLastPlan = await bd.searchLastPlanQuery().then((res) => res);
             if(searchLastPlan.error){ return  { status: false, code: 500, message: searchLastPlan.error }; }
-            if(createPlan.result.rowsAffected > 0){return {status: true, cplan: searchLastPlan.result.recordset[0].CPLAN}}
+            if(createPlan.result.rowsAffected > 0){return {status: true, cplan: searchLastPlan.result.recordset[0].CPLAN, list: apovList}}
         }
         else{ return { status: false, code: 500, message: 'Server Internal Error.', hint: 'createPlan' }; }
     }
@@ -282,6 +291,151 @@ const operationCreatePlanRcv = async(authHeader, requestBody) => {
     }
 
 }
+router.route('/store-procedure').post((req, res) => {
+    if(!req.header('Authorization')){ 
+        res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } })
+        return;
+    }else{
+        operationStoreProcedure(req.header('Authorization'), req.body).then((result) => {
+            if(!result.status){ 
+                res.status(result.code).json({ data: result });
+                return;
+            }
+            res.json({ data: result });
+        }).catch((err) => {
+            console.log(err.message)
+            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationStoreProcedure' } });
+        });
+    }
+});
 
+const operationStoreProcedure = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    let searchData =  {
+        cplan: requestBody.cplan,
+        cmoneda: requestBody.cmoneda
+    }
+
+    let searchApov = await bd.searchApovQuery(searchData).then((res) => res);
+    if(searchApov.error){ return  { status: false, code: 500, message: searchApov.error }; }
+    let apovList = [];
+    if(searchApov.result.rowsAffected > 0){
+        for(let i = 0; i < searchApov.result.recordset.length; i++){
+            apovList.push({
+                    cplan: searchApov.result.recordset[i].CPLAN,
+                    ccobertura: searchApov.result.recordset[i].CCOBERTURA,
+                    xcobertura: searchApov.result.recordset[i].XCOBERTURA,
+                    msuma_aseg: searchApov.result.recordset[i].MSUMA_ASEG,
+                    ptasa_par_rus: searchApov.result.recordset[i].PTASA_PAR_RUS,
+                    mprima_par_rus: searchApov.result.recordset[i].MPRIMA_PAR_RUS,
+                    ptasa_carga: searchApov.result.recordset[i].PTASA_CARGA,
+                    mprima_carga: searchApov.result.recordset[i].MPRIMA_CARGA
+            })
+        }
+    }
+
+    let searchExceso = await bd.searchExcesoQuery(searchData).then((res) => res);
+    if(searchExceso.error){ return  { status: false, code: 500, message: searchExceso.error }; }
+    let excesoList = [];
+    if(searchExceso.result.rowsAffected > 0){
+        for(let i = 0; i < searchExceso.result.recordset.length; i++){
+            excesoList.push({
+                    cplan: searchExceso.result.recordset[i].CPLAN,
+                    ctarifa: searchExceso.result.recordset[i].CTARIFA,
+                    xtipo: searchExceso.result.recordset[i].XTIPO,
+                    cmoneda: searchExceso.result.recordset[i].CMONEDA,
+                    ms_defensa_penal: searchExceso.result.recordset[i].MS_DEFENSA_PENAL,
+                    mp_defensa_penal: searchExceso.result.recordset[i].MP_DEFENSA_PENAL,
+                    ms_exceso_limite: searchExceso.result.recordset[i].MS_EXCESO_LIMITE,
+                    mp_exceso_limite: searchExceso.result.recordset[i].MP_EXCESO_LIMITE
+            })
+        }
+    }
+    return { status: true, apov: apovList, exceso: excesoList};
+}
+
+router.route('/update').post((req, res) => {
+    if(!req.header('Authorization')){
+        res.status(400).json({ data: { status: false, code:400, message: 'Required authorization header not found.' } });
+        return;
+    }else{
+        operationUpdatePlan(req.header('Authorization'), req.body).then((result) => {
+            if(!result.status){
+                res.status(result.code).json({ data: result });
+                return;
+            }
+            res.json({ data: result });
+        }).catch((err) => {
+            console.log(err.message)
+            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationUpdatePlan' } });
+        });
+    }
+});
+
+const operationUpdatePlan = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    let dataList =  {
+        cplan: requestBody.cplan,
+        ctipoplan: requestBody.ctipoplan,
+        xplan: requestBody.xplan,
+        paseguradora: requestBody.paseguradora ? requestBody.paseguradora: 0,
+        parys: requestBody.parys ? requestBody.parys: 100,
+        mcosto: requestBody.mcosto,
+        brcv: requestBody.brcv,
+        bactivo: requestBody.bactivo,
+        cpais: requestBody.cpais,
+        ccompania: requestBody.ccompania,
+        cusuario: requestBody.cusuario,
+        cmoneda: requestBody.cmoneda,
+        ptasa_casco: requestBody.ptasa_casco ? requestBody.ptasa_casco: 0,
+        ptasa_catastrofico: requestBody.ptasa_catastrofico ? requestBody.ptasa_catastrofico: 0,
+        msuma_recuperacion: requestBody.msuma_recuperacion ? requestBody.msuma_recuperacion: 0,
+        mprima_recuperacion: requestBody.mprima_recuperacion ? requestBody.mprima_recuperacion: 0,
+        mdeducible: requestBody.mdeducible ? requestBody.mdeducible: 0,
+        apov: requestBody.apov,
+        exceso: requestBody.exceso
+    }
+    let updatePlan = await bd.updatePlanQuery(dataList).then((res) => res);
+    if(updatePlan.error){return { status: false, code: 500, message: updatePlan.error }; }
+
+    if(dataList.apov){
+        let apovList = [];
+
+        for(let i = 0; i < dataList.apov.length; i++){  
+            apovList.push({
+                cplan: dataList.apov[i].cplan,
+                ccobertura: dataList.apov[i].ccobertura,
+                xcobertura: dataList.apov[i].xcobertura,
+                msuma_aseg: dataList.apov[i].msuma_aseg,
+                ptasa_par_rus: dataList.apov[i].ptasa_par_rus,
+                mprima_par_rus: dataList.apov[i].mprima_par_rus,
+                ptasa_carga: dataList.apov[i].ptasa_carga,
+                mprima_carga: dataList.apov[i].mprima_carga
+            })
+        }
+        let updateApovFromPlan = await bd.updateApovFromPlanQuery(apovList).then((res) => res);
+        if(updateApovFromPlan.error){return { status: false, code: 500, message: updateApovFromPlan.error }; }
+    }
+
+    if(dataList.exceso){
+        let excesoList = [];
+
+        for(let i = 0; i < dataList.exceso.length; i++){  
+            excesoList.push({
+                cplan: dataList.exceso[i].cplan,
+                ctarifa: dataList.exceso[i].ctarifa,
+                cmoneda: dataList.exceso[i].cmoneda,
+                ms_defensa_penal: dataList.exceso[i].ms_defensa_penal,
+                mp_defensa_penal: dataList.exceso[i].mp_defensa_penal,
+                ms_exceso_limite: dataList.exceso[i].ms_exceso_limite,
+                mp_exceso_limite: dataList.exceso[i].mp_exceso_limite
+            })
+        }
+        let updateExcesoFromPlan = await bd.updateExcesoFromPlanQuery(excesoList).then((res) => res);
+        if(updateExcesoFromPlan.error){return { status: false, code: 500, message: updateExcesoFromPlan.error }; }
+    }
+
+    return{status: true, cplan: dataList.cplan}
+}
 
 module.exports = router;
