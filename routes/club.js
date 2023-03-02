@@ -105,5 +105,28 @@ const operationCreateCity = async(requestBody) => {
     else{ return { status: false, code: 500, message: 'Server Internal Error.', hint: 'createCity' }; }
 }
 
+router.route('/Data/Client').post((req, res) => {
+    operationSearchDataClient(req.body).then((result) => {
+        if(!result.status){ 
+            res.status(result.code).json({ data: result });
+            return;
+        }
+        res.json({ data: result });
+    }).catch((err) => {
+        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchDataClient' } });
+    });
+});
+
+const operationSearchDataClient = async(requestBody) => {
+    let ClientData = {
+        cpropietario: requestBody.cpropietario,
+        cpais: requestBody.cpais,
+    };
+    console.log(ClientData);
+    let client = await bd.ClienDataClub(ClientData).then((res) => res);
+    if(client.error){ return { status: false, code: 500, message: client.error }; }
+    return { status: true, ClientData: client.result.recordsets }
+}
+
 
 module.exports = router;

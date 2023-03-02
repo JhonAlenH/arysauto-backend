@@ -52,6 +52,7 @@ const operationAuth = async(requestBody) => {
                 }else{
                     await bd.createSignInQuery(query.result.recordset[0].CUSUARIO);
                     let jwt = helper.generateJsonWebToken(query.result.recordset[0].CUSUARIO);
+                    console.log(query.result)
                     return { 
                         status: true, 
                         cusuario: query.result.recordset[0].CUSUARIO, 
@@ -60,6 +61,7 @@ const operationAuth = async(requestBody) => {
                         xcompania: query.result.recordset[0].XCOMPANIA, 
                         xcolornav: query.result.recordset[0].XCOLORNAV, 
                         ctipo_sistema: query.result.recordset[0].CTIPO_SISTEMA,
+                        cpropietario: query.result.recordset[0].CPROPIETARIO,
                         xcolorprimario: query.result.recordset[0].XCOLORPRIMARIO, 
                         xcolorsegundario: query.result.recordset[0].XCOLORSEGUNDARIO, 
                         xcolorterciario: query.result.recordset[0].XCOLORTERCIARIO, 
