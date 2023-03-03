@@ -463,5 +463,10 @@
         "name": "Pending Payments Route",
         "router": "../routes/pending-payments",
         "route": "/api/pending-payments"
+    },
+    {
+        "name": "Corporative Issuance Management",
+        "router": "../routes/corporative-issuance-management",
+        "route": "/api/corporative-issuance-management"
     }
 ]   

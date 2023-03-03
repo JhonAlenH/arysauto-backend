@@ -1091,9 +1091,11 @@ router.route('/charge-contracts').post((req, res) => {
 
 const operationChargeContracts = async(authHeader, requestBody) => { 
     if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
-    let processCharge = await bd.createChargeQuery(requestBody.parsedData, requestBody.ccliente, requestBody.ctipopago, requestBody.npoliza);
+    let getLastBatchCode = await bd.getLastParentPolicyBatchQuery(requestBody.ccarga).then((res) => res);
+    if (getLastBatchCode.error){ console.log(getLastBatchCode.error); return { status: false, code: 500, message: getLastBatchCode.error }; }
+    let processCharge = await bd.createChargeQuery(requestBody.parsedData, requestBody.ccarga, getLastBatchCode.result.clote);
     if(processCharge.error){ return { status: false, code: 500, message: getReceiptData.error }; }
-    if(processCharge.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Receipt Data not found.' }; }
+    if(processCharge.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Internal Error.' }; }
     return {
         status: true,
         code: 200,
