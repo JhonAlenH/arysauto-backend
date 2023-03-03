@@ -172,4 +172,35 @@ const operationSearchDataClient = async(requestBody) => {
 }
 
 
+router.route('/Data/Client').post((req, res) => {
+    operationSearchDataPlan(req.body).then((result) => {
+        if(!result.status){ 
+            res.status(result.code).json({ data: result });
+            return;
+        }
+        res.json({ data: result });
+    }).catch((err) => {
+        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchDataPlan' } });
+    });
+});
+
+const operationSearchDataPlan = async(requestBody) => {
+    let ClientData = {
+        cpropietario: requestBody.cpropietario,
+    };
+    let client = await bd.ClienDataClubPlan(ClientData).then((res) => res);
+    if(client.error){ return { status: false, code: 500, message: client.error }; }
+
+    return { 
+        status: true, 
+        xnombre: client.result.recordset[0].XNOMBRE,
+        xapellido: client.result.recordset[0].XAPELLIDO,
+        xzona_postal: client.result.recordset[0].XZONA_POSTAL,
+        icedula: client.result.recordset[0].ICEDULA,
+        xdocidentidad: client.result.recordset[0].XDOCIDENTIDAD,
+        xemail: client.result.recordset[0].XEMAIL,
+
+    }
+}
+
 module.exports = router;

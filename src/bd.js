@@ -12224,6 +12224,19 @@ module.exports = {
             return { error: err.message };
         }
     },
+    ClienDataClubPlan: async(ClientData) => {
+        try{
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .input('cpais', sql.Numeric(4, 0), ClientData.cpais)
+                .input('cpropietario', sql.Int, ClientData.cpropietario)
+                .query('select * from VWBUSCARDATACLIENTCLUB POTIPOSERVICIOS poplan CPROPIETARIO = @cpropietario ');
+            //sql.close();
+            return { result: result };
+        }catch(err){
+            return { error: err.message };
+        }
+    },
     cancellationCauseServiceOrderValrepQuery: async(searchData) => {
         try{
             let pool = await sql.connect(config);
