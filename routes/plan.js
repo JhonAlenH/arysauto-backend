@@ -64,7 +64,8 @@ const operationDetailPlan = async(authHeader, requestBody) => {
     let planData = {
         ccompania: requestBody.ccompania,
         cpais: requestBody.cpais,
-        cplan: requestBody.cplan
+        cplan: requestBody.cplan,
+        ctipoplan: requestBody.ctipoplan
     };
     let getPlanData = await bd.getPlanDataQuery(planData).then((res) => res);
     if(getPlanData.error){ return { status: false, code: 500, message: getPlanData.error }; }
