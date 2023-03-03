@@ -75,40 +75,32 @@ const operationNotification = async(authHeader, requestBody) => {
     }
 }
 
-router.route('/user').post((req, res) => {
+router.route('/arys-service').post((req, res) => {
     if(!req.header('Authorization')){
         res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } });
         return;
     }else{
-        operationUser(req.header('Authorization'), req.body).then((result) => {
+        operationArysService(req.header('Authorization'), req.body).then((result) => {
             if(!result.status){
                 res.status(result.code).json({ data: result });
                 return;
             }
             res.json({ data: result });
         }).catch((err) => {
-            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationUser' } });
+            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationArysService' } });
         });
     }
 });
 
-const operationUser = async(authHeader, requestBody) => {
+const operationArysService = async(authHeader, requestBody) => {
     if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
-    let data = {
-        cusuario: requestBody.cusuario
-    }
-    let dataUser = await bd.datauserQuery(data).then((res) => res);
-    if(dataUser.error){ return { status: false, code: 500, message: dataUser.error }; }
 
-    if(dataUser.result.rowsAffected > 0){
-        let usuario;
-        if(dataUser.result.recordset[0].XAPELLIDO){
-            usuario = dataUser.result.recordset[0].XNOMBRE + ' ' + dataUser.result.recordset[0].XAPELLIDO
-        }else{
-            usuario = dataUser.result.recordset[0].XNOMBRE
-        }
+    let dataCountArysService = await bd.dataCountArysServiceQuery().then((res) => res);
+    if(dataCountArysService.error){ return { status: false, code: 500, message: dataCountArysService.error }; }
+
+    if(dataCountArysService.result.rowsAffected > 0){
         return { status: true, 
-                xusuario: usuario
+                 npersonas_arys: dataCountArysService.result.recordset[0].CCODIGO_SERV
         }
     }else{ 
         return { status: false, code: 404, message: 'Coin not found.' }; 

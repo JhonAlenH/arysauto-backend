@@ -11140,26 +11140,6 @@ module.exports = {
             return { error: err.message };
         }
     },
-    updatePlanQuery: async(planData) => {
-        try{
-            let pool = await sql.connect(config);
-            let result = await pool.request()
-                .input('cpais', sql.Numeric(4, 0), planData.cpais)
-                .input('ccompania', sql.Int, planData.ccompania)
-                .input('cplan', sql.Int, planData.cplan)
-                .input('ctipoplan', sql.Int, planData.ctipoplan)
-                .input('xplan', sql.NVarChar, planData.xplan)
-                .input('mplan', sql.Numeric(11, 2), planData.mplan)
-                .input('bactivo', sql.Bit, planData.bactivo)
-                .input('cusuariomodificacion', sql.Int, planData.cusuariomodificacion)
-                .input('fmodificacion', sql.DateTime, new Date())
-                .query('update POPLAN set XPLAN = @xplan, CTIPOPLAN = @ctipoplan, MPLAN = @mplan, BACTIVO = @bactivo, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion where CPLAN = @cplan and CPAIS = @cpais and CCOMPANIA = @ccompania');
-            //sql.close();
-            return { result: result };
-        }catch(err){
-            return { error: err.message };
-        }
-    },
     createInsurersByPlanUpdateQuery: async(insurers, planData) => {
         try{
             let rowsAffected = 0;
@@ -13454,12 +13434,11 @@ dataNotificationsQuery: async(data) => {
         return { error: err.message };
     }
 },
-datauserQuery: async(data) => {
+dataCountArysServiceQuery: async() => {
     try{
         let pool = await sql.connect(config);
         let result = await pool.request()
-            .input('cusuario', sql.Int, data.cusuario)
-            .query('SELECT * FROM VWBUSCARUSUARIODATA WHERE CUSUARIO = @cusuario');
+            .query('SELECT COUNT(CCODIGO_SERV) AS CCODIGO_SERV FROM SUCONTRATOFLOTA');
         //sql.close()
         return { result: result };
     }catch(err){
@@ -13656,16 +13635,21 @@ createPlanQuery: async(dataList, cplan) => {
             .input('mcosto_mensual', sql.Numeric(18, 2), dataList.mcosto_mensual)
             .input('parys', sql.Numeric(18, 2), dataList.parys)
             .input('paseguradora', sql.Numeric(18, 2), dataList.paseguradora)
+            .input('ptasa_casco', sql.Numeric(18, 2), dataList.ptasa_casco)
+            .input('ptasa_catastrofico', sql.Numeric(18, 2), dataList.ptasa_catastrofico)
+            .input('msuma_recuperacion', sql.Numeric(18, 2), dataList.msuma_recuperacion)
+            .input('mprima_recuperacion', sql.Numeric(18, 2), dataList.mprima_recuperacion)
+            .input('mdeducible', sql.Numeric(18, 2), dataList.mdeducible)
             .input('cmoneda', sql.Int, dataList.cmoneda)
             .input('bactivo', sql.Bit, dataList.bactivo)
             .input('cusuariocreacion', sql.Int, dataList.cusuario)
             .input('fcreacion', sql.DateTime, new Date())
-            .query('insert into POPLAN (CPLAN, XPLAN, CTIPOPLAN, BINTERNACIONAL, BRCV, CPAIS, CCOMPANIA, MCOSTO, MCOSTO_MENSUAL, PARYS, PASEGURADORA, CMONEDA, BACTIVO, CUSUARIOCREACION, FCREACION ) values (@cplan, @xplan, @ctipoplan, @binternacional, @brcv, @cpais, @ccompania, @mcosto, @mcosto_mensual, @parys, @paseguradora, @cmoneda, @bactivo, @cusuariocreacion, @fcreacion)')
+            .query('insert into POPLAN (CPLAN, XPLAN, CTIPOPLAN, BINTERNACIONAL, BRCV, PTASA_CASCO, PTASA_CATASTROFICO, MSUMA_RECUPERACION, MPRIMA_RECUPERACION, MDEDUCIBLE, CPAIS, CCOMPANIA, MCOSTO, MCOSTO_MENSUAL, PARYS, PASEGURADORA, CMONEDA, BACTIVO, CUSUARIOCREACION, FCREACION ) values (@cplan, @xplan, @ctipoplan, @binternacional, @brcv, @ptasa_casco, @ptasa_catastrofico, @msuma_recuperacion, @mprima_recuperacion, @mdeducible, @cpais, @ccompania, @mcosto, @mcosto_mensual, @parys, @paseguradora, @cmoneda, @bactivo, @cusuariocreacion, @fcreacion)')
 
             return { result: result, cplan};
     }
     catch(err){
-        console.log()
+        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -13775,7 +13759,7 @@ valrepPlanWithoutRcvQuery: async(searchData) => {
         let result = await pool.request()
             .input('cpais', sql.Numeric(4, 0), searchData.cpais)
             .input('ccompania', sql.Int, searchData.ccompania)
-            .query('select * from VWBUSCARPLANDATA where CPAIS = @cpais and CCOMPANIA = @ccompania AND BRCV = 0 AND BACTIVO = 1');
+            .query('select * from VWBUSCARPLANDATA where CPAIS = @cpais and CCOMPANIA = @ccompania AND BRCV = 0 AND BACTIVO = 1 AND CTIPOPLAN = 2');
         //sql.close();
         return { result: result };
     }catch(err){
@@ -13823,65 +13807,124 @@ createContractServiceArysQuery: async(userData) => {
         return { error: err.message };
     }
 },
-// searchServiceFromTypeServiceQuery: async(serviceTypeList) => {
-//     try{
-//         let pool = await sql.connect(config);
-//         let result = await pool.request()
-//         .input('ctiposervicio', sql.Int, serviceTypeList.ctiposervicio)
-//         .query('select * from MASERVICIO where CTIPOSERVICIO = @ctiposervicio')
-//         //sql.close();
-//         console.log(result)
-//         return { result: result };
-//     }catch(err){
-//         console.log(err.message)
-//         return { error: err.message };
-//     }
-// },
-searchServiceFromTypeServiceQuery: async(serviceTypeList) => {
+updateServiceFromQuantityQuery: async(quantityList, cplan) => {
     try{
+        let rowsAffected = 0;
         let pool = await sql.connect(config);
-        let tiposervicios = [];
-        for(let i = 0; i < serviceTypeList.length; i++){
-            let result = await pool.request()
-                .input('ctiposervicio', sql.Int, serviceTypeList[i].ctiposervicio)
-                .query('select * from MASERVICIO where CTIPOSERVICIO = @ctiposervicio')
-            if(result.recordset.lenght != 0) {
-                for(let i = 0; i < result.recordset.length; i++) {
-                    tiposervicios.push({
-                        cservicio: result.recordset[i].CSERVICIO
-                    })
-                }
-                
-            }
+        for(let i = 0; i < quantityList.length; i++){
+            let update = await pool.request()
+                .input('cplan', sql.Int, cplan)
+                .input('ncantidad', sql.Int, quantityList[i].ncantidad)
+                .input('cservicio', sql.Int, quantityList[i].cservicio)
+                .query('UPDATE POSERVICIOS SET NCANTIDAD = @ncantidad WHERE CPLAN = @cplan AND CSERVICIO = @cservicio')
+            rowsAffected = rowsAffected + update.rowsAffected;
         }
-        return { result: tiposervicios };
+        //sql.close();
+        return { result: { rowsAffected: rowsAffected } };
     }
     catch(err){
         return { error: err.message };
     }
 },
-createServiceFromPlanQuery: async(serviceList, serviceTypeList, dataList, cplan) => {
+searchApovQuery: async(searchData) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+        .input('cplan', sql.Int, searchData.cplan)
+        .input('cmoneda', sql.Int, searchData.cmoneda)
+        .execute('poBTasas_RCV');
+        let query= await pool.request()
+        .input('cplan', sql.Int, searchData.cplan)
+        .query('select * from POTASAS_APOV WHERE CPLAN = @cplan');
+        return { result: query };
+    }catch(err){
+        console.log(err.message)
+        return { error: err.message };
+        }
+},
+searchExcesoQuery: async(searchData) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+        .input('cplan', sql.Int, searchData.cplan)
+        .input('cmoneda', sql.Int, searchData.cmoneda)
+        .execute('poBTasas_RCV');
+        let query= await pool.request()
+        .input('cplan', sql.Int, searchData.cplan)
+        .query('select * from POTASAS_EXC WHERE CPLAN = @cplan');
+        return { result: query };
+    }catch(err){
+        console.log(err.message)
+        return { error: err.message };
+        }
+},
+updatePlanQuery: async(dataList) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cpais', sql.Numeric(4, 0), dataList.cpais)
+            .input('ccompania', sql.Int, dataList.ccompania)
+            .input('cplan', sql.Int, dataList.cplan)
+            .input('ctipoplan', sql.Int, dataList.ctipoplan)
+            .input('xplan', sql.NVarChar, dataList.xplan)
+            .input('bactivo', sql.Bit, dataList.bactivo)
+            .input('parys', sql.Numeric(18, 2), dataList.parys)
+            .input('paseguradora', sql.Numeric(18, 2), dataList.paseguradora)
+            .input('ptasa_casco', sql.Numeric(18, 2), dataList.ptasa_casco)
+            .input('ptasa_catastrofico', sql.Numeric(18, 2), dataList.ptasa_catastrofico)
+            .input('msuma_recuperacion', sql.Numeric(18, 2), dataList.msuma_recuperacion)
+            .input('mprima_recuperacion', sql.Numeric(18, 2), dataList.mprima_recuperacion)
+            .input('mdeducible', sql.Numeric(18, 2), dataList.mdeducible)
+            .input('cusuariomodificacion', sql.Int, dataList.cusuariomodificacion)
+            .input('fmodificacion', sql.DateTime, new Date())
+            .query('update POPLAN set XPLAN = @xplan, CTIPOPLAN = @ctipoplan, PTASA_CASCO = @ptasa_casco, PTASA_CATASTROFICO = @ptasa_catastrofico, MSUMA_RECUPERACION = @msuma_recuperacion, MPRIMA_RECUPERACION = @mprima_recuperacion, MDEDUCIBLE = @mdeducible, BACTIVO = @bactivo, PARYS = @parys, PASEGURADORA = @paseguradora, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion where CPLAN = @cplan and CPAIS = @cpais and CCOMPANIA = @ccompania');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        console.log(err.message)
+        return { error: err.message };
+    }
+},
+updateApovFromPlanQuery: async(apovList) => {
     try{
         let rowsAffected = 0;
         let pool = await sql.connect(config);
-        let service = {}
-        for(let i = 0; i < serviceList.length; i++){
-            service = {
-                cservicio: serviceList[i]
-            }
+        for(let i = 0; i < apovList.length; i++){
+            let update = await pool.request()
+                .input('cplan', sql.Int, apovList[i].cplan)
+                .input('ccobertura', sql.Int, apovList[i].ccobertura)
+                .input('msuma_aseg', sql.Numeric(18, 2), apovList[i].msuma_aseg)
+                .input('ptasa_par_rus', sql.Numeric(18, 2), apovList[i].ptasa_par_rus)
+                .input('mprima_par_rus', sql.Numeric(18, 2), apovList[i].mprima_par_rus)
+                .input('ptasa_carga', sql.Numeric(18, 2), apovList[i].ptasa_carga)
+                .input('mprima_carga', sql.Numeric(18, 2), apovList[i].mprima_carga)
+                .query('UPDATE POTASAS_APOV SET MSUMA_ASEG = @msuma_aseg, PTASA_PAR_RUS = @ptasa_par_rus, MPRIMA_PAR_RUS = @mprima_par_rus, PTASA_CARGA = @ptasa_carga, MPRIMA_CARGA = @mprima_carga WHERE CPLAN = @cplan AND CCOBERTURA = @ccobertura')
+            rowsAffected = rowsAffected + update.rowsAffected;
         }
-        for(let i = 0; i < serviceTypeList.length; i++){
-            console.log(service)
-            let insert = await pool.request()
-            .input('cplan', sql.Int, cplan) 
-            .input('cservicio', sql.Int, service.cservicio) 
-            .input('ctiposervicio', sql.Int, serviceTypeList[i].ctiposervicio)
-            .input('bactivo', sql.Bit, dataList.bactivo)
-            .input('cusuariocreacion', sql.Int, dataList.cusuario)
-            .input('fcreacion', sql.DateTime, new Date())
-            .query('insert into POSERVICIOS (CPLAN, CTIPOSERVICIO, CSERVICIO, BACTIVO, CUSUARIOCREACION, FCREACION) values (@cplan, @ctiposervicio, @cservicio, @bactivo, @cusuariocreacion, @fcreacion)')
-            rowsAffected = rowsAffected + insert.rowsAffected;
+        //sql.close();
+        return { result: { rowsAffected: rowsAffected } };
+    }
+    catch(err){
+        console.log(err.message)
+        return { error: err.message };
+    }
+},
+updateExcesoFromPlanQuery: async(excesoList) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < excesoList.length; i++){
+            let update = await pool.request()
+                .input('cplan', sql.Int, excesoList[i].cplan)
+                .input('ctarifa', sql.Int, excesoList[i].ctarifa)
+                .input('ms_defensa_penal', sql.Numeric(18, 2), excesoList[i].ms_defensa_penal)
+                .input('mp_defensa_penal', sql.Numeric(18, 2), excesoList[i].mp_defensa_penal)
+                .input('ms_exceso_limite', sql.Numeric(18, 2), excesoList[i].ms_exceso_limite)
+                .input('mp_exceso_limite', sql.Numeric(18, 2), excesoList[i].mp_exceso_limite)
+                .query('UPDATE POTASAS_EXC SET MS_DEFENSA_PENAL = @ms_defensa_penal, MP_DEFENSA_PENAL = @mp_defensa_penal, MS_EXCESO_LIMITE = @ms_exceso_limite, MP_EXCESO_LIMITE = @mp_exceso_limite WHERE CPLAN = @cplan AND CTARIFA = @ctarifa')
+            rowsAffected = rowsAffected + update.rowsAffected;
         }
+        //sql.close();
         return { result: { rowsAffected: rowsAffected } };
     }
     catch(err){
