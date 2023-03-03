@@ -1737,6 +1737,40 @@ const operationValrepCharge = async(authHeader, requestBody) => {
     return { status: true, list: jsonArray }
 }
 
+router.route('/corporative-charge').post((req, res) => {
+    if(!req.header('Authorization')){ 
+        res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } })
+        return;
+    }else{
+        operationValrepCorporativeCharge(req.header('Authorization'), req.body).then((result) => {
+            if(!result.status){ 
+                res.status(result.code).json({ data: result });
+                return;
+            }
+            res.json({ data: result });
+        }).catch((err) => {
+            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationValrepCharge' } });
+        });
+    }
+});
+
+const operationValrepCorporativeCharge = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    let query = await bd.corporativeChargeValrepQuery().then((res) => res);
+    if(query.error){ return { status: false, code: 500, message: query.error }; }
+    let jsonArray = [];
+
+    for(let i = 0; i < query.result.recordset.length; i++){
+        let dateFormat = new Date(query.result.recordset[i].FINGRESO);
+        let dd = dateFormat.getDate() + 1;
+        let mm = dateFormat.getMonth() + 1;
+        let yyyy = dateFormat.getFullYear();
+        let fingreso = dd + '/' + mm + '/' + yyyy;
+        jsonArray.push({ xcliente: query.result.recordset[i].XCLIENTE, ccliente: query.result.recordset[0].CCLIENTE, xpoliza: query.result.recordset[i].XPOLIZA, ccarga: query.result.recordset[i].CCARGA, fingreso: fingreso, xplaca: query.result.recordset[i].XPLACA });
+    }
+    return { status: true, list: jsonArray }
+}
+
 router.route('/batch').post((req, res) => {
     if(!req.header('Authorization')){ 
         res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } })
@@ -1749,6 +1783,7 @@ router.route('/batch').post((req, res) => {
             }
             res.json({ data: result });
         }).catch((err) => {
+            console.log(err.message);
             res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationValrepBatch' } });
         });
     }
