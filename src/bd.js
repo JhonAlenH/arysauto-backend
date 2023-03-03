@@ -6663,6 +6663,21 @@ module.exports = {
             return { error: err.message };
         }
     },
+    searchCorporativeIssuanceCertificates: async(searchData) => {
+        try {
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .input('ccarga', sql.Int, searchData.ccarga)
+                .input('clote', sql.Int, searchData.clote)
+                .query('select ID, CCARGA, CLOTE, XPOLIZA, XCERTIFICADO, XNOMBRE, XPLACA, XMARCA, XMODELO, XVERSION FROM VWBUSCARCERTIFICADOSCORPORATIVOSXCARGA WHERE CCARGA = @ccarga AND CLOTE = @clote')
+            console.log(result.recordset);
+            return {result: result};
+        }
+        catch(err){
+            console.log(err.message);
+            return { error: err.message };
+        }
+    },
     parentPolicyValrepQuery: async(searchData) => {
         try{
             let pool = await sql.connect(config);
@@ -6688,6 +6703,18 @@ module.exports = {
             return { error: err.message };
         }
     },
+    corporativeChargeValrepQuery: async() => {
+        try{
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .input('itipocliente', sql.NVarChar, 'C')
+                .query('SELECT CCARGA, XPOLIZA, XCLIENTE FROM VWBUSCARCARGAXCLIENTECORPORATIVO WHERE CESTATUSGENERAL IS NULL AND ITIPOCLIENTE = @itipocliente');
+            //sql.close();
+            return { result: result };
+        }catch(err){
+            return { error: err.message };
+        }
+    },
     batchValrepQuery: async(searchData) => {
         try{
             let pool = await sql.connect(config);
@@ -6697,6 +6724,7 @@ module.exports = {
             //sql.close();
             return { result: result };
         }catch(err){
+            console.log(err.message);
             return { error: err.message };
         }
     },
