@@ -12230,7 +12230,7 @@ module.exports = {
             let result = await pool.request()
                 .input('cpais', sql.Numeric(4, 0), ClientData.cpais)
                 .input('cpropietario', sql.Int, ClientData.cpropietario)
-                .query('select * from VWBUSCARDATACLIENTCLUB POTIPOSERVICIOS poplan CPROPIETARIO = @cpropietario ');
+                .query('select * from VWBUSCARDATACLIENTCLUB where CPROPIETARIO = @cpropietario ');
             //sql.close();
             return { result: result };
         }catch(err){

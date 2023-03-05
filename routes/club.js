@@ -172,7 +172,7 @@ const operationSearchDataClient = async(requestBody) => {
 }
 
 
-router.route('/Data/Client').post((req, res) => {
+router.route('/Data/Client/Plan').post((req, res) => {
     operationSearchDataPlan(req.body).then((result) => {
         if(!result.status){ 
             res.status(result.code).json({ data: result });
@@ -191,15 +191,25 @@ const operationSearchDataPlan = async(requestBody) => {
     let client = await bd.ClienDataClubPlan(ClientData).then((res) => res);
     if(client.error){ return { status: false, code: 500, message: client.error }; }
 
+    let DataService = [];
+    for(let i = 0; i < client.result.recordset.length; i++){
+        DataService.push({ 
+            cservicio: client.result.recordset[i].CSERVICIO, 
+            xservicio: client.result.recordset[i].XSERVICIO});
+    }
+
+    let DataTypeService = [];
+    for(let i = 0; i < client.result.recordset.length; i++){
+        DataTypeService.push({ 
+            ctiposervicio: client.result.recordset[i].CTIPOSERVICIO, 
+            xtiposervicio: client.result.recordset[i].XTIPOSERVICIO, });
+    }
     return { 
         status: true, 
-        xnombre: client.result.recordset[0].XNOMBRE,
-        xapellido: client.result.recordset[0].XAPELLIDO,
-        xzona_postal: client.result.recordset[0].XZONA_POSTAL,
-        icedula: client.result.recordset[0].ICEDULA,
-        xdocidentidad: client.result.recordset[0].XDOCIDENTIDAD,
-        xemail: client.result.recordset[0].XEMAIL,
-
+        xplan: client.result.recordset[0].XPLAN,
+        cplan: client.result.recordset[0].CPLAN,
+        listTypeService : DataTypeService,
+        listService : DataService
     }
 }
 

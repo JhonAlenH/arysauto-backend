@@ -52,7 +52,6 @@ const operationAuth = async(requestBody) => {
                 }else{
                     await bd.createSignInQuery(query.result.recordset[0].CUSUARIO);
                     let jwt = helper.generateJsonWebToken(query.result.recordset[0].CUSUARIO);
-                    console.log(query.result)
                     return { 
                         status: true, 
                         cusuario: query.result.recordset[0].CUSUARIO, 
