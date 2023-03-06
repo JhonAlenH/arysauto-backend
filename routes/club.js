@@ -191,19 +191,21 @@ const operationSearchDataPlan = async(requestBody) => {
     let client = await bd.ClienDataClubPlan(ClientData).then((res) => res);
     if(client.error){ return { status: false, code: 500, message: client.error }; }
 
-    let DataService = [];
-    for(let i = 0; i < client.result.recordset.length; i++){
-        DataService.push({ 
-            cservicio: client.result.recordset[i].CSERVICIO, 
-            xservicio: client.result.recordset[i].XSERVICIO});
-    }
-
     let DataTypeService = [];
     for(let i = 0; i < client.result.recordset.length; i++){
         DataTypeService.push({ 
             ctiposervicio: client.result.recordset[i].CTIPOSERVICIO, 
             xtiposervicio: client.result.recordset[i].XTIPOSERVICIO, });
     }
+
+    let DataService = [];
+    for(let i = 0; i < client.result.recordset.length; i++){
+        DataService.push({ 
+            ctiposervicio: client.result.recordset[i].CTIPOSERVICIO,
+            cservicio: client.result.recordset[i].CSERVICIO, 
+            xservicio: client.result.recordset[i].XSERVICIO});
+    }
+
     return { 
         status: true, 
         xplan: client.result.recordset[0].XPLAN,
