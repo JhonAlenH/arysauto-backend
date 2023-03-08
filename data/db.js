@@ -561,27 +561,6 @@ module.exports = {
             return { error: err.message };
         }
     },
-    updatePlanQuery: async(planData) => {
-        try{
-            let pool = await sql.connect(config);
-            let result = await pool.request()
-                .input('cpais', sql.Numeric(4, 0), planData.cpais)
-                .input('ccompania', sql.Int, planData.ccompania)
-                .input('cplan', sql.Int, planData.cplan)
-                .input('ctipoplan', sql.Int, planData.ctipoplan)
-                .input('xplan', sql.NVarChar, planData.xplan)
-                .input('bactivo', sql.Bit, planData.bactivo)
-                .input('parys', sql.Numeric(4, 2), planData.parys)
-                .input('paseguradora', sql.Numeric(4, 2), planData.paseguradora)
-                .input('cusuariomodificacion', sql.Int, planData.cusuariomodificacion)
-                .input('fmodificacion', sql.DateTime, new Date())
-                .query('update POPLAN set XPLAN = @xplan, CTIPOPLAN = @ctipoplan, BACTIVO = @bactivo,PARYS = @parys,PASEGURADORA = @paseguradora, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion where CPLAN = @cplan and CPAIS = @cpais and CCOMPANIA = @ccompania');
-            //sql.close();
-            return { result: result };
-        }catch(err){
-            return { error: err.message };
-        }
-    },
     deletePaymentMethodologiesByPlanUpdateQuery: async(paymentMethodologies, planData) => {
         try{
             let rowsAffected = 0;
