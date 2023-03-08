@@ -60,6 +60,7 @@ const operationAuth = async(requestBody) => {
                         xcompania: query.result.recordset[0].XCOMPANIA, 
                         xcolornav: query.result.recordset[0].XCOLORNAV, 
                         ctipo_sistema: query.result.recordset[0].CTIPO_SISTEMA,
+                        cpropietario: query.result.recordset[0].CPROPIETARIO,
                         xcolorprimario: query.result.recordset[0].XCOLORPRIMARIO, 
                         xcolorsegundario: query.result.recordset[0].XCOLORSEGUNDARIO, 
                         xcolorterciario: query.result.recordset[0].XCOLORTERCIARIO, 

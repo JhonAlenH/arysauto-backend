@@ -105,5 +105,114 @@ const operationCreateCity = async(requestBody) => {
     else{ return { status: false, code: 500, message: 'Server Internal Error.', hint: 'createCity' }; }
 }
 
+router.route('/Data/Client/vehicle').post((req, res) => {
+    operationSearchDataClientVehicle(req.body).then((result) => {
+        if(!result.status){ 
+            res.status(result.code).json({ data: result });
+            return;
+        }
+        res.json({ data: result });
+    }).catch((err) => {
+        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchDataClientVehicle' } });
+    });
+});
+
+const operationSearchDataClientVehicle = async(requestBody) => {
+    let ClientData = {
+        cpropietario: requestBody.cpropietario,
+        cpais: requestBody.cpais,
+    };
+    let client = await bd.ClienDataClubVehicle(ClientData).then((res) => res);
+    if(client.error){ return { status: false, code: 500, message: client.error }; }
+   
+    return { 
+        status: true, 
+        xmarca: client.result.recordset[0].XMARCA,
+        xmodelo: client.result.recordset[0].XMODELO,
+        xversion: client.result.recordset[0].XVERSION,
+        xplaca: client.result.recordset[0].XPLACA,
+        fano: client.result.recordset[0].FANO,
+        xcolor: client.result.recordset[0].XCOLOR,
+        xserialcarroceria: client.result.recordset[0].XSERIALCARROCERIA,
+        xseriamotor: client.result.recordset[0].XSERIALMOTOR,
+    }
+}
+
+
+router.route('/Data/Client').post((req, res) => {
+    operationSearchDataClient(req.body).then((result) => {
+        if(!result.status){ 
+            res.status(result.code).json({ data: result });
+            return;
+        }
+        res.json({ data: result });
+    }).catch((err) => {
+        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchDataClient' } });
+    });
+});
+
+const operationSearchDataClient = async(requestBody) => {
+    let ClientData = {
+        cpropietario: requestBody.cpropietario,
+        cpais: requestBody.cpais,
+    };
+    let client = await bd.ClienDataClub(ClientData).then((res) => res);
+    if(client.error){ return { status: false, code: 500, message: client.error }; }
+
+    return { 
+        status: true, 
+        xnombre: client.result.recordset[0].XNOMBRE,
+        xapellido: client.result.recordset[0].XAPELLIDO,
+        xzona_postal: client.result.recordset[0].XZONA_POSTAL,
+        icedula: client.result.recordset[0].ICEDULA,
+        xdocidentidad: client.result.recordset[0].XDOCIDENTIDAD,
+        xemail: client.result.recordset[0].XEMAIL,
+
+    }
+}
+
+
+router.route('/Data/Client/Plan').post((req, res) => {
+    operationSearchDataPlan(req.body).then((result) => {
+        if(!result.status){ 
+            res.status(result.code).json({ data: result });
+            return;
+        }
+        res.json({ data: result });
+    }).catch((err) => {
+        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchDataPlan' } });
+    });
+});
+
+const operationSearchDataPlan = async(requestBody) => {
+    let ClientData = {
+        cpropietario: requestBody.cpropietario,
+    };
+    let client = await bd.ClienDataClubPlan(ClientData).then((res) => res);
+    if(client.error){ return { status: false, code: 500, message: client.error }; }
+
+    let DataTypeService = [];
+    for(let i = 0; i < client.result.recordset.length; i++){
+        DataTypeService.push({ 
+            ctiposervicio: client.result.recordset[i].CTIPOSERVICIO, 
+            xtiposervicio: client.result.recordset[i].XTIPOSERVICIO, });
+    }
+
+    let DataService = [];
+    for(let i = 0; i < client.result.recordset.length; i++){
+        DataService.push({ 
+            ctiposervicio: client.result.recordset[i].CTIPOSERVICIO,
+            cservicio: client.result.recordset[i].CSERVICIO, 
+            xservicio: client.result.recordset[i].XSERVICIO});
+    }
+
+    return { 
+        status: true, 
+        xplan: client.result.recordset[0].XPLAN,
+        cplan: client.result.recordset[0].CPLAN,
+        listTypeService : DataTypeService,
+        listService : DataService
+    }
+}
 
 module.exports = router;
