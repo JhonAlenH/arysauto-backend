@@ -3780,7 +3780,7 @@ module.exports = {
     },
     searchClientQuery: async(searchData) => {
         try{
-            let query = `select * from CLCLIENTE where CPAIS = @cpais and CCOMPANIA = @ccompania${ searchData.xcliente ? " and XCLIENTE like '%" + searchData.xcliente + "%'" : '' }${ searchData.ctipodocidentidad ? " and CTIPODOCIDENTIDAD = @ctipodocidentidad" : '' }${ searchData.xdocidentidad ? " and XDOCIDENTIDAD like '%" + searchData.xdocidentidad + "%'" : '' }${ searchData.xcontrato ? " and XCONTRATO like '%" + searchData.xcontrato + "%'" : '' }`;
+            let query = `select * from CLCLIENTE where CPAIS = @cpais and ITIPOCLIENTE = @itipocliente AND CCOMPANIA = @ccompania${ searchData.xcliente ? " and XCLIENTE like '%" + searchData.xcliente + "%'" : '' }${ searchData.ctipodocidentidad ? " and CTIPODOCIDENTIDAD = @ctipodocidentidad" : '' }${ searchData.xdocidentidad ? " and XDOCIDENTIDAD like '%" + searchData.xdocidentidad + "%'" : '' }${ searchData.xcontrato ? " and XCONTRATO like '%" + searchData.xcontrato + "%'" : '' }`;
             let pool = await sql.connect(config);
             let result = await pool.request()
                 .input('cpais', sql.Numeric(4, 0), searchData.cpais ? searchData.cpais : 1)
@@ -3789,8 +3789,10 @@ module.exports = {
                 .input('xdocidentidad', sql.NVarChar, searchData.xdocidentidad ? searchData.xdocidentidad : 1)
                 .input('xcliente', sql.NVarChar, searchData.xcliente ? searchData.xcliente : 1)
                 .input('xcontrato', sql.NVarChar, searchData.xcontrato ? searchData.xcontrato : 1)
+                .input('itipocliente', sql.Char, 'C')
                 .query(query);
             //sql.close();
+            console.log(result)
             return { result: result };
         }catch(err){
             return { error: err.message };
@@ -3817,6 +3819,7 @@ module.exports = {
             let result = await pool.request()
                 .input('cpais', sql.Numeric(4, 0), clientData.cpais)
                 .input('ccompania', sql.Int, clientData.ccompania)
+                .input('itipocliente', sql.Char, 'C')
                 .input('xcliente', sql.NVarChar, clientData.xcliente)
                 .input('xcontrato', sql.NVarChar, clientData.xcontrato)
                 .input('xrepresentante', sql.NVarChar, clientData.xrepresentante)
@@ -3844,7 +3847,7 @@ module.exports = {
                 .input('bactivo', sql.Bit, clientData.bactivo)
                 .input('cusuariocreacion', sql.Int, clientData.cusuariocreacion)
                 .input('fcreacion', sql.DateTime, new Date())
-                .query('insert into CLCLIENTE (CPAIS, CCOMPANIA, XCLIENTE, XCONTRATO, XREPRESENTANTE, CEMPRESA, CACTIVIDADEMPRESA, CTIPODOCIDENTIDAD, XDOCIDENTIDAD, CESTADO, CCIUDAD, XDIRECCIONFISCAL, XEMAIL, FANOMAXIMO, FINICIO, XTELEFONO, BCOLECTIVO, BFACTURAR, BFINANCIAR, BCONTRIBUYENTE, BIMPUESTO, BNOTIFICACIONSMS, XPAGINAWEB, CTIPOPAGO, XRUTAIMAGEN, IFACTURACION, BACTIVO, CUSUARIOCREACION, FCREACION) output inserted.CCLIENTE values (@cpais, @ccompania, @xcliente, @xcontrato, @xrepresentante, @cempresa, @cactividadempresa, @ctipodocidentidad, @xdocidentidad, @cestado, @cciudad, @xdireccionfiscal, @xemail, @fanomaximo, @finicio, @xtelefono, @bcolectivo, @bfacturar, @bfinanciar, @bcontribuyente, @bimpuesto, @bnotificacionsms, @xpaginaweb, @ctipopago, @xrutaimagen, @ifacturacion, @bactivo, @cusuariocreacion, @fcreacion)');
+                .query('insert into CLCLIENTE (ITIPOCLIENTE, CPAIS, CCOMPANIA, XCLIENTE, XCONTRATO, XREPRESENTANTE, CEMPRESA, CACTIVIDADEMPRESA, CTIPODOCIDENTIDAD, XDOCIDENTIDAD, CESTADO, CCIUDAD, XDIRECCIONFISCAL, XEMAIL, FANOMAXIMO, FINICIO, XTELEFONO, BCOLECTIVO, BFACTURAR, BFINANCIAR, BCONTRIBUYENTE, BIMPUESTO, BNOTIFICACIONSMS, XPAGINAWEB, CTIPOPAGO, XRUTAIMAGEN, IFACTURACION, BACTIVO, CUSUARIOCREACION, FCREACION) output inserted.CCLIENTE values (@itipocliente, @cpais, @ccompania, @xcliente, @xcontrato, @xrepresentante, @cempresa, @cactividadempresa, @ctipodocidentidad, @xdocidentidad, @cestado, @cciudad, @xdireccionfiscal, @xemail, @fanomaximo, @finicio, @xtelefono, @bcolectivo, @bfacturar, @bfinanciar, @bcontribuyente, @bimpuesto, @bnotificacionsms, @xpaginaweb, @ctipopago, @xrutaimagen, @ifacturacion, @bactivo, @cusuariocreacion, @fcreacion)');
             if(result.rowsAffected > 0 && clientData.banks){
                 for(let i = 0; i < clientData.banks.length; i++){
                     let insert = await pool.request()
