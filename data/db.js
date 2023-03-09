@@ -3780,7 +3780,7 @@ module.exports = {
     },
     searchClientQuery: async(searchData) => {
         try{
-            let query = `select * from CLCLIENTE where CPAIS = @cpais and ITIPOCLIENTE = @itipocliente AND CCOMPANIA = @ccompania${ searchData.xcliente ? " and XCLIENTE like '%" + searchData.xcliente + "%'" : '' }${ searchData.ctipodocidentidad ? " and CTIPODOCIDENTIDAD = @ctipodocidentidad" : '' }${ searchData.xdocidentidad ? " and XDOCIDENTIDAD like '%" + searchData.xdocidentidad + "%'" : '' }${ searchData.xcontrato ? " and XCONTRATO like '%" + searchData.xcontrato + "%'" : '' }`;
+            let query = `select * from CLCLIENTE where CPAIS = @cpais AND CCOMPANIA = @ccompania${ searchData.xcliente ? " and XCLIENTE like '%" + searchData.xcliente + "%'" : '' }${ searchData.ctipodocidentidad ? " and CTIPODOCIDENTIDAD = @ctipodocidentidad" : '' }${ searchData.xdocidentidad ? " and XDOCIDENTIDAD like '%" + searchData.xdocidentidad + "%'" : '' }${ searchData.xcontrato ? " and XCONTRATO like '%" + searchData.xcontrato + "%'" : '' }`;
             let pool = await sql.connect(config);
             let result = await pool.request()
                 .input('cpais', sql.Numeric(4, 0), searchData.cpais ? searchData.cpais : 1)
