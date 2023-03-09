@@ -12217,6 +12217,51 @@ module.exports = {
             return { error: err.message };
         }
     },
+    ClienDataClubPlanService: async(ClientData) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('ctiposervici', sql.Int, ClientData.ctiposervici)
+            .query('select * from MASERVICIO where CTIPOSERVICIO = @ctiposervici');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+    },
+    ClienDataProveedor: async(ClientData) => {
+        try{
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .input('cestado', sql.Int, ClientData.cestado)
+                .input('cciudad', sql.Int, ClientData.cciudad)
+                .input('cservicio', sql.Int, ClientData.cservicio)
+                .query('select * from VWBUSCARPROVEEDORESXSERVICIOS where CESTADO= @cestado and CCIUDAD= @cciudad AND CSERVICIO= @cservicio');
+            //sql.close();
+            return { result: result };
+        }catch(err){
+            return { error: err.message };
+        }
+    },
+    SolicitudServiceClub: async(ClientData) => {
+        try{
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .input('cestado', sql.Int, ClientData.cestado)
+                .input('cciudad', sql.Int, ClientData.cciudad)
+                .input('cservicio', sql.Int, ClientData.cservicio)
+                .input('ctiposervicio', sql.Int, ClientData.ctiposervicio)
+                .input('cproveedor', sql.Int, ClientData.cproveedor)
+                .input('cpropietario', sql.Int, ClientData.cpropietario)
+                .input('isolicitante', sql.NVarChar, 'USR')
+                .input('fcreacion', sql.DateTime, new Date())
+                .query('INSERT INTO evsolicitudservicio (CESTADO,CCIUDAD,CSERVICIO,CTIPOSERVICIO,CPROVEEDOR,CPROPIETARIO,ISOLICITANTE,FCREACION) VALUES(@cestado,@cciudad,@cservicio,@ctiposervicio,@cproveedor, @cpropietario,@isolicitante, @fcreacion)');
+            //sql.close();
+            return { result: result };
+        }catch(err){
+            return { error: err.message };
+        }
+    },
     cancellationCauseServiceOrderValrepQuery: async(searchData) => {
         try{
             let pool = await sql.connect(config);
