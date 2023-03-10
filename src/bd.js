@@ -6663,6 +6663,20 @@ module.exports = {
             return { error: err.message };
         }
     },
+    searchCorporativeCharges: async(searchData) => {
+        try {
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .input('ccarga', sql.Int, searchData.ccarga)
+                .input('itipocliente', sql.NVarChar, 'C')
+                .query('select CCARGA, XCORREDOR, XPOLIZA, XDESCRIPCION_L, FCREACION FROM VWBUSCARCARGACORPORATIVA WHERE CCARGA = @ccarga AND ITIPOCLIENTE = @itipocliente')
+            return {result: result};
+        }
+        catch(err){
+            console.log(err.message);
+            return { error: err.message };
+        }
+    },
     searchCorporativeIssuanceCertificates: async(searchData) => {
         try {
             let pool = await sql.connect(config);
@@ -9152,7 +9166,7 @@ module.exports = {
                         .input('clote', sql.Int, clote)
                         .input('xpoliza', sql.NVarChar, chargeList[i].POLIZA)
                         .input('xcertificado', sql.NVarChar, chargeList[i].CERTIFICADO)
-                        .input('xrif_cliente', sql.NVarChar, chargeList[i].RIF_CLIENTE)
+                        .input('xrif_cliente', sql.NVarChar, chargeList[i].Rif_Cliente)
                         .input('xnombre', sql.NVarChar, chargeList[i].PROPIETARIO)
                         .input('icedula', sql.NVarChar, chargeList[i].letra)
                         .input('xcedula', sql.NVarChar, chargeList[i].CEDULA)
@@ -9173,7 +9187,7 @@ module.exports = {
                         .input('xclase', sql.NVarChar, chargeList[i].CLASE)
                         .input('ncapacidad_p', sql.NVarChar, chargeList[i].PTOS)
                         .input('xtelefono_emp', sql.NVarChar, chargeList[i].XTELEFONO1 ? chargeList[i].XTELEFONO1 : undefined)
-                        .input('xtelefono_prop', sql.NVarChar, chargeList[i].XTELEFONO2)
+                        .input('xtelefono_prop', sql.NVarChar, chargeList[i].XTELEFONO2 ? chargeList[i].XTELEFONO2 : undefined)
                         .input('xdireccionfiscal', sql.NVarChar, chargeList[i].XDIRECCION)
                         .input('email', sql.NVarChar, chargeList[i].EMAIL)
                         .input('femision', sql.DateTime, chargeList[i].FEMISION)
@@ -9181,7 +9195,7 @@ module.exports = {
                         .input('fhasta_pol', sql.DateTime, chargeList[i].FPOLIZA_HAS)
                         .input('caseguradora', sql.Int, chargeList[i].CASEGURADORA)
                         .input('msuma_a_casco', sql.Numeric(11, 2), chargeList[i]["SUMA ASEGURADA"])
-                        .input('msuma_otros', sql.Numeric(11, 2), chargeList[i]["SUMA ASEGURADA OTROS"] ? chargeList[i]["SUMA ASEGURADA"] : undefined)
+                        .input('msuma_otros', sql.Numeric(11, 2), chargeList[i]["SUMA ASEGURADA OTROS"] ? chargeList[i]["SUMA ASEGURADA OTROS"] : undefined)
                         .input('mdeducible', sql.Numeric(11, 2), chargeList[i]["MONTO DEDUCIBLE"])
                         .input('xtipo_deducible', sql.NVarChar, chargeList[i].XTIPO_DEDUCIBLE)
                         .input('fcreacion', sql.DateTime, chargeList[i].FCREACION)
