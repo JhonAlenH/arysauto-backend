@@ -33,15 +33,16 @@ const operationSearchServiceRequest = async(authHeader, requestBody) => {
     console.log(searchServiceRequest)
     if(searchServiceRequest.result.rowsAffected == 0){ return { status: false, code: 404, message: 'Service Request not found.' }; }
     let jsonList = [];
+    console.log(searchServiceRequest.result.recordset)
     for(let i = 0; i < searchServiceRequest.result.recordset.length; i++){
         jsonList.push({
             csolicitudservicio: searchServiceRequest.result.recordset[i].CSOLICITUDSERVICIO,
-            xnombre: helper.decrypt(searchServiceRequest.result.recordset[0].XNOMBRE),
-            xapellido: helper.decrypt(searchServiceRequest.result.recordset[i].XAPELLIDO),
-            xdocidentidad: helper.decrypt(searchServiceRequest.result.recordset[i].XDOCIDENTIDAD),
+            xnombre: searchServiceRequest.result.recordset[0].XNOMBRE,
+            xapellido:searchServiceRequest.result.recordset[i].XAPELLIDO,
+            xdocidentidad: searchServiceRequest.result.recordset[i].XDOCIDENTIDAD,
             xtiposervicio: searchServiceRequest.result.recordset[i].XTIPOSERVICIO,
             xservicio: searchServiceRequest.result.recordset[i].XSERVICIO,
-            xproveedor: helper.decrypt(searchServiceRequest.result.recordset[i].XPROVEEDOR),
+            xproveedor: searchServiceRequest.result.recordset[i].XNOMBREPROVEEDOR,
         });
     }
     return { status: true, list: jsonList };

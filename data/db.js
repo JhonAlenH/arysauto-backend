@@ -2206,12 +2206,12 @@ module.exports = {
     },
     searchServiceRequestQuery: async(searchData) => {
         try{
-            let query = `select * from VWBUSCARSOLICITUDSERVICIODATA  `;
+            let query = `select * from VWBUSCARSOLICITUDSERVICIODATA where CSOLICITUDSERVICIO > 0${ searchData.isolicitante ? " and ISOLICITANTE = @isolicitante" : '' }${ searchData.xnombre ? " and XNOMBRE like '%" + searchData.xnombre + "%'" : '' }${ searchData.xapellido ? " and XAPELLIDO like '%" + searchData.xapellido + "%'" : '' }${ searchData.xdocidentidad ? " and XDOCIDENTIDAD like '%" + searchData.xdocidentidad + "%'" : '' }`;
             let pool = await sql.connect(config);
             let result = await pool.request()
                 .input('xnombre', sql.NVarChar, searchData.xnombre ? searchData.xnombre : undefined)
                 .input('xapellido', sql.NVarChar, searchData.xapellido ? searchData.xapellido : undefined)
-                .input('isolicitante', sql.Char, searchData.isolicitante )
+                .input('isolicitante', sql.Char, searchData.isolicitante ? searchData.isolicitante : undefined)
                 .input('xdocidentidad', sql.NVarChar, searchData.xdocidentidad ? searchData.xdocidentidad : undefined)
                 .query(query);
             //sql.close();
