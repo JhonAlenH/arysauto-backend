@@ -6663,6 +6663,34 @@ module.exports = {
             return { error: err.message };
         }
     },
+    searchCorporativeIssuanceCertificates: async(searchData) => {
+        try {
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .input('ccarga', sql.Int, searchData.ccarga)
+                .input('clote', sql.Int, searchData.clote)
+                .query('select ID, CCARGA, CLOTE, XPOLIZA, XCERTIFICADO, XNOMBRE, XPLACA, XMARCA, XMODELO, XVERSION FROM VWBUSCARCERTIFICADOSCORPORATIVOSXCARGA WHERE CCARGA = @ccarga AND CLOTE = @clote')
+            return {result: result};
+        }
+        catch(err){
+            console.log(err.message);
+            return { error: err.message };
+        }
+    },
+    searchCorporativeIssuanceDetail: async(searchData) => {
+        try {
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .input('id', sql.Int, searchData.id)
+                .query('select ID, CCARGA, CLOTE, XPOLIZA, XCERTIFICADO, FCARGA, FDESDE_POL, FHASTA_POL, XCLIENTE, XEMAILCLIENTE, XDOCIDENTIDADCLIENTE, XPROPIETARIO, XEMAILPROPIETARIO, XDOCIDENTIDADPROPIETARIO, XMARCA, XMODELO, XVERSION, CANO, XTIPO, XCLASE, XSERIALCARROCERIA, XSERIALMOTOR, XCOLOR, NCAPACIDADPASAJEROS, XPLACA, MSUMA_A_CASCO, MSUMA_OTROS, PTASA_ASEGURADORA, MPRIMA_CASCO, MPRIMA_OTROS, MPRIMA_CATASTROFICO, MGASTOS_RECUPERACION, MBASICA_RCV, MEXCESO_LIMITE, MDEFENSA_PENAL, MMUERTE, MINVALIDEZ, MGASTOS_MEDICOS, MGASTOS_FUNERARIOS, MTOTAL_PRIMA_ASEG, MDEDUCIBLE, XTIPO_DEDUCIBLE, PTASA_FONDO_ANUAL, MFONDO_ARYS, MMEMBRESIA ' 
+                + ' FROM VWBUSCARDETALLECERTIFICADOSCORPORATIVOS WHERE ID = @id')
+            return {result: result};
+        }
+        catch(err){
+            console.log(err.message);
+            return { error: err.message };
+        }
+    },
     parentPolicyValrepQuery: async(searchData) => {
         try{
             let pool = await sql.connect(config);
@@ -6688,6 +6716,18 @@ module.exports = {
             return { error: err.message };
         }
     },
+    corporativeChargeValrepQuery: async() => {
+        try{
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .input('itipocliente', sql.NVarChar, 'C')
+                .query('SELECT CCARGA, XPOLIZA, XCLIENTE FROM VWBUSCARCARGAXCLIENTECORPORATIVO WHERE CESTATUSGENERAL IS NULL AND ITIPOCLIENTE = @itipocliente');
+            //sql.close();
+            return { result: result };
+        }catch(err){
+            return { error: err.message };
+        }
+    },
     batchValrepQuery: async(searchData) => {
         try{
             let pool = await sql.connect(config);
@@ -6697,6 +6737,7 @@ module.exports = {
             //sql.close();
             return { result: result };
         }catch(err){
+            console.log(err.message);
             return { error: err.message };
         }
     },
@@ -9098,65 +9139,55 @@ module.exports = {
             return { error: err.message };
         }
     },
-    createChargeQuery: async(chargeList, ccliente, ctiporecibo, npoliza) => {
+    createChargeQuery: async(chargeList, ccarga, clote) => {
         try{
             if(chargeList){
                 let rowsAffected = 0;
                 let pool = await sql.connect(config);
                 for(let i = 0; i < chargeList.length; i++){
-                    if (chargeList[i].TARIFA) {
-                        chargeList[i].TARIFA = chargeList[i].TARIFA.replace("%", "")
-                        if (isNaN(chargeList[i].TARIFA)) {
-                            chargeList[i].TARIFA = 0;
-                        }
-                    }
-                    else {chargeList[i].TARIFA = 0}
+
                     let insert = await pool.request()
-                        .input('id', sql.Int, chargeList[i].ID + 38) //falta ver como agregar ccontratoflota
-                        .input('ccliente', sql.Int, ccliente)
-                        .input('ctiporecibo', sql.Int, ctiporecibo)
-                        .input('npoliza', sql.Int, npoliza)
-                        .input('xcliente', sql.NVarChar, chargeList[i].XCLIENTE)
-                        .input('xrif_cliente', sql.NVarChar, chargeList[i].RIF_EMPRESA)
-                        .input('xnombre', sql.NVarChar, chargeList[i].NOMBRE)
-                        .input('xapellido', sql.NVarChar, chargeList[i].APELLIDO)
+                        .input('id', sql.Int, chargeList[i].No)
+                        .input('ccarga', sql.Int, ccarga)
+                        .input('clote', sql.Int, clote)
+                        .input('xpoliza', sql.NVarChar, chargeList[i].POLIZA)
+                        .input('xcertificado', sql.NVarChar, chargeList[i].CERTIFICADO)
+                        .input('xrif_cliente', sql.NVarChar, chargeList[i].RIF_CLIENTE)
+                        .input('xnombre', sql.NVarChar, chargeList[i].PROPIETARIO)
+                        .input('icedula', sql.NVarChar, chargeList[i].letra)
                         .input('xcedula', sql.NVarChar, chargeList[i].CEDULA)
-                        .input('fnac', sql.DateTime, chargeList[i].FECHA_NAC ? chargeList[i].FECHA_NAC : undefined)
-                        .input('xdireccionfiscal', sql.NVarChar, chargeList[i].XDIRECCION)
-                        .input('xtelefono_emp', sql.NVarChar, chargeList[i].XTELEFONO_EMP)
-                        .input('xtelefono_prop', sql.NVarChar, chargeList[i].XTELEFONO_PROP)
-                        .input('cplan', sql.Int, chargeList[i].PLAN) //cambiar a cplan_real
+                        .input('fnac', sql.DateTime, chargeList[i].FNAC ? chargeList[i].FNAC : undefined)
+                        .input('cplan', sql.Int, chargeList[i].CPLAN)
                         .input('xserialcarroceria', sql.NVarChar, chargeList[i]["SERIAL CARROCERIA"])
                         .input('xserialmotor', sql.NVarChar, chargeList[i]["SERIAL MOTOR"])
                         .input('xplaca', sql.NVarChar, chargeList[i].PLACA)
                         .input('cmarca', sql.Int, chargeList[i].CMARCA)
-                        .input('xmarca', sql.NVarChar, chargeList[i].MARCA)
                         .input('cmodelo', sql.Int, chargeList[i].CMODELO)
-                        .input('xmodelo', sql.NVarChar, chargeList[i].MODELO)
                         .input('cversion', sql.Int, chargeList[i].CVERSION)
-                        .input('xversion', sql.NVarChar, chargeList[i].VERSION)
+                        .input('xmarca', sql.NVarChar, chargeList[i].XMARCA)
+                        .input('xmodelo', sql.NVarChar, chargeList[i].XMODELO)
+                        .input('xversion', sql.NVarChar, chargeList[i].XVERSION)
                         .input('cano', sql.Int, chargeList[i]["AÑO"])
-                        .input('xcolor', sql.NVarChar, chargeList[i].XCOLOR)
-                        .input('xtipo', sql.NVarChar, chargeList[i].XTIPO)
-                        .input('cmoneda', sql.Int, chargeList[i].CMONEDA)
-                        .input('xcobertura', sql.NVarChar, chargeList[i].XCOBERTURA)
-                        .input('msuma_aseg', sql.Numeric(11, 2), chargeList[i].SUMA_ASEGURADA)
-                        .input('mtarifa', sql.Numeric(11, 2), chargeList[i].TARIFA)
-                        .input('mprima_casco', sql.Numeric(11, 2), chargeList[i].PRIMA_CASCO)
-                        .input('msuma_accesorios', sql.Numeric(11, 2), chargeList[i].SA_ACCESORIOS)
-                        .input('mprima_accesorios', sql.Numeric(11, 2), chargeList[i].PRIMA_ACCESORIOS)
-                        .input('mcatastrofico', sql.Numeric(11, 2), chargeList[i].MCATASTROFICO)
-                        .input('email', sql.NVarChar, chargeList[i].EMAIL ? chargeList[i].EMAIL : undefined)
-                        .input('finicio', sql.DateTime, undefined) //chargeList[i].FECHA_EMISION
-                        .input('fdesde_pol', sql.DateTime, chargeList[i].FDESDE_POL)
-                        .input('fhasta_pol', sql.DateTime, chargeList[i].FHASTA_POL)
-                        .input('fdesde_rec', sql.DateTime, chargeList[i].FDESDE_REC)
-                        .input('fhasta_rec', sql.DateTime, chargeList[i].FHASTA_REC)
-                        .input('ncapacidad_p', sql.Int, chargeList[i].CAPACIDAD_PAS)
-                        .input('mcapacidad_c', sql.Numeric(11, 2), chargeList[i].CAPACIDAD_CARGA ? chargeList[i].CAPACIDAD_CARGA: undefined)
-                        .input('xuso', sql.NVarChar, chargeList[i].USO)
-                        .input('ccorredor', sql.Int, chargeList[i].CORREDOR)
-                        .query('insert into tmcontrato_flota (id, ccliente, ctiporecibo, npoliza, xcliente, xrif_cliente, xnombre, xapellido, xcedula, fnac, cplan, xserialcarroceria, xserialmotor, xplaca, cmarca, xmarca, cmodelo, xmodelo, cversion, xversion, cano, xcolor, xtipo, cmoneda, xcobertura, msuma_aseg, mtarifa, mprima_casco, msuma_accesorios, mprima_accesorios, mcatastrofico, xdireccionfiscal, finicio, xtelefono_emp, xtelefono_prop, email, fdesde_pol, fhasta_pol, fdesde_rec, fhasta_rec, ncapacidad_p, mcapacidad_c, xuso, ccorredor) values (@id, @ccliente, @ctiporecibo, @npoliza, @xcliente, @xrif_cliente, @xnombre, @xapellido, @xcedula, @fnac, @cplan, @xserialcarroceria, @xserialmotor, @xplaca, @cmarca, @xmarca, @cmodelo, @xmodelo, @cversion, @xversion, @cano, @xcolor, @xtipo, @cmoneda, @xcobertura, @msuma_aseg, @mtarifa, @mprima_casco, @msuma_accesorios, @mprima_accesorios, @mcatastrofico, @xdireccionfiscal, @finicio, @xtelefono_emp, @xtelefono_prop, @email, @fdesde_pol, @fhasta_pol, @fdesde_rec, @fhasta_rec, @ncapacidad_p, @mcapacidad_c, @xuso, @ccorredor)')
+                        .input('xcolor', sql.NVarChar, chargeList[i].COLOR)
+                        .input('xtipo', sql.NVarChar, chargeList[i]["Tipo Vehiculo"])
+                        .input('xclase', sql.NVarChar, chargeList[i].CLASE)
+                        .input('ncapacidad_p', sql.NVarChar, chargeList[i].PTOS)
+                        .input('xtelefono_emp', sql.NVarChar, chargeList[i].XTELEFONO1 ? chargeList[i].XTELEFONO1 : undefined)
+                        .input('xtelefono_prop', sql.NVarChar, chargeList[i].XTELEFONO2)
+                        .input('xdireccionfiscal', sql.NVarChar, chargeList[i].XDIRECCION)
+                        .input('email', sql.NVarChar, chargeList[i].EMAIL)
+                        .input('femision', sql.DateTime, chargeList[i].FEMISION)
+                        .input('fdesde_pol', sql.DateTime, chargeList[i].FPOLIZA_DES)
+                        .input('fhasta_pol', sql.DateTime, chargeList[i].FPOLIZA_HAS)
+                        .input('caseguradora', sql.Int, chargeList[i].CASEGURADORA)
+                        .input('msuma_a_casco', sql.Numeric(11, 2), chargeList[i]["SUMA ASEGURADA"])
+                        .input('msuma_otros', sql.Numeric(11, 2), chargeList[i]["SUMA ASEGURADA OTROS"] ? chargeList[i]["SUMA ASEGURADA"] : undefined)
+                        .input('mdeducible', sql.Numeric(11, 2), chargeList[i]["MONTO DEDUCIBLE"])
+                        .input('xtipo_deducible', sql.NVarChar, chargeList[i].XTIPO_DEDUCIBLE)
+                        .input('fcreacion', sql.DateTime, chargeList[i].FCREACION)
+                        .input('cusuariocreacion', sql.Int, chargeList[i].CUSUARIOCREACION)
+                        .query('insert into tmcontrato_flota (id, ccarga, clote, xpoliza, xcertificado, xrif_cliente, xnombre, icedula, xcedula, fnac, cplan, xserialcarroceria, xserialmotor, xplaca, cmarca, cmodelo, cversion, xmarca, xmodelo, xversion, cano, xcolor, xtipo, xclase, ncapacidad_p, xtelefono_emp, xtelefono_prop, xdireccionfiscal, email, femision, fdesde_pol, fhasta_pol, caseguradora, msuma_a_casco, msuma_otros, mdeducible, xtipo_deducible, fcreacion, cusuariocreacion)' 
+                                            + 'values (@id, @ccarga, @clote, @xpoliza, @xcertificado, @xrif_cliente, @xnombre, @icedula, @xcedula, @fnac, @cplan, @xserialcarroceria, @xserialmotor, @xplaca, @cmarca, @cmodelo, @cversion, @xmarca, @xmodelo, @xversion, @cano, @xcolor, @xtipo, @xclase, @ncapacidad_p, @xtelefono_emp, @xtelefono_prop, @xdireccionfiscal, @email, @femision, @fdesde_pol, @fhasta_pol, @caseguradora, @msuma_a_casco, @msuma_otros, @mdeducible, @xtipo_deducible, @fcreacion, @cusuariocreacion)')
                         rowsAffected = rowsAffected + insert.rowsAffected;
                 }
                 return { result: {query: query, rowsAffected: rowsAffected} };
@@ -14156,6 +14187,178 @@ createDocumentsFromClientQuery: async(clientData, documentsList, ccliente) => {
         }
         return { result: { rowsAffected: rowsAffected } };
     }catch(err){
+        return { error: err.message };
+    }
+},
+updateClientQuery: async(clientData) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cpais', sql.Numeric(4, 0), clientData.cpais)
+            .input('ccompania', sql.Int, clientData.ccompania)
+            .input('ccliente', sql.Int, clientData.ccliente)
+            .input('xcliente', sql.NVarChar, clientData.xcliente)
+            .input('xrepresentante', sql.NVarChar, clientData.xrepresentante)
+            .input('icedula', sql.NVarChar, clientData.icedula)
+            .input('xdocidentidad', sql.NVarChar, clientData.xdocidentidad)
+            .input('cestado', sql.Int, clientData.cestado)
+            .input('cciudad', sql.Int, clientData.cciudad)
+            .input('xdireccionfiscal', sql.NVarChar, clientData.xdireccionfiscal)
+            .input('xemail', sql.NVarChar, clientData.xemail)
+            .input('finicio', sql.DateTime, clientData.finicio)
+            .input('xtelefono', sql.NVarChar, clientData.xtelefono ? clientData.xtelefono : null)
+            .input('xpaginaweb', sql.NVarChar, clientData.xpaginaweb ? clientData.xpaginaweb : null)
+            .input('xrutaimagen', sql.NVarChar, clientData.xrutaimagen ? clientData.xrutaimagen : null)
+            .input('bactivo', sql.Bit, clientData.bactivo)
+            .input('cusuariomodificacion', sql.Int, clientData.cusuariomodificacion)
+            .input('fmodificacion', sql.DateTime, new Date())
+            .query('update CLCLIENTE set XCLIENTE = @xcliente, XREPRESENTANTE = @xrepresentante, ICEDULA = @icedula, XDOCIDENTIDAD = @xdocidentidad, CESTADO = @cestado, CCIUDAD = @cciudad, XDIRECCIONFISCAL = @xdireccionfiscal, XEMAIL = @xemail, FINICIO = @finicio, XTELEFONO = @xtelefono, XPAGINAWEB = @xpaginaweb, XRUTAIMAGEN = @xrutaimagen, BACTIVO = @bactivo, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion where CCLIENTE = @ccliente and CPAIS = @cpais and CCOMPANIA = @ccompania');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+createBanksByClientUpdateQuery: async(clientData, createBankList ) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < createBankList.length; i++){
+            let insert = await pool.request()
+                .input('ccliente', sql.Int, clientData.ccliente)
+                .input('cbanco', sql.Int, createBankList[i].cbanco)
+                .input('ctipocuentabancaria', sql.Int, createBankList[i].ctipocuentabancaria)
+                .input('xnumerocuenta', sql.NVarChar, createBankList[i].xnumerocuenta)
+                .input('bprincipal', sql.Bit, createBankList[i].bprincipal)
+                .input('cusuariocreacion', sql.Int, clientData.cusuariomodificacion)
+                .input('fcreacion', sql.DateTime, new Date())
+                .query('insert into CLBANCO (CCLIENTE, CBANCO, CTIPOCUENTABANCARIA, XNUMEROCUENTA, BPRINCIPAL, CUSUARIOCREACION, FCREACION) values (@ccliente, @cbanco, @ctipocuentabancaria, @xnumerocuenta, @bprincipal, @cusuariocreacion, @fcreacion)')
+            rowsAffected = rowsAffected + insert.rowsAffected;
+        }
+        //sql.close();
+        return { result: { rowsAffected: rowsAffected } };
+    }
+    catch(err){
+        return { error: err.message };
+    }
+},
+updateBanksByClientUpdateQuery: async(clientData, updateBankList) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < updateBankList.length; i++){
+            let update = await pool.request()
+                .input('ccliente', sql.Int, clientData.ccliente)
+                .input('cbanco', sql.Int, updateBankList[i].cbanco)
+                .input('ctipocuentabancaria', sql.Int, updateBankList[i].ctipocuentabancaria)
+                .input('xnumerocuenta', sql.NVarChar, updateBankList[i].xnumerocuenta)
+                .input('bprincipal', sql.Bit, updateBankList[i].bprincipal)
+                .input('cusuariomodificacion', sql.Int, clientData.cusuariomodificacion)
+                .input('fmodificacion', sql.DateTime, new Date())
+                .query('update CLBANCO set CTIPOCUENTABANCARIA = @ctipocuentabancaria, XNUMEROCUENTA = @xnumerocuenta, BPRINCIPAL = @bprincipal, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion where CBANCO = @cbanco and CCLIENTE = @ccliente');
+            rowsAffected = rowsAffected + update.rowsAffected;
+        }
+        //sql.close();
+        return { result: { rowsAffected: rowsAffected } };
+    }
+    catch(err){
+        return { error: err.message };
+    }
+},
+createContactsByClientUpdateQuery: async(clientData, createContactsList) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < createContactsList.length; i++){
+            let insert = await pool.request()
+                .input('xnombre', sql.NVarChar, createContactsList[i].xnombre)
+                .input('xapellido', sql.NVarChar, createContactsList[i].xapellido)
+                .input('icedula', sql.NVarChar, createContactsList[i].icedula)
+                .input('xdocidentidad', sql.NVarChar, createContactsList[i].xdocidentidad)
+                .input('xtelefonocelular', sql.NVarChar, createContactsList[i].xtelefonocelular)
+                .input('xemail', sql.NVarChar, createContactsList[i].xemail)
+                .input('xcargo', sql.NVarChar, createContactsList[i].xcargo)
+                .input('xtelefonooficina', sql.NVarChar, createContactsList[i].xtelefonooficina)
+                .input('xtelefonocasa', sql.NVarChar, createContactsList[i].xtelefonocasa)
+                .input('cusuariocreacion', sql.Int, clientData.cusuariomodificacion)
+                .input('fcreacion', sql.DateTime, new Date())
+                .query('insert into CLCONTACTO (XNOMBRE, XAPELLIDO, ICEDULA, XDOCIDENTIDAD, XTELEFONOCELULAR, XEMAIL, XCARGO, XTELEFONOOFICINA, XTELEFONOCASA, CUSUARIOCREACION, FCREACION) values (@xnombre, @xapellido, @icedula, @xdocidentidad, @xtelefonocelular, @xemail, @xcargo, @xtelefonooficina, @xtelefonocasa, @cusuariocreacion, @fcreacion)')
+            rowsAffected = rowsAffected + insert.rowsAffected;
+        }
+        //sql.close();
+        return { result: { rowsAffected: rowsAffected } };
+    }
+    catch(err){
+        return { error: err.message };
+    }
+},
+updateContactsByClientUpdateQuery: async(clientData, updateContactsList) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < updateContactsList.length; i++){
+            let update = await pool.request()
+                .input('ccliente', sql.Int, clientData.ccliente)
+                .input('ccontacto', sql.Int, updateContactsList[i].ccontacto)
+                .input('xnombre', sql.NVarChar, updateContactsList[i].xnombre)
+                .input('xapellido', sql.NVarChar, updateContactsList[i].xapellido)
+                .input('icedula', sql.NVarChar, updateContactsList[i].icedula)
+                .input('xdocidentidad', sql.NVarChar, updateContactsList[i].xdocidentidad)
+                .input('xtelefonocelular', sql.NVarChar, updateContactsList[i].xtelefonocelular)
+                .input('xemail', sql.NVarChar, updateContactsList[i].xemail)
+                .input('xcargo', sql.NVarChar, updateContactsList[i].xcargo)
+                .input('xtelefonooficina', sql.NVarChar, updateContactsList[i].xtelefonooficina)
+                .input('xtelefonocasa', sql.NVarChar, updateContactsList[i].xtelefonocasa)
+                .input('cusuariomodificacion', sql.Int, clientData.cusuariomodificacion)
+                .input('fmodificacion', sql.DateTime, new Date())
+                .query('update CLCONTACTO set XNOMBRE = @xnombre, XAPELLIDO = @xapellido, ICEDULA = @icedula, XDOCIDENTIDAD = @xdocidentidad, XTELEFONOCELULAR = @xtelefonocelular, XEMAIL = @xemail, XCARGO = @xcargo, XTELEFONOOFICINA = @xtelefonooficina, XTELEFONOCASA = @xtelefonocasa, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion where CCONTACTO = @ccontacto and CCLIENTE = @ccliente');
+            rowsAffected = rowsAffected + update.rowsAffected;
+        }
+        //sql.close();
+        return { result: { rowsAffected: rowsAffected } };
+    }
+    catch(err){
+        return { error: err.message };
+    }
+},
+createDocumentsByClientUpdateQuery: async(clientData, createDocumentsList) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < createDocumentsList.length; i++){
+            let insert = await pool.request()
+                .input('ccliente', sql.Int, clientData.ccliente)
+                .input('xrutaarchivo', sql.NVarChar, createDocumentsList[i].xrutaarchivo)
+                .input('cusuariocreacion', sql.Int, clientData.cusuariomodificacion)
+                .input('fcreacion', sql.DateTime, new Date())
+                .query('insert into CLDOCUMENTO (CCLIENTE, XRUTAARCHIVO, CUSUARIOCREACION, FCREACION) values (@ccliente, @xrutaarchivo, @cusuariocreacion, @fcreacion)')
+            rowsAffected = rowsAffected + insert.rowsAffected;
+        }
+        //sql.close();
+        return { result: { rowsAffected: rowsAffected } };
+    }
+    catch(err){
+        return { error: err.message };
+    }
+},
+updateDocumentsByClientUpdateQuery: async(documents, clientData) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < documents.length; i++){
+            let update = await pool.request()
+                .input('ccliente', sql.Int, clientData.ccliente)
+                .input('cdocumento', sql.Int, documents[i].cdocumento)
+                .input('xrutaarchivo', sql.NVarChar, documents[i].xrutaarchivo)
+                .input('cusuariomodificacion', sql.Int, clientData.cusuariomodificacion)
+                .input('fmodificacion', sql.DateTime, new Date())
+                .query('update CLDOCUMENTO set XRUTAARCHIVO = @xrutaarchivo, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion where CDOCUMENTO = @cdocumento and CCLIENTE = @ccliente');
+            rowsAffected = rowsAffected + update.rowsAffected;
+        }
+        //sql.close();
+        return { result: { rowsAffected: rowsAffected } };
+    }
+    catch(err){
         return { error: err.message };
     }
 },
