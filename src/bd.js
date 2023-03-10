@@ -12248,6 +12248,51 @@ module.exports = {
             return { error: err.message };
         }
     },
+    ClienDataClubPlanService: async(ClientData) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('ctiposervici', sql.Int, ClientData.ctiposervici)
+            .query('select * from MASERVICIO where CTIPOSERVICIO = @ctiposervici');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+    },
+    ClienDataProveedor: async(ClientData) => {
+        try{
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .input('cestado', sql.Int, ClientData.cestado)
+                .input('cciudad', sql.Int, ClientData.cciudad)
+                .input('cservicio', sql.Int, ClientData.cservicio)
+                .query('select * from VWBUSCARPROVEEDORESXSERVICIOS where CESTADO= @cestado and CCIUDAD= @cciudad AND CSERVICIO= @cservicio');
+            //sql.close();
+            return { result: result };
+        }catch(err){
+            return { error: err.message };
+        }
+    },
+    SolicitudServiceClub: async(ClientData) => {
+        try{
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .input('cestado', sql.Int, ClientData.cestado)
+                .input('cciudad', sql.Int, ClientData.cciudad)
+                .input('cservicio', sql.Int, ClientData.cservicio)
+                .input('ctiposervicio', sql.Int, ClientData.ctiposervicio)
+                .input('cproveedor', sql.Int, ClientData.cproveedor)
+                .input('cpropietario', sql.Int, ClientData.cpropietario)
+                .input('isolicitante', sql.NVarChar, 'USR')
+                .input('fcreacion', sql.DateTime, new Date())
+                .query('INSERT INTO evsolicitudservicio (CESTADO,CCIUDAD,CSERVICIO,CTIPOSERVICIO,CPROVEEDOR,CPROPIETARIO,ISOLICITANTE,FCREACION) VALUES(@cestado,@cciudad,@cservicio,@ctiposervicio,@cproveedor, @cpropietario,@isolicitante, @fcreacion)');
+            //sql.close();
+            return { result: result };
+        }catch(err){
+            return { error: err.message };
+        }
+    },
     cancellationCauseServiceOrderValrepQuery: async(searchData) => {
         try{
             let pool = await sql.connect(config);
@@ -14043,7 +14088,7 @@ getClientDocumentsDataQuery: async(ccliente) => {
         let pool = await sql.connect(config);
         let result = await pool.request()
             .input('ccliente', sql.Int, ccliente)
-            .query('select * from VWBUSCARDOCUMENTOXCLIENTEDATA where CCLIENTE = @ccliente');
+            .query('select * from CLDOCUMENTO where CCLIENTE = @ccliente');
         //sql.close();
         return { result: result };
     }catch(err){
@@ -14127,17 +14172,18 @@ createContactsFromClientQuery: async(clientData, contactsList, ccliente) => {
         return { error: err.message };
     }
 },
-createDocumentsFromClientQuery: async(clientData, documentsList, ccliente) => {
+createDocumentsFromClientQuery: async(clientData, createDocumentsList) => {
     try{
         let rowsAffected = 0;
         let pool = await sql.connect(config);
-        for(let i = 0; i < documentsList.length; i++){
+        for(let i = 0; i < createDocumentsList.length; i++){
             let insert = await pool.request()
-            .input('ccliente', sql.Int, ccliente)
-            .input('xrutaarchivo', sql.NVarChar, documentsList[i].xrutaarchivo)
+            .input('ccliente', sql.Int, clientData.ccliente)
+            .input('xdocumento', sql.NVarChar, createDocumentsList[i].xdocumento)
+            .input('xrutaarchivo', sql.NVarChar, createDocumentsList[i].xrutaarchivo)
             .input('cusuariocreacion', sql.Int, clientData.cusuariocreacion)
             .input('fcreacion', sql.DateTime, new Date())
-            .query('insert into CLDOCUMENTO (CCLIENTE, XRUTAARCHIVO, CUSUARIOCREACION, FCREACION) values (@ccliente, @xrutaarchivo, @cusuariocreacion, @fcreacion)')
+            .query('insert into CLDOCUMENTO (CCLIENTE, XDOCUMENTO, XRUTAARCHIVO, CUSUARIOCREACION, FCREACION) values (@ccliente, @xdocumento, @xrutaarchivo, @cusuariocreacion, @fcreacion)')
             rowsAffected = rowsAffected + insert.rowsAffected;
         }
         return { result: { rowsAffected: rowsAffected } };

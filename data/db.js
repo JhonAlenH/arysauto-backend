@@ -2206,14 +2206,13 @@ module.exports = {
     },
     searchServiceRequestQuery: async(searchData) => {
         try{
-            let query = `select * from VWBUSCARSOLICITUDSERVICIODATA where CPAIS = @cpais and CCOMPANIA = @ccompania${ searchData.ctipodocidentidad ? " and CTIPODOCIDENTIDAD = @ctipodocidentidad" : '' }${ searchData.isolicitante ? " and ISOLICITANTE = @isolicitante" : '' }${ searchData.xnombre ? " and XNOMBRE like '%" + searchData.xnombre + "%'" : '' }${ searchData.xapellido ? " and XAPELLIDO like '%" + searchData.xapellido + "%'" : '' }${ searchData.xdocidentidad ? " and XDOCIDENTIDAD like '%" + searchData.xdocidentidad + "%'" : '' }`;
+            let query = `select * from VWBUSCARSOLICITUDSERVICIODATA where CSOLICITUDSERVICIO > 0${ searchData.isolicitante ? " and ISOLICITANTE = @isolicitante" : '' }${ searchData.xnombre ? " and XNOMBRE like '%" + searchData.xnombre + "%'" : '' }${ searchData.xapellido ? " and XAPELLIDO like '%" + searchData.xapellido + "%'" : '' }${ searchData.xdocidentidad ? " and XDOCIDENTIDAD like '%" + searchData.xdocidentidad + "%'" : '' }`;
             let pool = await sql.connect(config);
             let result = await pool.request()
-                .input('cpais', sql.Numeric(4, 0), searchData.cpais)
-                .input('ccompania', sql.Int, searchData.ccompania)
-                .input('ctipodocidentidad', sql.Int, searchData.ctipodocidentidad ? searchData.ctipodocidentidad : 1)
-                .input('isolicitante', sql.Char(3), searchData.isolicitante ? searchData.isolicitante : 'TST')
-                .input('xdocidentidad', sql.NVarChar, searchData.xdocidentidad ? searchData.xdocidentidad : 1)
+                .input('xnombre', sql.NVarChar, searchData.xnombre ? searchData.xnombre : undefined)
+                .input('xapellido', sql.NVarChar, searchData.xapellido ? searchData.xapellido : undefined)
+                .input('isolicitante', sql.Char, searchData.isolicitante ? searchData.isolicitante : undefined)
+                .input('xdocidentidad', sql.NVarChar, searchData.xdocidentidad ? searchData.xdocidentidad : undefined)
                 .query(query);
             //sql.close();
             return { result: result };
