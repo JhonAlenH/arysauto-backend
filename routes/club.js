@@ -138,7 +138,6 @@ const operationSearchDataClientVehicle = async(requestBody) => {
     }
 }
 
-
 router.route('/Data/Client').post((req, res) => {
     operationSearchDataClient(req.body).then((result) => {
         if(!result.status){ 
@@ -170,7 +169,6 @@ const operationSearchDataClient = async(requestBody) => {
 
     }
 }
-
 
 router.route('/Data/Client/Plan').post((req, res) => {
     operationSearchDataPlan(req.body).then((result) => {
@@ -211,7 +209,112 @@ const operationSearchDataPlan = async(requestBody) => {
         xplan: client.result.recordset[0].XPLAN,
         cplan: client.result.recordset[0].CPLAN,
         listTypeService : DataTypeService,
-        listService : DataService
+    }
+}
+
+router.route('/Data/Client/Plan/service').post((req, res) => {
+    operationSearchDataPlanService(req.body).then((result) => {
+        if(!result.status){ 
+            res.status(result.code).json({ data: result });
+            return;
+        }
+        res.json({ data: result });
+    }).catch((err) => {
+        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchDataPlanService' } });
+    });
+});
+
+const operationSearchDataPlanService = async(requestBody) => {
+    let ClientData = {
+        ctiposervici: requestBody.ctiposervici,
+    };
+
+    let client = await bd.ClienDataClubPlanService(ClientData).then((res) => res);
+    if(client.error){ return { status: false, code: 500, message: client.error }; }
+
+
+    let DataService = [];
+    for(let i = 0; i < client.result.recordset.length; i++){
+        DataService.push({ 
+            cservicio: client.result.recordset[i].CSERVICIO, 
+            xservicio: client.result.recordset[i].XSERVICIO});
+    }
+
+    return { 
+        status: true, 
+        DataService : DataService,
+    }
+}
+
+router.route('/Data/Proveedor').post((req, res) => {
+    operationSearchProveedor(req.body).then((result) => {
+        if(!result.status){ 
+            res.status(result.code).json({ data: result });
+            return;
+        }
+        res.json({ data: result });
+    }).catch((err) => {
+        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchProveedor' } });
+    });
+});
+
+const operationSearchProveedor = async(requestBody) => {
+    let ClientData = {
+        cservicio: requestBody.cservicio,
+        cestado: requestBody.cestado,
+        cciudad: requestBody.cciudad,
+    };
+    let client = await bd.ClienDataProveedor(ClientData).then((res) => res);
+    if(client.error){ return { status: false, code: 500, message: client.error }; }
+
+    if(client.rowsAffected == 0){ return { status: false, code: 404 }; }
+
+
+    let ListProveedor = [];
+    for(let i = 0; i < client.result.recordset.length; i++){
+        ListProveedor.push({ 
+            cproveedor: client.result.recordset[i].CPROVEEDOR,
+            xnombre: client.result.recordset[i].XNOMBRE, 
+            xtelefono: client.result.recordset[i].XTELEFONO,
+            xtelefonocelular: client.result.recordset[i].XTELEFONOCELULAR
+        });
+    }
+
+    return { 
+        status: true, 
+        ListProveedor : ListProveedor,
+    }
+}
+
+router.route('/Data/Solicitud').post((req, res) => {
+    operationGenerateSolicitud(req.body).then((result) => {
+        if(!result.status){ 
+            res.status(result.code).json({ data: result });
+            return;
+        }
+        res.json({ data: result });
+    }).catch((err) => {
+        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationGenerateSolicitud' } });
+    });
+});
+
+const operationGenerateSolicitud = async(requestBody) => {
+    let ClientData = {       
+        cestado: requestBody.cestado,
+        cciudad: requestBody.cciudad,
+        cservicio: requestBody.cservicio,
+        ctiposervicio: requestBody.ctiposervicio,
+        cproveedor: requestBody.cproveedor,
+        cpropietario: requestBody.cpropietario,
+    };
+    console.log(ClientData);
+    let client = await bd.SolicitudServiceClub(ClientData).then((res) => res);
+    if(client.error){ return { status: false, code: 500, message: client.error }; }
+
+    return { 
+        status: true, 
+        message: 'La solicitud fue creada con exito'
+
     }
 }
 
