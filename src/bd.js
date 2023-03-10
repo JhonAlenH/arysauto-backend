@@ -14012,7 +14012,7 @@ getClientDocumentsDataQuery: async(ccliente) => {
         let pool = await sql.connect(config);
         let result = await pool.request()
             .input('ccliente', sql.Int, ccliente)
-            .query('select * from VWBUSCARDOCUMENTOXCLIENTEDATA where CCLIENTE = @ccliente');
+            .query('select * from CLDOCUMENTO where CCLIENTE = @ccliente');
         //sql.close();
         return { result: result };
     }catch(err){
@@ -14096,17 +14096,18 @@ createContactsFromClientQuery: async(clientData, contactsList, ccliente) => {
         return { error: err.message };
     }
 },
-createDocumentsFromClientQuery: async(clientData, documentsList, ccliente) => {
+createDocumentsFromClientQuery: async(clientData, createDocumentsList) => {
     try{
         let rowsAffected = 0;
         let pool = await sql.connect(config);
-        for(let i = 0; i < documentsList.length; i++){
+        for(let i = 0; i < createDocumentsList.length; i++){
             let insert = await pool.request()
-            .input('ccliente', sql.Int, ccliente)
-            .input('xrutaarchivo', sql.NVarChar, documentsList[i].xrutaarchivo)
+            .input('ccliente', sql.Int, clientData.ccliente)
+            .input('xdocumento', sql.NVarChar, createDocumentsList[i].xdocumento)
+            .input('xrutaarchivo', sql.NVarChar, createDocumentsList[i].xrutaarchivo)
             .input('cusuariocreacion', sql.Int, clientData.cusuariocreacion)
             .input('fcreacion', sql.DateTime, new Date())
-            .query('insert into CLDOCUMENTO (CCLIENTE, XRUTAARCHIVO, CUSUARIOCREACION, FCREACION) values (@ccliente, @xrutaarchivo, @cusuariocreacion, @fcreacion)')
+            .query('insert into CLDOCUMENTO (CCLIENTE, XDOCUMENTO, XRUTAARCHIVO, CUSUARIOCREACION, FCREACION) values (@ccliente, @xdocumento, @xrutaarchivo, @cusuariocreacion, @fcreacion)')
             rowsAffected = rowsAffected + insert.rowsAffected;
         }
         return { result: { rowsAffected: rowsAffected } };
