@@ -3327,6 +3327,7 @@ module.exports = {
             //sql.close();
             return { result: result };
         }catch(err){
+            console.log(err.message)
             return { error: err.message };
         }
     },
@@ -3350,6 +3351,7 @@ module.exports = {
             return { result: { rowsAffected: rowsAffected } };
         }
         catch(err){
+            console.log(err.message)
             return { error: err.message };
         }
     },
@@ -3373,6 +3375,7 @@ module.exports = {
             return { result: { rowsAffected: rowsAffected } };
         }
         catch(err){
+            console.log(err.message)
             return { error: err.message };
         }
     },

@@ -377,11 +377,10 @@ const operationUpdateProvider = async(authHeader, requestBody) => {
                     xnumerocuenta: requestBody.banks.create[i].xnumerocuenta,
                     bprincipal: requestBody.banks.create[i].bprincipal
                 })
-                console.log(bankList)
             }
             let createBanksByProviderUpdate = await db.createBanksByProviderUpdateQuery(bankList, providerData).then((res) => res);
-            if(createBanksByProviderUpdate.error){ return { status: false, code: 500, message: createBanksByProviderUpdate.error }; }
-            if(createBanksByProviderUpdate.result.rowsAffected < 0){ return { status: false, code: 500, message: 'Server Internal Error.', hint: 'createBanksByProviderUpdate' }; }
+            console.log(createBanksByProviderUpdate.result)
+            // if(createBanksByProviderUpdate.error){ return { status: false, code: 500, message: createBanksByProviderUpdate.error }; }
         }
     }
     if(requestBody.states){
