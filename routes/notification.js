@@ -551,6 +551,7 @@ router.route('/detail').post((req, res) => {
             }
             res.json({ data: result });
         }).catch((err) => {
+            console.log(err.message)
             res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationDetailNotification' } });
         });
     }
@@ -852,12 +853,12 @@ const operationDetailNotification = async(authHeader, requestBody) => {
             ctiponotificacion: getNotificationData.result.recordset[0].CTIPONOTIFICACION,
             crecaudo: getNotificationData.result.recordset[0].CRECAUDO,
             ccausasiniestro: getNotificationData.result.recordset[0].CCAUSASINIESTRO,
-            xnombre: helper.decrypt(getNotificationData.result.recordset[0].XNOMBRE),
-            xapellido: helper.decrypt(getNotificationData.result.recordset[0].XAPELLIDO),
-            xtelefono: helper.decrypt(getNotificationData.result.recordset[0].XTELEFONO),
-            xnombrealternativo: getNotificationData.result.recordset[0].XNOMBREALTERNATIVO ? helper.decrypt(getNotificationData.result.recordset[0].XNOMBREALTERNATIVO) : undefined,
-            xapellidoalternativo: getNotificationData.result.recordset[0].XAPELLIDOALTERNATIVO ? helper.decrypt(getNotificationData.result.recordset[0].XAPELLIDOALTERNATIVO) : undefined,
-            xtelefonoalternativo: getNotificationData.result.recordset[0].XTELEFONOALTERNATIVO ? helper.decrypt(getNotificationData.result.recordset[0].XTELEFONOALTERNATIVO) : undefined,
+            xnombre: getNotificationData.result.recordset[0].XNOMBRE,
+            xapellido: getNotificationData.result.recordset[0].XAPELLIDO,
+            xtelefono: getNotificationData.result.recordset[0].XTELEFONO,
+            xnombrealternativo: getNotificationData.result.recordset[0].XNOMBREALTERNATIVO ? getNotificationData.result.recordset[0].XNOMBREALTERNATIVO : undefined,
+            xapellidoalternativo: getNotificationData.result.recordset[0].XAPELLIDOALTERNATIVO ? getNotificationData.result.recordset[0].XAPELLIDOALTERNATIVO : undefined,
+            xtelefonoalternativo: getNotificationData.result.recordset[0].XTELEFONOALTERNATIVO ? getNotificationData.result.recordset[0].XTELEFONOALTERNATIVO : undefined,
             bdano: getNotificationData.result.recordset[0].BDANO,
             btransitar: getNotificationData.result.recordset[0].BTRANSITAR,
             bdanootro: getNotificationData.result.recordset[0].BDANOOTRO,
@@ -866,32 +867,32 @@ const operationDetailNotification = async(authHeader, requestBody) => {
             fevento: getNotificationData.result.recordset[0].FEVENTO,
             cestado: getNotificationData.result.recordset[0].CESTADO,
             cciudad: getNotificationData.result.recordset[0].CCIUDAD,
-            xdireccion: helper.decrypt(getNotificationData.result.recordset[0].XDIRECCION),
-            xdescripcion: helper.decrypt(getNotificationData.result.recordset[0].XDESCRIPCION),
+            xdireccion: getNotificationData.result.recordset[0].XDIRECCION,
+            xdescripcion: getNotificationData.result.recordset[0].XDESCRIPCION,
             btransito: getNotificationData.result.recordset[0].BTRANSITO,
             bcarga: getNotificationData.result.recordset[0].BCARGA,
             bpasajero: getNotificationData.result.recordset[0].BPASAJERO,
             npasajero: getNotificationData.result.recordset[0].NPASAJERO ? getNotificationData.result.recordset[0].NPASAJERO : undefined,
-            xobservacion: helper.decrypt(getNotificationData.result.recordset[0].XOBSERVACION),
-            xcliente: helper.decrypt(getFleetContractCompleteData.result.recordset[0].XCLIENTE),
+            xobservacion: getNotificationData.result.recordset[0].XOBSERVACION,
+            xcliente: getFleetContractCompleteData.result.recordset[0].XCLIENTE,
             cestatusgeneral: getFleetContractCompleteData.result.recordset[0].CESTATUSGENERAL,
             xestatusgeneral: getFleetContractCompleteData.result.recordset[0].XESTATUSGENERAL,
-            fdesde_pol: helper.decrypt(getFleetContractCompleteData.result.recordset[0].FDESDE_POL),
-            fhasta_pol: helper.decrypt(getFleetContractCompleteData.result.recordset[0].FHASTA_POL),
+            fdesde_pol: getFleetContractCompleteData.result.recordset[0].FDESDE_POL,
+            fhasta_pol: getFleetContractCompleteData.result.recordset[0].FHASTA_POL,
             xmarca: getFleetContractCompleteData.result.recordset[0].XMARCA,
             xmodelo: getFleetContractCompleteData.result.recordset[0].XMODELO,
             xtipo: getFleetContractCompleteData.result.recordset[0].XTIPO,
-            xplaca: helper.decrypt(getFleetContractCompleteData.result.recordset[0].XPLACA),
+            xplaca: getFleetContractCompleteData.result.recordset[0].XPLACA,
             fano: getFleetContractCompleteData.result.recordset[0].FANO,
             xcolor: getFleetContractCompleteData.result.recordset[0].XCOLOR,
-            xserialcarroceria: helper.decrypt(getFleetContractCompleteData.result.recordset[0].XSERIALCARROCERIA),
-            xserialmotor: helper.decrypt(getFleetContractCompleteData.result.recordset[0].XSERIALMOTOR),
-            xnombrepropietario: helper.decrypt(getFleetContractCompleteData.result.recordset[0].XNOMBRE),
-            xapellidopropietario: helper.decrypt(getFleetContractCompleteData.result.recordset[0].XAPELLIDO),
-            xdocidentidadpropietario: helper.decrypt(getFleetContractCompleteData.result.recordset[0].XDOCIDENTIDAD),
-            xdireccionpropietario: helper.decrypt(getFleetContractCompleteData.result.recordset[0].XDIRECCION),
+            xserialcarroceria: getFleetContractCompleteData.result.recordset[0].XSERIALCARROCERIA,
+            xserialmotor: getFleetContractCompleteData.result.recordset[0].XSERIALMOTOR,
+            xnombrepropietario: getFleetContractCompleteData.result.recordset[0].XNOMBRE,
+            xapellidopropietario: getFleetContractCompleteData.result.recordset[0].XAPELLIDO,
+            xdocidentidadpropietario: getFleetContractCompleteData.result.recordset[0].XDOCIDENTIDAD,
+            xdireccionpropietario: getFleetContractCompleteData.result.recordset[0].XDIRECCION,
             xtelefonocelularpropietario: telefonopropietario,
-            xemailpropietario: helper.decrypt(getFleetContractCompleteData.result.recordset[0].XEMAIL),
+            xemailpropietario: getFleetContractCompleteData.result.recordset[0].XEMAIL,
             thirdpartyVehicles: thirdpartyVehicles,
             notes: notes,
             replacements: replacements,
@@ -1293,6 +1294,77 @@ const operationServiceOrderFromSettlement = async(authHeader, requestBody) => {
     }
     console.log(jsonArray)
     return { status: true, list: jsonArray }
+}
+
+router.route('/search-service-type').post((req, res) => {
+    if(!req.header('Authorization')){
+        res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } });
+        return;
+    }else{
+        operationSearchServiceType(req.header('Authorization'), req.body).then((result) => {
+            if(!result.status){
+                res.status(result.code).json({ data: result });
+                return;
+            }
+            res.json({ data: result });
+        }).catch((err) => {
+            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchServiceType' } });
+        });
+    }
+});
+
+const operationSearchServiceType = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    let ccontratoflota = requestBody.ccontratoflota;
+    let searchServiceType = await bd.searchServiceTypeFromFleetContractQuery(ccontratoflota).then((res) => res);
+    if(searchServiceType.error){ return  { status: false, code: 500, message: searchServiceType.error }; }
+    if(searchServiceType.result.rowsAffected > 0){
+        let jsonList = [];
+        for(let i = 0; i < searchServiceType.result.recordset.length; i++){
+            jsonList.push({
+                cplan: searchServiceType.result.recordset[i].CPLAN,
+                ctiposervicio: searchServiceType.result.recordset[i].CTIPOSERVICIO,
+            });
+        }
+        return { status: true, list: jsonList };
+    }else{ return { status: false, code: 404, message: 'Replacement not found.' }; }
+}
+
+router.route('/search-service').post((req, res) => {
+    if(!req.header('Authorization')){
+        res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } });
+        return;
+    }else{
+        operationSearchServiceFromServiceOrder(req.header('Authorization'), req.body).then((result) => {
+            if(!result.status){
+                res.status(result.code).json({ data: result });
+                return;
+            }
+            res.json({ data: result });
+        }).catch((err) => {
+            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchServiceFromServiceOrder' } });
+        });
+    }
+});
+
+const operationSearchServiceFromServiceOrder = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    let data = {
+        ccontratoflota: requestBody.ccontratoflota,
+        cusuariocreacion: requestBody.cusuario,
+        service: requestBody.servicio
+    }
+    let searchServiceFromServiceOrder = await bd.storeProcedureFromServiceQuery(data).then((res) => res);
+    if(searchServiceFromServiceOrder.error){ return  { status: false, code: 500, message: searchServiceFromServiceOrder.error }; }
+    if(searchServiceFromServiceOrder.result.rowsAffected > 0){
+        let jsonList = [];
+        for(let i = 0; i < searchServiceFromServiceOrder.result.recordset.length; i++){
+            jsonList.push({
+                cservicio: searchServiceFromServiceOrder.result.recordset[i].CSERVICIO,
+            });
+        }
+        return { status: true, list: jsonList };
+    }else{ return { status: false, code: 404, message: 'Replacement not found.' }; }
 }
 
 module.exports = router;
