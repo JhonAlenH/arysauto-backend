@@ -1129,7 +1129,7 @@ const operationValrepNotificationServices = async(authHeader, requestBody) => {
     //if(query.error){ return { status: false, code: 500, message: query.error }; }
     let jsonArray = [];
     for(let i = 0; i < query.result.recordset.length; i++){
-        jsonArray.push({ cservicio: query.result.recordset[i].cservicio, xservicio: query.result.recordset[i].XSERVICIO, ccontratoflota: query.result.recordset[i].ccontratoflota , ccarga: query.result.recordset[i].ccarga});
+        jsonArray.push({ cservicio: query.result.recordset[i].CSERVICIO, xservicio: query.result.recordset[i].XSERVICIO, ccontratoflota: query.result.recordset[i].ccontratoflota , ccarga: query.result.recordset[i].ccarga});
     }
     return { status: true, list: jsonArray }
 }
