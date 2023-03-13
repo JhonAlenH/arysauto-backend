@@ -10202,6 +10202,7 @@ module.exports = {
                 .input('cnotificacion', sql.Int, notificationData.cnotificacion)
                 .query('select * from EVNOTIFICACION where CNOTIFICACION = @cnotificacion and CCOMPANIA = @ccompania');
             //sql.close();
+            console.log(result)
             return { result: result };
         }catch(err){
             console.log(err.message)
@@ -10246,6 +10247,7 @@ module.exports = {
             //sql.close();
             return { result: result };
         }catch(err){
+            console.log(err.message)
             return { error: err.message };
         }
     },

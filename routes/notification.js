@@ -559,7 +559,7 @@ router.route('/detail').post((req, res) => {
 
 const operationDetailNotification = async(authHeader, requestBody) => { 
     if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
-    if(!helper.validateRequestObj(requestBody, ['cpais', 'ccompania', 'cnotificacion'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
+    // if(!helper.validateRequestObj(requestBody, ['cpais', 'ccompania', 'cnotificacion'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
     let notificationData = {
         cpais: requestBody.cpais,
         ccompania: requestBody.ccompania,
@@ -567,7 +567,9 @@ const operationDetailNotification = async(authHeader, requestBody) => {
     };
     let getNotificationData = await bd.getNotificationDataQuery(notificationData).then((res) => res);
     if(getNotificationData.error){ return { status: false, code: 500, message: getNotificationData.error }; }
+    console.log(getNotificationData.error)
     if(getNotificationData.result.rowsAffected > 0){
+
         let getFleetContractCompleteData = await bd.getFleetContractCompleteDataQuery(getNotificationData.result.recordset[0].CCONTRATOFLOTA, notificationData).then((res) => res);
         if(getFleetContractCompleteData.error){ return { status: false, code: 500, message: getFleetContractWorkerData.error }; }
         let telefonopropietario;
@@ -576,7 +578,6 @@ const operationDetailNotification = async(authHeader, requestBody) => {
         }else{
             telefonopropietario = getFleetContractCompleteData.result.recordset[0].XTELEFONOCASA
         }
-        console.log(telefonopropietario)
         if(getFleetContractCompleteData.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Fleet Contract Data not found.' }; }
         let notes = [];
         let getNotificationNotesData = await bd.getNotificationNotesDataQuery(notificationData.cnotificacion).then((res) => res);
@@ -593,6 +594,7 @@ const operationDetailNotification = async(authHeader, requestBody) => {
                 notes.push(note);
             }
         }
+
         let replacements = [];
         let getNotificationReplacementsData = await bd.getNotificationReplacementsDataQuery(notificationData.cnotificacion).then((res) => res);
         if(getNotificationReplacementsData.error){ return { status: false, code: 500, message: getNotificationReplacementsData.error }; }
@@ -634,6 +636,7 @@ const operationDetailNotification = async(authHeader, requestBody) => {
                 materialDamages.push(materialDamage);
             }
         }
+
         let thirdPartyTracings = [];
         let thirdparties = [];
         let getNotificationThirdpartiesData = await bd.getNotificationThirdpartiesDataQuery(notificationData.cnotificacion).then((res) => res);
@@ -826,6 +829,7 @@ const operationDetailNotification = async(authHeader, requestBody) => {
         let serviceOrder = [];
         let getNotificationServiceOrderData = await bd.getNotificationServiceOrderDataQuery(notificationData.cnotificacion).then((res) => res);
         if(getNotificationServiceOrderData.error){ return { status: false, code: 500, message: getNotificationServiceOrderData.error }; }
+        console.log(getNotificationServiceOrderData.error)
         if(getNotificationServiceOrderData.result.rowsAffected > 0){
             for(let i = 0; i < getNotificationServiceOrderData.result.recordset.length; i++){
                 let serviceOrderList = {
@@ -846,6 +850,7 @@ const operationDetailNotification = async(authHeader, requestBody) => {
                 serviceOrder.push(serviceOrderList);
             }
         }
+        // console.log(err.message)
         return {
             status: true,
             cnotificacion: notificationData.cnotificacion,
