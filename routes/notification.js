@@ -1230,6 +1230,7 @@ const operationDetailSettlement = async(authHeader, requestBody) => {
     }
     let detailSettlement = await bd.detailSettlementQuery(searchData).then((res) => res);
     if(detailSettlement.error){ return { status: false, code: 500, message: detailSettlement.error }; }
+    console.log(detailSettlement.error)
     if(detailSettlement.result.rowsAffected > 0){
         let nombres = detailSettlement.result.recordset[0].XNOMBRE + ' ' + detailSettlement.result.recordset[0].XAPELLIDO;
         return {
@@ -1265,7 +1266,8 @@ const operationDetailSettlement = async(authHeader, requestBody) => {
             xcausafiniquito: detailSettlement.result.recordset[0].XCAUSAFINIQUITO,
             fcreacionnotificacion: detailSettlement.result.recordset[0].FCREACIONNOTIFICACION
         }
-    }else{ return { status: false, code: 404, message: 'Coin not found.' }; }
+    }
+    return { status: true }
 }
 
 router.route('/settlement/service-order').post((req, res) => {
