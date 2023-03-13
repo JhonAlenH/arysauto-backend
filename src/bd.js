@@ -10204,6 +10204,7 @@ module.exports = {
             //sql.close();
             return { result: result };
         }catch(err){
+            console.log(err.message)
             return { error: err.message };
         }
     },
@@ -10219,6 +10220,7 @@ module.exports = {
             //sql.close();
             return { result: result };
         }catch(err){
+            console.log(err.message)
             return { error: err.message };
         }
     },
@@ -14362,6 +14364,39 @@ updateDocumentsByClientUpdateQuery: async(documents, clientData) => {
     catch(err){
         return { error: err.message };
     }
+},
+searchServiceTypeFromFleetContractQuery: async(ccontratoflota) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('ccontratoflota', sql.Int, ccontratoflota)
+            .query('select * from VWBUSCARPLANXCONTRATO where CCONTRATOFLOTA = @ccontratoflota');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+storeProcedureFromServiceQuery: async(data) => {
+    console.log(data)
+    try{
+        let pool = await sql.connect(config);
+        for(let i = 0; i < data.service.length; i++){
+            let result = await pool.request()
+            .input('cplan', sql.Int, data.service[i].cplan)
+            .input('ctiposervicio', sql.Int, data.service[i].ctiposervicio)
+            .input('ccontratoflota', sql.Int, data.ccontratoflota)
+            .input('cusuariocreacion', sql.Int, data.cusuariocreacion)
+            .execute('PoBServicios');
+        }
+        let query= await pool.request()
+        .input('ccontratoflota', sql.Int, data.ccontratoflota)
+        .query('select * from SUSERVICIOS WHERE CCONTRATOFLOTA = @ccontratoflota');
+        return { result: query };
+    }catch(err){
+        console.log(err.message)
+        return { error: err.message };
+        }
 },
 }
 
