@@ -3291,13 +3291,14 @@ module.exports = {
             let result = await pool.request()
                 .input('cpais', sql.Numeric(4, 0), providerData.cpais)
                 .input('ccompania', sql.Int, providerData.ccompania)
-                .input('cproveedor', sql.NVarChar, providerData.cproveedor)
-                .input('ctipodocidentidad', sql.Int, providerData.ctipodocidentidad)
+                .input('cproveedor', sql.Int, providerData.cproveedor)
                 .input('xdocidentidad', sql.NVarChar, providerData.xdocidentidad)
-                .query('select * from PRPROVEEDOR where XDOCIDENTIDAD = @xdocidentidad and CTIPODOCIDENTIDAD = @ctipodocidentidad and CPAIS = @cpais and CCOMPANIA = @ccompania and CPROVEEDOR != @cproveedor');
+                .query('select * from PRPROVEEDORES where XDOCIDENTIDAD = @xdocidentidad and CPAIS = @cpais and CCOMPANIA = @ccompania and CPROVEEDOR != @cproveedor');
             //sql.close();
+            console.log(result)
             return { result: result };
         }catch(err){
+            console.log(err.message)
             return { error: err.message };
         }
     },

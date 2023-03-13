@@ -88,6 +88,7 @@ app.post('/api/upload/image', image_upload.single('ximagen'), function (req, res
     }
     res.json({ data: { status: true, uploadedFile: file } });
 }, (error, req, res, next) => {
+  console.log(err.message)
     res.status(400).json({ data: { status: false, code: 400, message: err.message } });
 });
 
