@@ -6289,8 +6289,8 @@ module.exports = {
         try{
             let pool = await sql.connect(config);
             let result = await pool.request()
-                //.input('cproveedor', sql.Int, cproveedor)
-                .query('select * from VWBUSCARPROVEEDORXSERVICIO');
+                .input('cproveedor', sql.Int, cproveedor)
+                .query('select * from VWBUSCARPROVEEDORXSERVICIO WHERE CPROVEEDOR = @cproveedor');
             //sql.close();
             return { result: result };
         }catch(err){
@@ -10800,6 +10800,7 @@ module.exports = {
                 .input('cnotificacion', sql.Int, cnotificacion)
                 .query('select * from VWBUSCARPROVEEDORXNOTIFICACIONDATA where CNOTIFICACION = @cnotificacion');
             //sql.close();
+            console.log(result)
             return { result: result };
         }catch(err){
             return { error: err.message };
