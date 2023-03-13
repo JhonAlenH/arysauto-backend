@@ -38,7 +38,7 @@ let image_upload = multer({
   storage: image_storage,
   limits: {
     // Setting Image Size Limit to 2MBs
-    fileSize: 2000000
+    fileSize: 5000000
   },
   fileFilter(req, file, cb) {
     if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
@@ -54,7 +54,7 @@ let document_upload = multer({
   storage: document_storage,
   limits: {
     //fileSize: 2000000
-    fileSize: 2000000
+    fileSize: 5000000
   },
   fileFilter(req, file, cb) {
     // if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {

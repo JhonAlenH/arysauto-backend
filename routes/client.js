@@ -259,22 +259,22 @@ const operationUpdateClient = async(authHeader, requestBody) => {
         cpais: requestBody.cpais,
         ccompania: requestBody.ccompania,
         ccliente: requestBody.ccliente,
-        xcliente: requestBody.xcliente.toUpperCase(),
-        xrepresentante: requestBody.xrepresentante.toUpperCase() ? requestBody.xrepresentante: null,
+        xcliente: requestBody.xcliente ? requestBody.xcliente: null,
+        xrepresentante: requestBody.xrepresentante ? requestBody.xrepresentante: null,
         icedula: requestBody.icedula ? requestBody.icedula: null,
-        xdocidentidad: requestBody.xdocidentidad.toUpperCase() ? requestBody.xdocidentidad: null,
+        xdocidentidad: requestBody.xdocidentidad ? requestBody.xdocidentidad: null,
         cestado: requestBody.cestado ? requestBody.cestado: null,
         cciudad: requestBody.cciudad ? requestBody.cciudad: null,
-        xdireccionfiscal: requestBody.xdireccionfiscal.toUpperCase() ? requestBody.xdocidentidad: null,
-        xemail: requestBody.xemail.toUpperCase() ? requestBody.xemail: null,
+        xdireccionfiscal: requestBody.xdireccionfiscal ? requestBody.xdireccionfiscal: null,
+        xemail: requestBody.xemail ? requestBody.xemail: null,
         finicio: requestBody.finicio ? requestBody.finicio: null,
         xtelefono: requestBody.xtelefono ? requestBody.xtelefono : null,
-        xpaginaweb: requestBody.xpaginaweb.toUpperCase() ? requestBody.xpaginaweb : null,
+        xpaginaweb: requestBody.xpaginaweb ? requestBody.xpaginaweb : null,
         xrutaimagen: requestBody.xrutaimagen ? requestBody.xrutaimagen : null,
         bactivo: requestBody.bactivo,
         cusuariomodificacion: requestBody.cusuariomodificacion
     }
-
+    console.log(clientData)
     let updateClient = await bd.updateClientQuery(clientData).then((res) => res);
     if(updateClient.error){return { status: false, code: 500, message: updateClient.error }; }
     if(requestBody.banks){
@@ -348,9 +348,11 @@ const operationUpdateClient = async(authHeader, requestBody) => {
     }
     if(requestBody.documents){
         if(requestBody.documents.create){
+            console.log(requestBody.documents.create)
             let createDocumentsList = [];
             for(let i = 0; i < requestBody.documents.create.length; i++){
                 createDocumentsList.push({
+                    xdocumento: requestBody.documents.create[i].xdocumento,
                     xrutaarchivo: requestBody.documents.create[i].xrutaarchivo
                 })
             }

@@ -10204,6 +10204,7 @@ module.exports = {
             //sql.close();
             return { result: result };
         }catch(err){
+            console.log(err.message)
             return { error: err.message };
         }
     },
@@ -10219,6 +10220,7 @@ module.exports = {
             //sql.close();
             return { result: result };
         }catch(err){
+            console.log(err.message)
             return { error: err.message };
         }
     },
@@ -14088,7 +14090,7 @@ getClientDocumentsDataQuery: async(ccliente) => {
         let pool = await sql.connect(config);
         let result = await pool.request()
             .input('ccliente', sql.Int, ccliente)
-            .query('select * from VWBUSCARDOCUMENTOXCLIENTEDATA where CCLIENTE = @ccliente');
+            .query('select * from CLDOCUMENTO where CCLIENTE = @ccliente');
         //sql.close();
         return { result: result };
     }catch(err){
@@ -14172,17 +14174,18 @@ createContactsFromClientQuery: async(clientData, contactsList, ccliente) => {
         return { error: err.message };
     }
 },
-createDocumentsFromClientQuery: async(clientData, documentsList, ccliente) => {
+createDocumentsFromClientQuery: async(clientData, createDocumentsList) => {
     try{
         let rowsAffected = 0;
         let pool = await sql.connect(config);
-        for(let i = 0; i < documentsList.length; i++){
+        for(let i = 0; i < createDocumentsList.length; i++){
             let insert = await pool.request()
-            .input('ccliente', sql.Int, ccliente)
-            .input('xrutaarchivo', sql.NVarChar, documentsList[i].xrutaarchivo)
+            .input('ccliente', sql.Int, clientData.ccliente)
+            .input('xdocumento', sql.NVarChar, createDocumentsList[i].xdocumento)
+            .input('xrutaarchivo', sql.NVarChar, createDocumentsList[i].xrutaarchivo)
             .input('cusuariocreacion', sql.Int, clientData.cusuariocreacion)
             .input('fcreacion', sql.DateTime, new Date())
-            .query('insert into CLDOCUMENTO (CCLIENTE, XRUTAARCHIVO, CUSUARIOCREACION, FCREACION) values (@ccliente, @xrutaarchivo, @cusuariocreacion, @fcreacion)')
+            .query('insert into CLDOCUMENTO (CCLIENTE, XDOCUMENTO, XRUTAARCHIVO, CUSUARIOCREACION, FCREACION) values (@ccliente, @xdocumento, @xrutaarchivo, @cusuariocreacion, @fcreacion)')
             rowsAffected = rowsAffected + insert.rowsAffected;
         }
         return { result: { rowsAffected: rowsAffected } };
@@ -14361,6 +14364,39 @@ updateDocumentsByClientUpdateQuery: async(documents, clientData) => {
     catch(err){
         return { error: err.message };
     }
+},
+searchServiceTypeFromFleetContractQuery: async(ccontratoflota) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('ccontratoflota', sql.Int, ccontratoflota)
+            .query('select * from VWBUSCARPLANXCONTRATO where CCONTRATOFLOTA = @ccontratoflota');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+storeProcedureFromServiceQuery: async(data) => {
+    console.log(data)
+    try{
+        let pool = await sql.connect(config);
+        for(let i = 0; i < data.service.length; i++){
+            let result = await pool.request()
+            .input('cplan', sql.Int, data.service[i].cplan)
+            .input('ctiposervicio', sql.Int, data.service[i].ctiposervicio)
+            .input('ccontratoflota', sql.Int, data.ccontratoflota)
+            .input('cusuariocreacion', sql.Int, data.cusuariocreacion)
+            .execute('PoBServicios');
+        }
+        let query= await pool.request()
+        .input('ccontratoflota', sql.Int, data.ccontratoflota)
+        .query('select * from SUSERVICIOS WHERE CCONTRATOFLOTA = @ccontratoflota');
+        return { result: query };
+    }catch(err){
+        console.log(err.message)
+        return { error: err.message };
+        }
 },
 }
 
