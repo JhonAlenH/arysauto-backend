@@ -1499,8 +1499,8 @@ router.route('/provider').post((req, res) => {
 const operationValrepProvider = async(authHeader, requestBody) => {
     if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
     //if(!helper.validateRequestObj(requestBody, ['cproveedor'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
-    //let cproveedor = requestBody.cproveedor;
-    let query = await bd.providerValrepQuery().then((res) => res);
+    let cproveedor = requestBody.cproveedor ? requestBody.cproveedor: undefined;
+    let query = await bd.providerValrepQuery(cproveedor).then((res) => res);
     if(query.error){ return { status: false, code: 500, message: query.error }; }
     let jsonArray = [];
     for(let i = 0; i < query.result.recordset.length; i++){
