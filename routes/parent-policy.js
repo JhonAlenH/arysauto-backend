@@ -91,6 +91,7 @@ const operationDetailParentPolicy = async(authHeader, requestBody) => {
                     let contract = {};
                     contract = {
                         ccontratoflota: getBatchContracts.result.recordset[i].CCONTRATOFLOTA,
+                        ncedula: getBatchContracts.result.recordset[i].XDOCIDENTIDAD,
                         xmarca: getBatchContracts.result.recordset[i].XMARCA,
                         xmodelo: getBatchContracts.result.recordset[i].XMODELO,
                         xversion: getBatchContracts.result.recordset[i].XVERSION,
