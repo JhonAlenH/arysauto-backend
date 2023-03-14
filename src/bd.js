@@ -14402,5 +14402,31 @@ storeProcedureFromServiceQuery: async(data) => {
         return { error: err.message };
         }
 },
+getServiceRequestDataQuery: async(serviceRequestData) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('csolicitudservicio', sql.Int, serviceRequestData.csolicitudservicio)
+            .query('select * from VWBUSCARSOLICITUDSERVICIODATA where CSOLICITUDSERVICIO = @csolicitudservicio');
+        //sql.close();
+        console.log(result)
+        return { result: result };
+    }catch(err){
+        console.log(err.message)
+        return { error: err.message };
+    }
+},
+getServiceRequestTracingsDataQuery: async(csolicitudservicio) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('csolicitudservicio', sql.Int, csolicitudservicio)
+            .query('select * from VWBUSCARSEGUIMIENTOXSOLICITUDSERVICIODATA where CSOLICITUDSERVICIO = @csolicitudservicio');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
 }
 

@@ -208,6 +208,7 @@ const operationSearchDataPlan = async(requestBody) => {
         status: true, 
         xplan: client.result.recordset[0].XPLAN,
         cplan: client.result.recordset[0].CPLAN,
+        ccontratoflota: client.result.recordset[0].CCONTRATOFLOTA,
         listTypeService : DataTypeService,
     }
 }
@@ -306,6 +307,7 @@ const operationGenerateSolicitud = async(requestBody) => {
         ctiposervicio: requestBody.ctiposervicio,
         cproveedor: requestBody.cproveedor,
         cpropietario: requestBody.cpropietario,
+        ccontratoflota: requestBody.ccontratoflota
     };
     console.log(ClientData);
     let client = await bd.SolicitudServiceClub(ClientData).then((res) => res);
