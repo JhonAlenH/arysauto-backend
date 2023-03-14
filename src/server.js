@@ -41,7 +41,8 @@ let image_upload = multer({
     fileSize: 5000000
   },
   fileFilter(req, file, cb) {
-    if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+    console.log(file.originalname)
+    if (!file.originalname.match(/\.(jpg|JPG|jpeg|png)$/)) {
       //Error 
       cb(new Error('Please upload JPG and PNG images only!'))
     }
@@ -88,8 +89,7 @@ app.post('/api/upload/image', image_upload.single('ximagen'), function (req, res
     }
     res.json({ data: { status: true, uploadedFile: file } });
 }, (error, req, res, next) => {
-  console.log(err.message)
-    res.status(400).json({ data: { status: false, code: 400, message: err.message } });
+    res.status(400).json({ data: { status: false, code: 400, message: error.message } });
 });
 
 app.post('/api/upload/document', document_upload.single('xdocumento'), function (req, res) {
