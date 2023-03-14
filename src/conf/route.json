@@ -45,6 +45,11 @@
         "route": "/api/client"
     },
     {
+        "name": "Service Request Route",
+        "router": "../routes/service-request",
+        "route": "/api/service-request"
+    },
+    {
         "name": "Contract Arys Route",
         "router": "../routes/contract-arys",
         "route": "/api/contract-arys"
