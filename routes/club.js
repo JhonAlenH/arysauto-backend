@@ -124,17 +124,24 @@ const operationSearchDataClientVehicle = async(requestBody) => {
     };
     let client = await bd.ClienDataClubVehicle(ClientData).then((res) => res);
     if(client.error){ return { status: false, code: 500, message: client.error }; }
+
+    let DatosVehiculo = [];
+    for(let i = 0; i < client.result.recordset.length; i++){
+        DatosVehiculo.push({ 
+            xmarca: client.result.recordset[0].XMARCA,
+            xmodelo: client.result.recordset[0].XMODELO,
+            xversion: client.result.recordset[0].XVERSION,
+            xplaca: client.result.recordset[0].XPLACA,
+            fano: client.result.recordset[0].FANO,
+            xcolor: client.result.recordset[0].XCOLOR,
+            xserialcarroceria: client.result.recordset[0].XSERIALCARROCERIA,
+            xseriamotor: client.result.recordset[0].XSERIALMOTOR,
+        });
+    }
    
     return { 
         status: true, 
-        xmarca: client.result.recordset[0].XMARCA,
-        xmodelo: client.result.recordset[0].XMODELO,
-        xversion: client.result.recordset[0].XVERSION,
-        xplaca: client.result.recordset[0].XPLACA,
-        fano: client.result.recordset[0].FANO,
-        xcolor: client.result.recordset[0].XCOLOR,
-        xserialcarroceria: client.result.recordset[0].XSERIALCARROCERIA,
-        xseriamotor: client.result.recordset[0].XSERIALMOTOR,
+        listdatavehicle: DatosVehiculo
     }
 }
 
@@ -158,14 +165,22 @@ const operationSearchDataClient = async(requestBody) => {
     let client = await bd.ClienDataClub(ClientData).then((res) => res);
     if(client.error){ return { status: false, code: 500, message: client.error }; }
 
+    let DatosCliente = [];
+    for(let i = 0; i < client.result.recordset.length; i++){
+        DatosCliente.push({ 
+            xnombre: client.result.recordset[0].XNOMBRE,
+            xapellido: client.result.recordset[0].XAPELLIDO,
+            xzona_postal: client.result.recordset[0].XZONA_POSTAL,
+            icedula: client.result.recordset[0].ICEDULA,
+            xdocidentidad: client.result.recordset[0].XDOCIDENTIDAD,
+            xemail: client.result.recordset[0].XEMAIL,
+            telefono: client.result.recordset[0].XTELEFONOCELULAR,
+        });
+    }
+
     return { 
         status: true, 
-        xnombre: client.result.recordset[0].XNOMBRE,
-        xapellido: client.result.recordset[0].XAPELLIDO,
-        xzona_postal: client.result.recordset[0].XZONA_POSTAL,
-        icedula: client.result.recordset[0].ICEDULA,
-        xdocidentidad: client.result.recordset[0].XDOCIDENTIDAD,
-        xemail: client.result.recordset[0].XEMAIL,
+        UserProfile : DatosCliente,
 
     }
 }
