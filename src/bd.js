@@ -9153,15 +9153,27 @@ module.exports = {
             return { error: err.message };
         }
     },
-    createChargeQuery: async(chargeList, ccarga, clote) => {
+    getFleetMaxId: async() => {
         try{
-            if(chargeList){
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .query('select max(ID) as maxID from TMEMISION_FLOTA')
+            console.log(result.recordset[0]);
+            return result.recordset[0].maxID
+        }
+        catch(err){
+            return { error: err.message };
+        }
+    },
+    createChargeQuery: async(chargeList, ccarga, clote, maxID) => {
+        try{
+            if(chargeList.length > 0){
+                console.log(chargeList);
                 let rowsAffected = 0;
                 let pool = await sql.connect(config);
                 for(let i = 0; i < chargeList.length; i++){
-
                     let insert = await pool.request()
-                        .input('id', sql.Int, chargeList[i].No)
+                        .input('id', sql.Int, maxID)
                         .input('ccarga', sql.Int, ccarga)
                         .input('clote', sql.Int, clote)
                         .input('xpoliza', sql.NVarChar, chargeList[i].POLIZA)
@@ -9200,15 +9212,17 @@ module.exports = {
                         .input('xtipo_deducible', sql.NVarChar, chargeList[i].XTIPO_DEDUCIBLE)
                         .input('fcreacion', sql.DateTime, chargeList[i].FCREACION)
                         .input('cusuariocreacion', sql.Int, chargeList[i].CUSUARIOCREACION)
-                        .query('insert into tmcontrato_flota (id, ccarga, clote, xpoliza, xcertificado, xrif_cliente, xnombre, icedula, xcedula, fnac, cplan, xserialcarroceria, xserialmotor, xplaca, cmarca, cmodelo, cversion, xmarca, xmodelo, xversion, cano, xcolor, xtipo, xclase, ncapacidad_p, xtelefono_emp, xtelefono_prop, xdireccionfiscal, email, femision, fdesde_pol, fhasta_pol, caseguradora, msuma_a_casco, msuma_otros, mdeducible, xtipo_deducible, fcreacion, cusuariocreacion)' 
-                                            + 'values (@id, @ccarga, @clote, @xpoliza, @xcertificado, @xrif_cliente, @xnombre, @icedula, @xcedula, @fnac, @cplan, @xserialcarroceria, @xserialmotor, @xplaca, @cmarca, @cmodelo, @cversion, @xmarca, @xmodelo, @xversion, @cano, @xcolor, @xtipo, @xclase, @ncapacidad_p, @xtelefono_emp, @xtelefono_prop, @xdireccionfiscal, @email, @femision, @fdesde_pol, @fhasta_pol, @caseguradora, @msuma_a_casco, @msuma_otros, @mdeducible, @xtipo_deducible, @fcreacion, @cusuariocreacion)')
+                        .query('insert into TMEMISION_FLOTA (ID, CCARGA, CLOTE, XPOLIZA, XCERTIFICADO, XRIF_CLIENTE, XNOMBRE, ICEDULA, XCEDULA, FNAC, CPLAN, XSERIALCARROCERIA, XSERIALMOTOR, XPLACA, CMARCA, CMODELO, CVERSION, XMARCA, XMODELO, XVERSION, CANO, XCOLOR, XTIPO, XCLASE, NCAPACIDAD_P, XTELEFONO_EMP, XTELEFONO_PROP, XDIRECCIONFISCAL, EMAIL, FEMISION, FDESDE_POL, FHASTA_POL, CASEGURADORA, MSUMA_A_CASCO, MSUMA_OTROS, MDEDUCIBLE, XTIPO_DEDUCIBLE, FCREACION, CUSUARIOCREACION)'
+                                             + 'values (@id, @ccarga, @clote, @xpoliza, @xcertificado, @xrif_cliente, @xnombre, @icedula, @xcedula, @fnac, @cplan, @xserialcarroceria, @xserialmotor, @xplaca, @cmarca, @cmodelo, @cversion, @xmarca, @xmodelo, @xversion, @cano, @xcolor, @xtipo, @xclase, @ncapacidad_p, @xtelefono_emp, @xtelefono_prop, @xdireccionfiscal, @email, @femision, @fdesde_pol, @fhasta_pol, @caseguradora, @msuma_a_casco, @msuma_otros, @mdeducible, @xtipo_deducible, @fcreacion, @cusuariocreacion)')
                         rowsAffected = rowsAffected + insert.rowsAffected;
+                        maxID++;
                 }
-                return { result: {query: query, rowsAffected: rowsAffected} };
+                return { result: {rowsAffected: rowsAffected} };
             }else{
                 return { result: result };
             }
         }catch(err){
+            console.log(err.message);
             return { error: err.message };
         }
     },
@@ -9276,14 +9290,14 @@ module.exports = {
             return { error: err.message };
         }
     },
-    createBatchQuery: async(ccarga, cusuario, batchData, lastBatchCode) => {
+    createBatchQuery: async(ccarga, cusuario, xobservacion, lastBatchCode) => {
         try{
             let rowsAffected = 0;
             let pool = await sql.connect(config);
             let insert = await pool.request()
                 .input('CCARGA', sql.Int, ccarga)
                 .input('CLOTE', sql.Int, lastBatchCode + 1)
-                .input('XOBSERVACION', sql.NVarChar, batchData.xobservacion)
+                .input('XOBSERVACION', sql.NVarChar, xobservacion)
                 .input('CUSUARIOCREACION', sql.Int, cusuario)
                 .input('FCREACION', sql.DateTime, new Date())
                 .input('FMODIFICACION', sql.DateTime, new Date())
