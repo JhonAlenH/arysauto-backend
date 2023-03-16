@@ -6667,9 +6667,9 @@ module.exports = {
         try {
             let pool = await sql.connect(config);
             let result = await pool.request()
-                .input('ccarga', sql.Int, searchData.ccarga)
+                .input('ccarga', sql.Int, searchData.ccarga ? searchData.ccarga : undefined)
                 .input('itipocliente', sql.NVarChar, 'C')
-                .query('select CCARGA, XCORREDOR, XPOLIZA, XDESCRIPCION_L, FCREACION FROM VWBUSCARCARGACORPORATIVA WHERE CCARGA = @ccarga AND ITIPOCLIENTE = @itipocliente')
+                .query(`select CCARGA, XCORREDOR, XPOLIZA, XDESCRIPCION_L, FCREACION FROM VWBUSCARCARGACORPORATIVA WHERE ITIPOCLIENTE = @itipocliente${ searchData.ccarga ? " AND CCARGA = @ccarga" : '' }`)
             return {result: result};
         }
         catch(err){
@@ -9172,6 +9172,14 @@ module.exports = {
                 let rowsAffected = 0;
                 let pool = await sql.connect(config);
                 for(let i = 0; i < chargeList.length; i++){
+                    let fnac;
+                    if (chargeList[i].FNAC) {
+                        let fnac = new Date(changeDateFormat(chargeList[i].FNAC));
+                    }
+                    let femision = new Date(changeDateFormat(chargeList[i].FEMISION));
+                    let fpoliza_des = new Date(changeDateFormat(chargeList[i].FPOLIZA_DES));
+                    let fpoliza_has = new Date(changeDateFormat(chargeList[i].FPOLIZA_HAS));
+                    let fcreacion = new Date(changeDateFormat(chargeList[i].FCREACION));
                     let insert = await pool.request()
                         .input('id', sql.Int, maxID)
                         .input('ccarga', sql.Int, ccarga)
@@ -9182,7 +9190,7 @@ module.exports = {
                         .input('xnombre', sql.NVarChar, chargeList[i].PROPIETARIO)
                         .input('icedula', sql.NVarChar, chargeList[i].letra)
                         .input('xcedula', sql.NVarChar, chargeList[i].CEDULA)
-                        .input('fnac', sql.DateTime, chargeList[i].FNAC ? chargeList[i].FNAC : undefined)
+                        .input('fnac', sql.DateTime, fnac ? fnac : undefined)
                         .input('cplan', sql.Int, chargeList[i].CPLAN)
                         .input('xserialcarroceria', sql.NVarChar, chargeList[i]["SERIAL CARROCERIA"])
                         .input('xserialmotor', sql.NVarChar, chargeList[i]["SERIAL MOTOR"])
@@ -9202,15 +9210,15 @@ module.exports = {
                         .input('xtelefono_prop', sql.NVarChar, chargeList[i].XTELEFONO2 ? chargeList[i].XTELEFONO2 : undefined)
                         .input('xdireccionfiscal', sql.NVarChar, chargeList[i].XDIRECCION)
                         .input('email', sql.NVarChar, chargeList[i].EMAIL)
-                        .input('femision', sql.DateTime, chargeList[i].FEMISION)
-                        .input('fdesde_pol', sql.DateTime, chargeList[i].FPOLIZA_DES)
-                        .input('fhasta_pol', sql.DateTime, chargeList[i].FPOLIZA_HAS)
+                        .input('femision', sql.DateTime, femision.toISOString())
+                        .input('fdesde_pol', sql.DateTime, fpoliza_des.toISOString())
+                        .input('fhasta_pol', sql.DateTime, fpoliza_has.toISOString())
                         .input('caseguradora', sql.Int, chargeList[i].CASEGURADORA)
                         .input('msuma_a_casco', sql.Numeric(11, 2), chargeList[i]["SUMA ASEGURADA"])
                         .input('msuma_otros', sql.Numeric(11, 2), chargeList[i]["SUMA ASEGURADA OTROS"] ? chargeList[i]["SUMA ASEGURADA OTROS"] : undefined)
                         .input('mdeducible', sql.Numeric(11, 2), chargeList[i]["MONTO DEDUCIBLE"])
                         .input('xtipo_deducible', sql.NVarChar, chargeList[i].XTIPO_DEDUCIBLE)
-                        .input('fcreacion', sql.DateTime, chargeList[i].FCREACION)
+                        .input('fcreacion', sql.DateTime, fcreacion.toISOString())
                         .input('cusuariocreacion', sql.Int, chargeList[i].CUSUARIOCREACION)
                         .query('insert into TMEMISION_FLOTA (ID, CCARGA, CLOTE, XPOLIZA, XCERTIFICADO, XRIF_CLIENTE, XNOMBRE, ICEDULA, XCEDULA, FNAC, CPLAN, XSERIALCARROCERIA, XSERIALMOTOR, XPLACA, CMARCA, CMODELO, CVERSION, XMARCA, XMODELO, XVERSION, CANO, XCOLOR, XTIPO, XCLASE, NCAPACIDAD_P, XTELEFONO_EMP, XTELEFONO_PROP, XDIRECCIONFISCAL, EMAIL, FEMISION, FDESDE_POL, FHASTA_POL, CASEGURADORA, MSUMA_A_CASCO, MSUMA_OTROS, MDEDUCIBLE, XTIPO_DEDUCIBLE, FCREACION, CUSUARIOCREACION)'
                                              + 'values (@id, @ccarga, @clote, @xpoliza, @xcertificado, @xrif_cliente, @xnombre, @icedula, @xcedula, @fnac, @cplan, @xserialcarroceria, @xserialmotor, @xplaca, @cmarca, @cmodelo, @cversion, @xmarca, @xmodelo, @xversion, @cano, @xcolor, @xtipo, @xclase, @ncapacidad_p, @xtelefono_emp, @xtelefono_prop, @xdireccionfiscal, @email, @femision, @fdesde_pol, @fhasta_pol, @caseguradora, @msuma_a_casco, @msuma_otros, @mdeducible, @xtipo_deducible, @fcreacion, @cusuariocreacion)')
