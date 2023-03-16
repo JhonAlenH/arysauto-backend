@@ -85,7 +85,7 @@ const operationSearchCorporativeCharges = async(authHeader, requestBody) => {
                 xcorredor: searchCorporativeCharges.result.recordset[i].XCORREDOR,
                 xdescripcion: searchCorporativeCharges.result.recordset[i].XDESCRIPCION_L,
                 xpoliza: searchCorporativeCharges.result.recordset[i].XPOLIZA,
-                fcreacion: new Date(searchCorporativeCharges.result.recordset[i].FCREACION).toLocaleDateString()
+                fcreacion: new Date(searchCorporativeCharges.result.recordset[i].FCREACION).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
             });
         }
         return { status: true, list: jsonList };
