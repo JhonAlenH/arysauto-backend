@@ -80,7 +80,6 @@ router.route('/create-user-club').post((req, res) => {
         }
         res.json({ data: result });
     }).catch((err) => {
-        console.log(err.message)
         res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationCreateCity' } });
     });
 });
@@ -218,7 +217,6 @@ const operationSearchDataPlan = async(requestBody) => {
             cservicio: client.result.recordset[i].CSERVICIO, 
             xservicio: client.result.recordset[i].XSERVICIO});
     }
-
     return { 
         status: true, 
         xplan: client.result.recordset[0].XPLAN,
@@ -242,9 +240,9 @@ router.route('/Data/Client/Plan/service').post((req, res) => {
 
 const operationSearchDataPlanService = async(requestBody) => {
     let ClientData = {
-        ctiposervici: requestBody.ctiposervici,
+        ctiposervicio: requestBody.ctiposervicio,
+        ccontratoflota: requestBody.ccontratoflota,
     };
-
     let client = await bd.ClienDataClubPlanService(ClientData).then((res) => res);
     if(client.error){ return { status: false, code: 500, message: client.error }; }
 
@@ -324,7 +322,6 @@ const operationGenerateSolicitud = async(requestBody) => {
         cpropietario: requestBody.cpropietario,
         ccontratoflota: requestBody.ccontratoflota
     };
-    console.log(ClientData);
     let client = await bd.SolicitudServiceClub(ClientData).then((res) => res);
     if(client.error){ return { status: false, code: 500, message: client.error }; }
 
@@ -333,6 +330,45 @@ const operationGenerateSolicitud = async(requestBody) => {
         message: 'La solicitud fue creada con exito'
 
     }
+}
+
+router.route('/Data/store-procedure/service').post((req, res) => {
+    if(!req.header('Authorization')){
+        res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } });
+        return;
+    }else{
+        operationStoreProcedureFromClub(req.header('Authorization'), req.body).then((result) => {
+            if(!result.status){
+                res.status(result.code).json({ data: result });
+                return;
+            }
+            res.json({ data: result });
+        }).catch((err) => {
+            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationStoreProcedureFromClub' } });
+        });
+    }
+});
+
+const operationStoreProcedureFromClub = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    let data = {
+        ccontratoflota: requestBody.ccontratoflota,
+        cusuariocreacion: requestBody.cusuariocreacion,
+        cplan: requestBody.cplan,
+        ctiposervicio: requestBody.ctiposervicio,
+    }
+    let storeProcedure = await bd.storeProcedureFromClubQuery(data).then((res) => res);
+    if(storeProcedure.error){ return  { status: false, code: 500, message: storeProcedure.error }; }
+    if(storeProcedure.result.rowsAffected > 0){
+        let jsonList = [];
+        for(let i = 0; i < storeProcedure.result.recordset.length; i++){
+            jsonList.push({
+                cservicio: storeProcedure.result.recordset[i].CSERVICIO,
+                xservicio: storeProcedure.result.recordset[i].XSERVICIO,
+            });
+        }
+        return { status: true, list: jsonList };
+    }else{ return { status: false, code: 404, message: 'Replacement not found.' }; }
 }
 
 module.exports = router;

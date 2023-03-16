@@ -12261,9 +12261,11 @@ module.exports = {
     try{
         let pool = await sql.connect(config);
         let result = await pool.request()
-            .input('ctiposervici', sql.Int, ClientData.ctiposervici)
-            .query('select * from MASERVICIO where CTIPOSERVICIO = @ctiposervici');
+            .input('ctiposervicio', sql.Int, ClientData.ctiposervicio)
+            .input('ccontratoflota', sql.Int, ClientData.ccontratoflota)
+            .query('select * from VWBUSCARSERVICIOSPARACLUB where CTIPOSERVICIO = @ctiposervicio AND CCONTRATOFLOTA = @ccontratoflota');
         //sql.close();
+        console.log(result)
         return { result: result };
     }catch(err){
         return { error: err.message };
@@ -12293,9 +12295,10 @@ module.exports = {
                 .input('ctiposervicio', sql.Int, ClientData.ctiposervicio)
                 .input('cproveedor', sql.Int, ClientData.cproveedor)
                 .input('cpropietario', sql.Int, ClientData.cpropietario)
+                .input('ccontratoflota', sql.Int, ClientData.ccontratoflota)
                 .input('isolicitante', sql.NVarChar, 'USR')
                 .input('fcreacion', sql.DateTime, new Date())
-                .query('INSERT INTO evsolicitudservicio (CESTADO,CCIUDAD,CSERVICIO,CTIPOSERVICIO,CPROVEEDOR,CPROPIETARIO,ISOLICITANTE,FCREACION) VALUES(@cestado,@cciudad,@cservicio,@ctiposervicio,@cproveedor, @cpropietario,@isolicitante, @fcreacion)');
+                .query('INSERT INTO evsolicitudservicio (CESTADO,CCIUDAD,CSERVICIO,CTIPOSERVICIO,CPROVEEDOR,CPROPIETARIO,ISOLICITANTE,CCONTRATOFLOTA,FCREACION) VALUES(@cestado,@cciudad,@cservicio,@ctiposervicio,@cproveedor, @cpropietario,@isolicitante,@ccontratoflota, @fcreacion)');
             //sql.close();
             return { result: result };
         }catch(err){
@@ -13944,7 +13947,6 @@ searchApovQuery: async(searchData) => {
         .query('select * from POTASAS_APOV WHERE CPLAN = @cplan');
         return { result: query };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
         }
 },
@@ -13960,7 +13962,6 @@ searchExcesoQuery: async(searchData) => {
         .query('select * from POTASAS_EXC WHERE CPLAN = @cplan');
         return { result: query };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
         }
 },
@@ -13987,7 +13988,6 @@ updatePlanQuery: async(dataList) => {
         //sql.close();
         return { result: result };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -14011,7 +14011,6 @@ updateApovFromPlanQuery: async(apovList) => {
         return { result: { rowsAffected: rowsAffected } };
     }
     catch(err){
-        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -14034,7 +14033,6 @@ updateExcesoFromPlanQuery: async(excesoList) => {
         return { result: { rowsAffected: rowsAffected } };
     }
     catch(err){
-        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -14151,7 +14149,6 @@ createBanksFromClientQuery: async(clientData, bankList, ccliente) => {
         }
         return { result: { rowsAffected: rowsAffected } };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -14385,7 +14382,6 @@ searchServiceTypeFromFleetContractQuery: async(ccontratoflota) => {
     }
 },
 storeProcedureFromServiceQuery: async(data) => {
-    console.log(data)
     try{
         let pool = await sql.connect(config);
         for(let i = 0; i < data.service.length; i++){
@@ -14401,7 +14397,6 @@ storeProcedureFromServiceQuery: async(data) => {
         .query('select * from SUSERVICIOS WHERE CCONTRATOFLOTA = @ccontratoflota');
         return { result: query };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
         }
 },
@@ -14412,10 +14407,8 @@ getServiceRequestDataQuery: async(serviceRequestData) => {
             .input('csolicitudservicio', sql.Int, serviceRequestData.csolicitudservicio)
             .query('select * from VWBUSCARSOLICITUDSERVICIODATA where CSOLICITUDSERVICIO = @csolicitudservicio');
         //sql.close();
-        console.log(result)
         return { result: result };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -14430,6 +14423,25 @@ getServiceRequestTracingsDataQuery: async(csolicitudservicio) => {
     }catch(err){
         return { error: err.message };
     }
+},
+storeProcedureFromClubQuery: async(data) => {
+    try{
+        let pool = await sql.connect(config);
+        for(let i = 0; i < data.ctiposervicio.length; i++){
+            let result = await pool.request()
+            .input('cplan', sql.Int, data.cplan)
+            .input('ctiposervicio', sql.Int, data.ctiposervicio[i].ctiposervicio)
+            .input('ccontratoflota', sql.Int, data.ccontratoflota)
+            .input('cusuariocreacion', sql.Int, data.cusuariocreacion)
+            .execute('PoBServicios');
+        }
+        let query= await pool.request()
+        .input('ccontratoflota', sql.Int, data.ccontratoflota)
+        .query('select * from VWBUSCARSERVICIOSPARACLUB WHERE CCONTRATOFLOTA = @ccontratoflota');
+        return { result: query };
+    }catch(err){
+        return { error: err.message };
+        }
 },
 }
 
