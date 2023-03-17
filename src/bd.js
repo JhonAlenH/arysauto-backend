@@ -12331,18 +12331,18 @@ module.exports = {
             return { error: err.message };
         }
     },
-    searchPendingPaymentsQuery: async(searchData) => {
+    searchPendingPaymentsQuery: async(searchData, cestatusgeneral) => {
         try{
             let pool = await sql.connect(config);
             let result = await pool.request()
                 .input('fdesde', sql.Date, searchData.fdesde)
                 .input('fhasta', sql.Date, searchData.fhasta)
+                .input('cestatusgeneral', sql.Int, cestatusgeneral)
                 .input('factual', sql.DateTime, new Date().toJSON())
-                .query('SELECT * FROM VWBUSCARPRIMASPENDIENTES WHERE CESTATUSGENERAL = 13 AND FDESDE_REC BETWEEN CONVERT(DATETIME, @fdesde) AND CONVERT(DATETIME, @fhasta)')
+                .query('SELECT * FROM VWBUSCARPRIMASPENDIENTES WHERE CESTATUSGENERAL = @cestatusgeneral AND FDESDE_REC >= @fdesde AND FHASTA_REC <= @fhasta')
             return { result: result };
         }
         catch(err) {
-            console.log(err.message);
             return { error: err.message };
         }
     },
