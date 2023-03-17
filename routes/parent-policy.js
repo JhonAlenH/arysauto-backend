@@ -91,6 +91,7 @@ const operationDetailParentPolicy = async(authHeader, requestBody) => {
                     let contract = {};
                     contract = {
                         ccontratoflota: getBatchContracts.result.recordset[i].CCONTRATOFLOTA,
+                        ncedula: getBatchContracts.result.recordset[i].XDOCIDENTIDAD,
                         xmarca: getBatchContracts.result.recordset[i].XMARCA,
                         xmodelo: getBatchContracts.result.recordset[i].XMODELO,
                         xversion: getBatchContracts.result.recordset[i].XVERSION,
@@ -103,7 +104,7 @@ const operationDetailParentPolicy = async(authHeader, requestBody) => {
             let batch = {
                 clote: getParentPolicyBatches.result.recordset[i].CLOTE,
                 xobservacion: getParentPolicyBatches.result.recordset[i].XOBSERVACION,
-                fcreacion: getParentPolicyBatches.result.recordset[i].FCREACION,
+                fcreacion: new Date(getParentPolicyBatches.result.recordset[i].FCREACION).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }),
                 contratos: contracts
             }
             batches.push(batch);

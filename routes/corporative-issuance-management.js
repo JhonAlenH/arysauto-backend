@@ -53,6 +53,46 @@ const operationSearchCorporativeIssuanceCertificates = async(authHeader, request
     else{ return { status: false, code: 404, message: 'Fleet Contract Management not found.' }; }
 }
 
+router.route('/search-corporative-charge').post((req, res) => {
+    if(!req.header('Authorization')){
+        res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } });
+        return;
+    }else{
+        operationSearchCorporativeCharges(req.header('Authorization'), req.body).then((result) => {
+            if(!result.status){
+                res.status(result.code).json({ data: result });
+                return;
+            }
+            res.json({ data: result });
+        }).catch((err) => {
+            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchCorporativeCharges' } });
+        });
+    }
+});
+
+const operationSearchCorporativeCharges = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    let searchData = {
+        ccarga: requestBody.ccarga
+    };
+    let searchCorporativeCharges = await bd.searchCorporativeCharges(searchData).then((res) => res);
+    if(searchCorporativeCharges.error){ return  { status: false, code: 500, message: searchCorporativeCharges.error }; }
+    if(searchCorporativeCharges.result.rowsAffected > 0){
+        let jsonList = [];
+        for(let i = 0; i < searchCorporativeCharges.result.recordset.length; i++) {
+            jsonList.push({
+                ccarga: searchCorporativeCharges.result.recordset[i].CCARGA,
+                xcorredor: searchCorporativeCharges.result.recordset[i].XCORREDOR,
+                xdescripcion: searchCorporativeCharges.result.recordset[i].XDESCRIPCION_L,
+                xpoliza: searchCorporativeCharges.result.recordset[i].XPOLIZA,
+                fcreacion: new Date(searchCorporativeCharges.result.recordset[i].FCREACION).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+            });
+        }
+        return { status: true, list: jsonList };
+    }
+    else{ return { status: false, code: 404, message: 'Fleet Contract Management not found.' }; }
+}
+
 router.route('/detail').post((req, res) => {
     if(!req.header('Authorization')){
         res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } });
