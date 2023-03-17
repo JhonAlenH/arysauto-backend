@@ -326,10 +326,15 @@ const operationValrepNotificationServiceOrder = async(authHeader, requestBody) =
             nombresalternativos = 'NO EXISTEN NOMBRES DE ALTERNATIVOS'
         }
 
-        let nombres = query.result.recordset[0].XNOMBRE + ' ' + query.result.recordset[0].XAPELLIDO;
-        
+        let nombres;
+        if(query.result.recordset[0].XAPELLIDO){
+            nombres = query.result.recordset[0].XNOMBRE + ' ' + query.result.recordset[0].XAPELLIDO;
+        }else{
+            nombres = query.result.recordset[0].XNOMBRE;
+        }
+        let nombrespropietario;
         if(query.result.recordset[0].XNOMBREPROPIETARIO == query.result.recordset[0].XAPELLIDOPROPIETARIO){
-            let nombrespropietario
+            
             nombrespropietario = query.result.recordset[0].XNOMBREPROPIETARIO
         }else{
             nombrespropietario = query.result.recordset[0].XNOMBREPROPIETARIO + ' ' + query.result.recordset[0].XAPELLIDOPROPIETARIO
@@ -356,7 +361,7 @@ const operationValrepNotificationServiceOrder = async(authHeader, requestBody) =
                          xcolor: query.result.recordset[0].XCOLOR, 
                          xmodelo: query.result.recordset[0].XMODELO, 
                          xcliente: query.result.recordset[0].XCLIENTE, 
-                         fano: query.result.recordset[0].FANO, 
+                         fano: query.result.recordset[0].CANO, 
                          cservicio: query.result.recordset[0].CSERVICIO, 
                          corden: query.result.recordset[0].CORDEN, 
                          cproveedor: query.result.recordset[0].CPROVEEDOR, 
@@ -368,7 +373,7 @@ const operationValrepNotificationServiceOrder = async(authHeader, requestBody) =
                          xdireccionfiscal: query.result.recordset[0].XDIRECCIONFISCAL, 
                          xtelefono: query.result.recordset[0].XTELEFONO, 
                          xtelefonoproveedor: query.result.recordset[0].XTELEFONOPROVEEDOR, 
-                         xdocumentoproveedor: query.result.recordset[0].XDOCUMENTOPROVEEDOR, 
+                         xdocumentoproveedor: query.result.recordset[0].XDOCIDENTIDADPROVEEDOR, 
                          xservicio: query.result.recordset[0].XSERVICIO, 
                          xdesde: query.result.recordset[0].XDESDE, 
                          xhacia: query.result.recordset[0].XHACIA, 

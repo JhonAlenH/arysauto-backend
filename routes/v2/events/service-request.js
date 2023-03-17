@@ -8,17 +8,7 @@ router.route('/production/search').post((req, res) => {
     if(!req.header('Authorization')){
         res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } });
         return;
-    }
-    let validateSchema = helper.validateSchema('production', 'service-request', req.body, 'searchEventsProductionServiceRequestSchema');
-    if(validateSchema.error){ 
-        res.status(400).json({ data: { status: false, code: 400, message: validateSchema.error.details[0].message } });
-        return;
-    }
-    validator.operationVerifyProductionModulePermission(req.body.permissionData, 'BINDICE').then((response) => {
-        if(response.error){ 
-            res.status(401).json({ status: false, code: 401, condition: 'user-dont-have-permissions', expired: false });
-            return;
-        }
+    }else{
         operationSearchServiceRequest(req.header('Authorization'), req.body).then((result) => {
             if(!result.status){
                 res.status(result.code).json({ data: result });
@@ -28,36 +18,31 @@ router.route('/production/search').post((req, res) => {
         }).catch((err) => {
             res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchServiceRequest' } });
         });
-    }).catch((err) => {
-        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationVerifyApiModulePermission' } });
-    });
+    }
 });
-
 const operationSearchServiceRequest = async(authHeader, requestBody) => {
     if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
     let searchData = {
-        cpais: requestBody.cpais,
-        ccompania: requestBody.ccompania,
         xnombre: requestBody.xnombre ? helper.encrypt(requestBody.xnombre) : undefined,
         xapellido: requestBody.xapellido ? helper.encrypt(requestBody.xapellido) : undefined,
-        ctipodocidentidad: requestBody.ctipodocidentidad ? requestBody.ctipodocidentidad : undefined,
         xdocidentidad: requestBody.xdocidentidad ? helper.encrypt(requestBody.xdocidentidad) : undefined,
         isolicitante: requestBody.isolicitante ? requestBody.isolicitante : undefined,
     }
+    console.log(searchData)
     let searchServiceRequest = await db.searchServiceRequestQuery(searchData).then((res) => res);
-    if(searchServiceRequest.error){ return { status: false, code: 500, message: searchServiceRequest.error }; }
+    console.log(searchServiceRequest)
     if(searchServiceRequest.result.rowsAffected == 0){ return { status: false, code: 404, message: 'Service Request not found.' }; }
     let jsonList = [];
+    console.log(searchServiceRequest.result.recordset)
     for(let i = 0; i < searchServiceRequest.result.recordset.length; i++){
         jsonList.push({
             csolicitudservicio: searchServiceRequest.result.recordset[i].CSOLICITUDSERVICIO,
-            xnombre: helper.decrypt(searchServiceRequest.result.recordset[0].XNOMBRE),
-            xapellido: helper.decrypt(searchServiceRequest.result.recordset[i].XAPELLIDO),
-            xdocidentidad: helper.decrypt(searchServiceRequest.result.recordset[i].XDOCIDENTIDAD),
+            xnombre: searchServiceRequest.result.recordset[0].XNOMBRE,
+            xapellido:searchServiceRequest.result.recordset[i].XAPELLIDO,
+            xdocidentidad: searchServiceRequest.result.recordset[i].XDOCIDENTIDAD,
             xtiposervicio: searchServiceRequest.result.recordset[i].XTIPOSERVICIO,
             xservicio: searchServiceRequest.result.recordset[i].XSERVICIO,
-            xproveedor: helper.decrypt(searchServiceRequest.result.recordset[i].XPROVEEDOR),
-            bactivo: searchServiceRequest.result.recordset[i].BACTIVO
+            xproveedor: searchServiceRequest.result.recordset[i].XNOMBREPROVEEDOR,
         });
     }
     return { status: true, list: jsonList };

@@ -38,10 +38,11 @@ let image_upload = multer({
   storage: image_storage,
   limits: {
     // Setting Image Size Limit to 2MBs
-    fileSize: 2000000
+    fileSize: 5000000
   },
   fileFilter(req, file, cb) {
-    if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+    console.log(file.originalname)
+    if (!file.originalname.match(/\.(jpg|JPG|jpeg|png)$/)) {
       //Error 
       cb(new Error('Please upload JPG and PNG images only!'))
     }
@@ -54,7 +55,7 @@ let document_upload = multer({
   storage: document_storage,
   limits: {
     //fileSize: 2000000
-    fileSize: 2000000
+    fileSize: 5000000
   },
   fileFilter(req, file, cb) {
     // if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
@@ -88,7 +89,7 @@ app.post('/api/upload/image', image_upload.single('ximagen'), function (req, res
     }
     res.json({ data: { status: true, uploadedFile: file } });
 }, (error, req, res, next) => {
-    res.status(400).json({ data: { status: false, code: 400, message: err.message } });
+    res.status(400).json({ data: { status: false, code: 400, message: error.message } });
 });
 
 app.post('/api/upload/document', document_upload.single('xdocumento'), function (req, res) {
