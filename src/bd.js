@@ -9158,7 +9158,6 @@ module.exports = {
             let pool = await sql.connect(config);
             let result = await pool.request()
                 .query('select max(ID) as maxID from TMEMISION_FLOTA')
-            console.log(result.recordset[0]);
             return result.recordset[0].maxID
         }
         catch(err){
@@ -9168,7 +9167,6 @@ module.exports = {
     createChargeQuery: async(chargeList, ccarga, clote, maxID) => {
         try{
             if(chargeList.length > 0){
-                console.log(chargeList);
                 let rowsAffected = 0;
                 let pool = await sql.connect(config);
                 for(let i = 0; i < chargeList.length; i++){
