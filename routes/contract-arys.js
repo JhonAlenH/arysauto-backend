@@ -77,7 +77,7 @@ const operationCreate = async(authHeader, requestBody) => {
         femision: requestBody.femision ,
         cusuario: requestBody.cusuario ? requestBody.cusuario : undefined,
         xzona_postal: requestBody.xzona_postal ? requestBody.xzona_postal : undefined,
-        cestatusgeneral: 21
+        cestatusgeneral: 13
     };
     if(userData){
         let createContractServiceArys = await bd.createContractServiceArysQuery(userData).then((res) => res);

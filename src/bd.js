@@ -8661,8 +8661,11 @@ module.exports = {
                 .input('cclase', sql.Int, userData.cclase)
                 .input('fcreacion', sql.DateTime, new Date())
                 .query('insert into TMEMISION_INDIVIDUAL(XNOMBRE, XAPELLIDO, CANO, XCOLOR, CMARCA, CMODELO, CVERSION, XRIF_CLIENTE, EMAIL, XTELEFONO_PROP, XDIRECCIONFISCAL, XSERIALMOTOR, XSERIALCARROCERIA, XPLACA, XTELEFONO_EMP, CPLAN, CCORREDOR, XCEDULA, XCOBERTURA, NCAPACIDAD_P, CTARIFA_EXCESO, FINICIO, CMETODOLOGIAPAGO, MSUMA_ASEG, PCASCO, MPRIMA_CASCO, MCATASTROFICO, PDESCUENTO, IFRACCIONAMIENTO, NCUOTAS, MPRIMA_BLINDAJE, MSUMA_BLINDAJE, MPRIMA_BRUTA, PCATASTROFICO, PMOTIN, MMOTIN, PBLINDAJE, CESTADO, CCIUDAD, CPAIS, ICEDULA, FEMISION, IVIGENCIA, CTIPOPAGO, XREFERENCIA, FCOBRO, CBANCO, CBANCO_DESTINO, MPRIMA_PAGADA, MPRIMA_BS, XNOTA, MTASA_CAMBIO, FTASA_CAMBIO,CCODIGO_UBII, MGRUA, CESTATUSGENERAL, CTOMADOR, XZONA_POSTAL,CUSO ,CTIPOVEHICULO, FCREACION, CUSUARIOCREACION, NKILOMETRAJE, CCLASE) values (@xnombre, @xapellido, @cano, @xcolor, @cmarca, @cmodelo, @cversion, @xrif_cliente, @email, @xtelefono_prop, @xdireccionfiscal, @xserialmotor, @xserialcarroceria, @xplaca, @xtelefono_emp, @cplan, @ccorredor, @xcedula, @xcobertura, @ncapacidad_p, @ctarifa_exceso, @finicio, @cmetodologiapago, @msuma_aseg, @pcasco, @mprima_casco, @mcatastrofico, @pdescuento, @ifraccionamiento, @ncuotas, @mprima_blindaje, @msuma_blindaje, @mprima_bruta,@pcatastrofico ,@pmotin, @mmotin, @pblindaje, @cestado, @cciudad, @cpais, @icedula, @femision, @ivigencia, @ctipopago, @xreferencia, @fcobro, @cbanco, @cbanco_destino, @mprima_pagada, @mprima_bs, @xnota, @mtasa_cambio, @ftasa_cambio,@ccodigo_ubii, @mgrua, @cestatusgeneral, @ctomador, @xzona_postal, @cuso, @ctipovehiculo, @fcreacion, @cusuariocreacion, @nkilometraje, @cclase)')                
-                 return { result: { rowsAffected: rowsAffected, status: true } };
+                 return { 
+                    result: { rowsAffected: rowsAffected, status: true } 
+                };
         }
+    
         catch(err){
             console.log(err.message)
             return { error: err.message };
@@ -12292,9 +12295,11 @@ module.exports = {
     try{
         let pool = await sql.connect(config);
         let result = await pool.request()
-            .input('ctiposervici', sql.Int, ClientData.ctiposervici)
-            .query('select * from MASERVICIO where CTIPOSERVICIO = @ctiposervici');
+            .input('ctiposervicio', sql.Int, ClientData.ctiposervicio)
+            .input('ccontratoflota', sql.Int, ClientData.ccontratoflota)
+            .query('select * from VWBUSCARSERVICIOSPARACLUB where CTIPOSERVICIO = @ctiposervicio AND CCONTRATOFLOTA = @ccontratoflota');
         //sql.close();
+        console.log(result)
         return { result: result };
     }catch(err){
         return { error: err.message };
@@ -12324,9 +12329,10 @@ module.exports = {
                 .input('ctiposervicio', sql.Int, ClientData.ctiposervicio)
                 .input('cproveedor', sql.Int, ClientData.cproveedor)
                 .input('cpropietario', sql.Int, ClientData.cpropietario)
+                .input('ccontratoflota', sql.Int, ClientData.ccontratoflota)
                 .input('isolicitante', sql.NVarChar, 'USR')
                 .input('fcreacion', sql.DateTime, new Date())
-                .query('INSERT INTO evsolicitudservicio (CESTADO,CCIUDAD,CSERVICIO,CTIPOSERVICIO,CPROVEEDOR,CPROPIETARIO,ISOLICITANTE,FCREACION) VALUES(@cestado,@cciudad,@cservicio,@ctiposervicio,@cproveedor, @cpropietario,@isolicitante, @fcreacion)');
+                .query('INSERT INTO evsolicitudservicio (CESTADO,CCIUDAD,CSERVICIO,CTIPOSERVICIO,CPROVEEDOR,CPROPIETARIO,ISOLICITANTE,CCONTRATOFLOTA,FCREACION) VALUES(@cestado,@cciudad,@cservicio,@ctiposervicio,@cproveedor, @cpropietario,@isolicitante,@ccontratoflota, @fcreacion)');
             //sql.close();
             return { result: result };
         }catch(err){
@@ -12359,18 +12365,18 @@ module.exports = {
             return { error: err.message };
         }
     },
-    searchPendingPaymentsQuery: async(searchData) => {
+    searchPendingPaymentsQuery: async(searchData, cestatusgeneral) => {
         try{
             let pool = await sql.connect(config);
             let result = await pool.request()
                 .input('fdesde', sql.Date, searchData.fdesde)
                 .input('fhasta', sql.Date, searchData.fhasta)
+                .input('cestatusgeneral', sql.Int, cestatusgeneral)
                 .input('factual', sql.DateTime, new Date().toJSON())
-                .query('SELECT * FROM VWBUSCARPRIMASPENDIENTES WHERE CESTATUSGENERAL = 13 AND FDESDE_REC BETWEEN CONVERT(DATETIME, @fdesde) AND CONVERT(DATETIME, @fhasta)')
+                .query('SELECT * FROM VWBUSCARPRIMASPENDIENTES WHERE CESTATUSGENERAL = @cestatusgeneral AND FDESDE_REC >= @fdesde AND FHASTA_REC <= @fhasta')
             return { result: result };
         }
         catch(err) {
-            console.log(err.message);
             return { error: err.message };
         }
     },
@@ -13975,7 +13981,6 @@ searchApovQuery: async(searchData) => {
         .query('select * from POTASAS_APOV WHERE CPLAN = @cplan');
         return { result: query };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
         }
 },
@@ -13991,7 +13996,6 @@ searchExcesoQuery: async(searchData) => {
         .query('select * from POTASAS_EXC WHERE CPLAN = @cplan');
         return { result: query };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
         }
 },
@@ -14018,7 +14022,6 @@ updatePlanQuery: async(dataList) => {
         //sql.close();
         return { result: result };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -14042,7 +14045,6 @@ updateApovFromPlanQuery: async(apovList) => {
         return { result: { rowsAffected: rowsAffected } };
     }
     catch(err){
-        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -14065,7 +14067,6 @@ updateExcesoFromPlanQuery: async(excesoList) => {
         return { result: { rowsAffected: rowsAffected } };
     }
     catch(err){
-        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -14182,7 +14183,6 @@ createBanksFromClientQuery: async(clientData, bankList, ccliente) => {
         }
         return { result: { rowsAffected: rowsAffected } };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -14416,7 +14416,6 @@ searchServiceTypeFromFleetContractQuery: async(ccontratoflota) => {
     }
 },
 storeProcedureFromServiceQuery: async(data) => {
-    console.log(data)
     try{
         let pool = await sql.connect(config);
         for(let i = 0; i < data.service.length; i++){
@@ -14432,7 +14431,6 @@ storeProcedureFromServiceQuery: async(data) => {
         .query('select * from SUSERVICIOS WHERE CCONTRATOFLOTA = @ccontratoflota');
         return { result: query };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
         }
 },
@@ -14443,10 +14441,8 @@ getServiceRequestDataQuery: async(serviceRequestData) => {
             .input('csolicitudservicio', sql.Int, serviceRequestData.csolicitudservicio)
             .query('select * from VWBUSCARSOLICITUDSERVICIODATA where CSOLICITUDSERVICIO = @csolicitudservicio');
         //sql.close();
-        console.log(result)
         return { result: result };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -14461,6 +14457,25 @@ getServiceRequestTracingsDataQuery: async(csolicitudservicio) => {
     }catch(err){
         return { error: err.message };
     }
+},
+storeProcedureFromClubQuery: async(data) => {
+    try{
+        let pool = await sql.connect(config);
+        for(let i = 0; i < data.ctiposervicio.length; i++){
+            let result = await pool.request()
+            .input('cplan', sql.Int, data.cplan)
+            .input('ctiposervicio', sql.Int, data.ctiposervicio[i].ctiposervicio)
+            .input('ccontratoflota', sql.Int, data.ccontratoflota)
+            .input('cusuariocreacion', sql.Int, data.cusuariocreacion)
+            .execute('PoBServicios');
+        }
+        let query= await pool.request()
+        .input('ccontratoflota', sql.Int, data.ccontratoflota)
+        .query('select * from VWBUSCARSERVICIOSPARACLUB WHERE CCONTRATOFLOTA = @ccontratoflota');
+        return { result: query };
+    }catch(err){
+        return { error: err.message };
+        }
 },
 }
 
