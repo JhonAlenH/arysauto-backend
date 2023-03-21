@@ -1084,6 +1084,7 @@ router.route('/charge-contracts').post((req, res) => {
             }
             res.json({ data: result });
         }).catch((err) => {
+            console.log(err.message);
             res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationUpdateFleetContractManagement' } });
         });
     }
@@ -1091,10 +1092,15 @@ router.route('/charge-contracts').post((req, res) => {
 
 const operationChargeContracts = async(authHeader, requestBody) => { 
     if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    //let createNewChargeBatch = await bd.createChargeBatchQuery(requestBody.ccarga, requestBody.xobservacion); ccarga, cusuario, batchData, lastBatchCode
     let getLastBatchCode = await bd.getLastParentPolicyBatchQuery(requestBody.ccarga).then((res) => res);
-    if (getLastBatchCode.error){  return { status: false, code: 500, message: getLastBatchCode.error }; }
-    let processCharge = await bd.createChargeQuery(requestBody.parsedData, requestBody.ccarga, getLastBatchCode.result.clote);
-    if(processCharge.error){ return { status: false, code: 500, message: getReceiptData.error }; }
+    if (getLastBatchCode.error){ console.log(getLastBatchCode.error); return { status: false, code: 500, message: getLastBatchCode.error }; }
+    let createBatchQuery = await bd.createBatchQuery(requestBody.ccarga, requestBody.cusuario, requestBody.xobservacion, getLastBatchCode.result.clote);
+    if (createBatchQuery.error){ console.log(createBatchQuery.error); return { status: false, code: 500, message: createBatchQuery.error }; } 
+    let maxId = await bd.getFleetMaxId();
+    if (maxId.error){ return { status: 500, message: maxId.error }; }
+    let processCharge = await bd.createChargeQuery(requestBody.parsedData, requestBody.ccarga, createBatchQuery.result.clote, maxId + 1);
+    if(processCharge.error){ return { status: false, code: 500, message: processCharge.error }; }
     if(processCharge.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Internal Error.' }; }
     return {
         status: true,
