@@ -6663,6 +6663,20 @@ module.exports = {
             return { error: err.message };
         }
     },
+    searchCorporativeCharges: async(searchData) => {
+        try {
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .input('ccarga', sql.Int, searchData.ccarga ? searchData.ccarga : undefined)
+                .input('itipocliente', sql.NVarChar, 'C')
+                .query(`select CCARGA, XCORREDOR, XPOLIZA, XDESCRIPCION_L, FCREACION FROM VWBUSCARCARGACORPORATIVA WHERE ITIPOCLIENTE = @itipocliente${ searchData.ccarga ? " AND CCARGA = @ccarga" : '' }`)
+            return {result: result};
+        }
+        catch(err){
+            console.log(err.message);
+            return { error: err.message };
+        }
+    },
     searchCorporativeIssuanceCertificates: async(searchData) => {
         try {
             let pool = await sql.connect(config);
@@ -8647,8 +8661,11 @@ module.exports = {
                 .input('cclase', sql.Int, userData.cclase)
                 .input('fcreacion', sql.DateTime, new Date())
                 .query('insert into TMEMISION_INDIVIDUAL(XNOMBRE, XAPELLIDO, CANO, XCOLOR, CMARCA, CMODELO, CVERSION, XRIF_CLIENTE, EMAIL, XTELEFONO_PROP, XDIRECCIONFISCAL, XSERIALMOTOR, XSERIALCARROCERIA, XPLACA, XTELEFONO_EMP, CPLAN, CCORREDOR, XCEDULA, XCOBERTURA, NCAPACIDAD_P, CTARIFA_EXCESO, FINICIO, CMETODOLOGIAPAGO, MSUMA_ASEG, PCASCO, MPRIMA_CASCO, MCATASTROFICO, PDESCUENTO, IFRACCIONAMIENTO, NCUOTAS, MPRIMA_BLINDAJE, MSUMA_BLINDAJE, MPRIMA_BRUTA, PCATASTROFICO, PMOTIN, MMOTIN, PBLINDAJE, CESTADO, CCIUDAD, CPAIS, ICEDULA, FEMISION, IVIGENCIA, CTIPOPAGO, XREFERENCIA, FCOBRO, CBANCO, CBANCO_DESTINO, MPRIMA_PAGADA, MPRIMA_BS, XNOTA, MTASA_CAMBIO, FTASA_CAMBIO,CCODIGO_UBII, MGRUA, CESTATUSGENERAL, CTOMADOR, XZONA_POSTAL,CUSO ,CTIPOVEHICULO, FCREACION, CUSUARIOCREACION, NKILOMETRAJE, CCLASE) values (@xnombre, @xapellido, @cano, @xcolor, @cmarca, @cmodelo, @cversion, @xrif_cliente, @email, @xtelefono_prop, @xdireccionfiscal, @xserialmotor, @xserialcarroceria, @xplaca, @xtelefono_emp, @cplan, @ccorredor, @xcedula, @xcobertura, @ncapacidad_p, @ctarifa_exceso, @finicio, @cmetodologiapago, @msuma_aseg, @pcasco, @mprima_casco, @mcatastrofico, @pdescuento, @ifraccionamiento, @ncuotas, @mprima_blindaje, @msuma_blindaje, @mprima_bruta,@pcatastrofico ,@pmotin, @mmotin, @pblindaje, @cestado, @cciudad, @cpais, @icedula, @femision, @ivigencia, @ctipopago, @xreferencia, @fcobro, @cbanco, @cbanco_destino, @mprima_pagada, @mprima_bs, @xnota, @mtasa_cambio, @ftasa_cambio,@ccodigo_ubii, @mgrua, @cestatusgeneral, @ctomador, @xzona_postal, @cuso, @ctipovehiculo, @fcreacion, @cusuariocreacion, @nkilometraje, @cclase)')                
-                 return { result: { rowsAffected: rowsAffected, status: true } };
+                 return { 
+                    result: { rowsAffected: rowsAffected, status: true } 
+                };
         }
+    
         catch(err){
             console.log(err.message)
             return { error: err.message };
@@ -9139,24 +9156,42 @@ module.exports = {
             return { error: err.message };
         }
     },
-    createChargeQuery: async(chargeList, ccarga, clote) => {
+    getFleetMaxId: async() => {
         try{
-            if(chargeList){
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .query('select max(ID) as maxID from TMEMISION_FLOTA')
+            return result.recordset[0].maxID
+        }
+        catch(err){
+            return { error: err.message };
+        }
+    },
+    createChargeQuery: async(chargeList, ccarga, clote, maxID) => {
+        try{
+            if(chargeList.length > 0){
                 let rowsAffected = 0;
                 let pool = await sql.connect(config);
                 for(let i = 0; i < chargeList.length; i++){
-
+                    let fnac;
+                    if (chargeList[i].FNAC) {
+                        let fnac = new Date(changeDateFormat(chargeList[i].FNAC));
+                    }
+                    let femision = new Date(changeDateFormat(chargeList[i].FEMISION));
+                    let fpoliza_des = new Date(changeDateFormat(chargeList[i].FPOLIZA_DES));
+                    let fpoliza_has = new Date(changeDateFormat(chargeList[i].FPOLIZA_HAS));
+                    let fcreacion = new Date(changeDateFormat(chargeList[i].FCREACION));
                     let insert = await pool.request()
-                        .input('id', sql.Int, chargeList[i].No)
+                        .input('id', sql.Int, maxID)
                         .input('ccarga', sql.Int, ccarga)
                         .input('clote', sql.Int, clote)
                         .input('xpoliza', sql.NVarChar, chargeList[i].POLIZA)
                         .input('xcertificado', sql.NVarChar, chargeList[i].CERTIFICADO)
-                        .input('xrif_cliente', sql.NVarChar, chargeList[i].RIF_CLIENTE)
+                        .input('xrif_cliente', sql.NVarChar, chargeList[i].Rif_Cliente)
                         .input('xnombre', sql.NVarChar, chargeList[i].PROPIETARIO)
                         .input('icedula', sql.NVarChar, chargeList[i].letra)
                         .input('xcedula', sql.NVarChar, chargeList[i].CEDULA)
-                        .input('fnac', sql.DateTime, chargeList[i].FNAC ? chargeList[i].FNAC : undefined)
+                        .input('fnac', sql.DateTime, fnac ? fnac : undefined)
                         .input('cplan', sql.Int, chargeList[i].CPLAN)
                         .input('xserialcarroceria', sql.NVarChar, chargeList[i]["SERIAL CARROCERIA"])
                         .input('xserialmotor', sql.NVarChar, chargeList[i]["SERIAL MOTOR"])
@@ -9173,28 +9208,30 @@ module.exports = {
                         .input('xclase', sql.NVarChar, chargeList[i].CLASE)
                         .input('ncapacidad_p', sql.NVarChar, chargeList[i].PTOS)
                         .input('xtelefono_emp', sql.NVarChar, chargeList[i].XTELEFONO1 ? chargeList[i].XTELEFONO1 : undefined)
-                        .input('xtelefono_prop', sql.NVarChar, chargeList[i].XTELEFONO2)
+                        .input('xtelefono_prop', sql.NVarChar, chargeList[i].XTELEFONO2 ? chargeList[i].XTELEFONO2 : undefined)
                         .input('xdireccionfiscal', sql.NVarChar, chargeList[i].XDIRECCION)
                         .input('email', sql.NVarChar, chargeList[i].EMAIL)
-                        .input('femision', sql.DateTime, chargeList[i].FEMISION)
-                        .input('fdesde_pol', sql.DateTime, chargeList[i].FPOLIZA_DES)
-                        .input('fhasta_pol', sql.DateTime, chargeList[i].FPOLIZA_HAS)
+                        .input('femision', sql.DateTime, femision.toISOString())
+                        .input('fdesde_pol', sql.DateTime, fpoliza_des.toISOString())
+                        .input('fhasta_pol', sql.DateTime, fpoliza_has.toISOString())
                         .input('caseguradora', sql.Int, chargeList[i].CASEGURADORA)
                         .input('msuma_a_casco', sql.Numeric(11, 2), chargeList[i]["SUMA ASEGURADA"])
-                        .input('msuma_otros', sql.Numeric(11, 2), chargeList[i]["SUMA ASEGURADA OTROS"] ? chargeList[i]["SUMA ASEGURADA"] : undefined)
+                        .input('msuma_otros', sql.Numeric(11, 2), chargeList[i]["SUMA ASEGURADA OTROS"] ? chargeList[i]["SUMA ASEGURADA OTROS"] : undefined)
                         .input('mdeducible', sql.Numeric(11, 2), chargeList[i]["MONTO DEDUCIBLE"])
                         .input('xtipo_deducible', sql.NVarChar, chargeList[i].XTIPO_DEDUCIBLE)
-                        .input('fcreacion', sql.DateTime, chargeList[i].FCREACION)
+                        .input('fcreacion', sql.DateTime, fcreacion.toISOString())
                         .input('cusuariocreacion', sql.Int, chargeList[i].CUSUARIOCREACION)
-                        .query('insert into tmcontrato_flota (id, ccarga, clote, xpoliza, xcertificado, xrif_cliente, xnombre, icedula, xcedula, fnac, cplan, xserialcarroceria, xserialmotor, xplaca, cmarca, cmodelo, cversion, xmarca, xmodelo, xversion, cano, xcolor, xtipo, xclase, ncapacidad_p, xtelefono_emp, xtelefono_prop, xdireccionfiscal, email, femision, fdesde_pol, fhasta_pol, caseguradora, msuma_a_casco, msuma_otros, mdeducible, xtipo_deducible, fcreacion, cusuariocreacion)' 
-                                            + 'values (@id, @ccarga, @clote, @xpoliza, @xcertificado, @xrif_cliente, @xnombre, @icedula, @xcedula, @fnac, @cplan, @xserialcarroceria, @xserialmotor, @xplaca, @cmarca, @cmodelo, @cversion, @xmarca, @xmodelo, @xversion, @cano, @xcolor, @xtipo, @xclase, @ncapacidad_p, @xtelefono_emp, @xtelefono_prop, @xdireccionfiscal, @email, @femision, @fdesde_pol, @fhasta_pol, @caseguradora, @msuma_a_casco, @msuma_otros, @mdeducible, @xtipo_deducible, @fcreacion, @cusuariocreacion)')
+                        .query('insert into TMEMISION_FLOTA (ID, CCARGA, CLOTE, XPOLIZA, XCERTIFICADO, XRIF_CLIENTE, XNOMBRE, ICEDULA, XCEDULA, FNAC, CPLAN, XSERIALCARROCERIA, XSERIALMOTOR, XPLACA, CMARCA, CMODELO, CVERSION, XMARCA, XMODELO, XVERSION, CANO, XCOLOR, XTIPO, XCLASE, NCAPACIDAD_P, XTELEFONO_EMP, XTELEFONO_PROP, XDIRECCIONFISCAL, EMAIL, FEMISION, FDESDE_POL, FHASTA_POL, CASEGURADORA, MSUMA_A_CASCO, MSUMA_OTROS, MDEDUCIBLE, XTIPO_DEDUCIBLE, FCREACION, CUSUARIOCREACION)'
+                                             + 'values (@id, @ccarga, @clote, @xpoliza, @xcertificado, @xrif_cliente, @xnombre, @icedula, @xcedula, @fnac, @cplan, @xserialcarroceria, @xserialmotor, @xplaca, @cmarca, @cmodelo, @cversion, @xmarca, @xmodelo, @xversion, @cano, @xcolor, @xtipo, @xclase, @ncapacidad_p, @xtelefono_emp, @xtelefono_prop, @xdireccionfiscal, @email, @femision, @fdesde_pol, @fhasta_pol, @caseguradora, @msuma_a_casco, @msuma_otros, @mdeducible, @xtipo_deducible, @fcreacion, @cusuariocreacion)')
                         rowsAffected = rowsAffected + insert.rowsAffected;
+                        maxID++;
                 }
-                return { result: {query: query, rowsAffected: rowsAffected} };
+                return { result: {rowsAffected: rowsAffected} };
             }else{
                 return { result: result };
             }
         }catch(err){
+            console.log(err.message);
             return { error: err.message };
         }
     },
@@ -9262,14 +9299,14 @@ module.exports = {
             return { error: err.message };
         }
     },
-    createBatchQuery: async(ccarga, cusuario, batchData, lastBatchCode) => {
+    createBatchQuery: async(ccarga, cusuario, xobservacion, lastBatchCode) => {
         try{
             let rowsAffected = 0;
             let pool = await sql.connect(config);
             let insert = await pool.request()
                 .input('CCARGA', sql.Int, ccarga)
                 .input('CLOTE', sql.Int, lastBatchCode + 1)
-                .input('XOBSERVACION', sql.NVarChar, batchData.xobservacion)
+                .input('XOBSERVACION', sql.NVarChar, xobservacion)
                 .input('CUSUARIOCREACION', sql.Int, cusuario)
                 .input('FCREACION', sql.DateTime, new Date())
                 .input('FMODIFICACION', sql.DateTime, new Date())
@@ -12258,9 +12295,11 @@ module.exports = {
     try{
         let pool = await sql.connect(config);
         let result = await pool.request()
-            .input('ctiposervici', sql.Int, ClientData.ctiposervici)
-            .query('select * from MASERVICIO where CTIPOSERVICIO = @ctiposervici');
+            .input('ctiposervicio', sql.Int, ClientData.ctiposervicio)
+            .input('ccontratoflota', sql.Int, ClientData.ccontratoflota)
+            .query('select * from VWBUSCARSERVICIOSPARACLUB where CTIPOSERVICIO = @ctiposervicio AND CCONTRATOFLOTA = @ccontratoflota');
         //sql.close();
+        console.log(result)
         return { result: result };
     }catch(err){
         return { error: err.message };
@@ -12290,9 +12329,10 @@ module.exports = {
                 .input('ctiposervicio', sql.Int, ClientData.ctiposervicio)
                 .input('cproveedor', sql.Int, ClientData.cproveedor)
                 .input('cpropietario', sql.Int, ClientData.cpropietario)
+                .input('ccontratoflota', sql.Int, ClientData.ccontratoflota)
                 .input('isolicitante', sql.NVarChar, 'USR')
                 .input('fcreacion', sql.DateTime, new Date())
-                .query('INSERT INTO evsolicitudservicio (CESTADO,CCIUDAD,CSERVICIO,CTIPOSERVICIO,CPROVEEDOR,CPROPIETARIO,ISOLICITANTE,FCREACION) VALUES(@cestado,@cciudad,@cservicio,@ctiposervicio,@cproveedor, @cpropietario,@isolicitante, @fcreacion)');
+                .query('INSERT INTO evsolicitudservicio (CESTADO,CCIUDAD,CSERVICIO,CTIPOSERVICIO,CPROVEEDOR,CPROPIETARIO,ISOLICITANTE,CCONTRATOFLOTA,FCREACION) VALUES(@cestado,@cciudad,@cservicio,@ctiposervicio,@cproveedor, @cpropietario,@isolicitante,@ccontratoflota, @fcreacion)');
             //sql.close();
             return { result: result };
         }catch(err){
@@ -12325,18 +12365,18 @@ module.exports = {
             return { error: err.message };
         }
     },
-    searchPendingPaymentsQuery: async(searchData) => {
+    searchPendingPaymentsQuery: async(searchData, cestatusgeneral) => {
         try{
             let pool = await sql.connect(config);
             let result = await pool.request()
                 .input('fdesde', sql.Date, searchData.fdesde)
                 .input('fhasta', sql.Date, searchData.fhasta)
+                .input('cestatusgeneral', sql.Int, cestatusgeneral)
                 .input('factual', sql.DateTime, new Date().toJSON())
-                .query('SELECT * FROM VWBUSCARPRIMASPENDIENTES WHERE CESTATUSGENERAL = 13 AND FDESDE_REC BETWEEN CONVERT(DATETIME, @fdesde) AND CONVERT(DATETIME, @fhasta)')
+                .query('SELECT * FROM VWBUSCARPRIMASPENDIENTES WHERE CESTATUSGENERAL = @cestatusgeneral AND FDESDE_REC >= @fdesde AND FHASTA_REC <= @fhasta')
             return { result: result };
         }
         catch(err) {
-            console.log(err.message);
             return { error: err.message };
         }
     },
@@ -13941,7 +13981,6 @@ searchApovQuery: async(searchData) => {
         .query('select * from POTASAS_APOV WHERE CPLAN = @cplan');
         return { result: query };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
         }
 },
@@ -13957,7 +13996,6 @@ searchExcesoQuery: async(searchData) => {
         .query('select * from POTASAS_EXC WHERE CPLAN = @cplan');
         return { result: query };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
         }
 },
@@ -13984,7 +14022,6 @@ updatePlanQuery: async(dataList) => {
         //sql.close();
         return { result: result };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -14008,7 +14045,6 @@ updateApovFromPlanQuery: async(apovList) => {
         return { result: { rowsAffected: rowsAffected } };
     }
     catch(err){
-        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -14031,7 +14067,6 @@ updateExcesoFromPlanQuery: async(excesoList) => {
         return { result: { rowsAffected: rowsAffected } };
     }
     catch(err){
-        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -14148,7 +14183,6 @@ createBanksFromClientQuery: async(clientData, bankList, ccliente) => {
         }
         return { result: { rowsAffected: rowsAffected } };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -14382,7 +14416,6 @@ searchServiceTypeFromFleetContractQuery: async(ccontratoflota) => {
     }
 },
 storeProcedureFromServiceQuery: async(data) => {
-    console.log(data)
     try{
         let pool = await sql.connect(config);
         for(let i = 0; i < data.service.length; i++){
@@ -14398,7 +14431,6 @@ storeProcedureFromServiceQuery: async(data) => {
         .query('select * from SUSERVICIOS WHERE CCONTRATOFLOTA = @ccontratoflota');
         return { result: query };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
         }
 },
@@ -14409,10 +14441,8 @@ getServiceRequestDataQuery: async(serviceRequestData) => {
             .input('csolicitudservicio', sql.Int, serviceRequestData.csolicitudservicio)
             .query('select * from VWBUSCARSOLICITUDSERVICIODATA where CSOLICITUDSERVICIO = @csolicitudservicio');
         //sql.close();
-        console.log(result)
         return { result: result };
     }catch(err){
-        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -14427,6 +14457,25 @@ getServiceRequestTracingsDataQuery: async(csolicitudservicio) => {
     }catch(err){
         return { error: err.message };
     }
+},
+storeProcedureFromClubQuery: async(data) => {
+    try{
+        let pool = await sql.connect(config);
+        for(let i = 0; i < data.ctiposervicio.length; i++){
+            let result = await pool.request()
+            .input('cplan', sql.Int, data.cplan)
+            .input('ctiposervicio', sql.Int, data.ctiposervicio[i].ctiposervicio)
+            .input('ccontratoflota', sql.Int, data.ccontratoflota)
+            .input('cusuariocreacion', sql.Int, data.cusuariocreacion)
+            .execute('PoBServicios');
+        }
+        let query= await pool.request()
+        .input('ccontratoflota', sql.Int, data.ccontratoflota)
+        .query('select * from VWBUSCARSERVICIOSPARACLUB WHERE CCONTRATOFLOTA = @ccontratoflota');
+        return { result: query };
+    }catch(err){
+        return { error: err.message };
+        }
 },
 }
 
