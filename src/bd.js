@@ -13593,7 +13593,7 @@ amountsPaidQuery: async() => {
     try{
         let pool = await sql.connect(config);
         let result = await pool.request()
-            .query('SELECT DATEPART(month, FDESDE_POL) as MES, SUM(MPRIMA_PAGADA) as MPRIMA_PAGADA FROM SURECIBO GROUP BY DATEPART(month, FDESDE_POL)');
+            .query('SELECT DATEPART(month, FDESDE_REC) as MES, SUM(MPRIMA_PAGADA) as MPRIMA_PAGADA FROM SURECIBO GROUP BY DATEPART(month, FDESDE_REC)');
         //sql.close()
         return { result: result };
     }catch(err){
@@ -13604,7 +13604,7 @@ amountsOutstandingQuery: async() => {
     try{
         let pool = await sql.connect(config);
         let result = await pool.request()
-            .query('SELECT DATEPART(month, FDESDE_POL) as MES, SUM(MPRIMA_ANUAL) as MPRIMA_ANUAL FROM SURECIBO GROUP BY DATEPART(month, FDESDE_POL)');
+            .query('SELECT DATEPART(month, FDESDE_REC) as MES, SUM(MPRIMA_ANUAL) as MPRIMA_ANUAL FROM SURECIBO GROUP BY DATEPART(month, FDESDE_REC)');
         //sql.close()
         return { result: result };
     }catch(err){
