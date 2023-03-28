@@ -627,5 +627,88 @@ const operationCreatePayment = async(authHeader, requestBody) => {
     else{ return { status: false, code: 404, message: 'Service Order not found.' }; }
     
 }
+router.route('/search-poliza').post((req, res) => {
+    if(!req.header('Authorization')){
+        res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } });
+        return;
+    }else{
+        operationSearchPayments(req.header('Authorization'), req.body).then((result) => {
+            if(!result.status){
+                res.status(result.code).json({ data: result });
+                return;
+            }
+            res.json({ data: result });
+        }).catch((err) => {
+            console.log(err.message);
+            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchPayments' } });
+        });
+    }
+});
+
+const operationSearchPayments = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    let searchData = {
+        fdesde: requestBody.fdesde,
+        fhasta: requestBody.fhasta,
+        xprima: requestBody.xprima,
+    }
+
+    if(searchData.xprima == 'PENDIENTES'){
+        let cestatusgeneral = 13
+        let searchPendingPayments = await bd.searchPendingPaymentsQuery(searchData, cestatusgeneral).then((res) => res);
+        if(searchPendingPayments.error){ return  { status: false, code: 500, message: searchPendingPayments.error }; }
+        receipts = [];
+        if(searchPendingPayments.result.recordset.length > 0){
+            for(let i = 0; i < searchPendingPayments.result.recordset.length; i++){
+                receipt = {
+                    xpoliza: searchPendingPayments.result.recordset[i].xpoliza,
+                    ccontratoflota: searchPendingPayments.result.recordset[i].CCONTRATOFLOTA,
+                    xnombre: searchPendingPayments.result.recordset[i].XNOMBRE + ' ' + searchPendingPayments.result.recordset[i].XAPELLIDO,
+                    xsucursalemision: searchPendingPayments.result.recordset[i].XSUCURSALEMISION,
+                    ccorredor: searchPendingPayments.result.recordset[i].CCORREDOR,
+                    xcorredor: searchPendingPayments.result.recordset[i].XCORREDOR,
+                    nrecibo: searchPendingPayments.result.recordset[i].XRECIBO + '-' + searchPendingPayments.result.recordset[i].NCONSECUTIVO,
+                    xmoneda: searchPendingPayments.result.recordset[i].xmoneda,
+                    femision: searchPendingPayments.result.recordset[i].FEMISION,
+                    fdesde_rec: searchPendingPayments.result.recordset[i].FDESDE_REC,
+                    fhasta_rec: searchPendingPayments.result.recordset[i].FHASTA_REC,
+                    mprima: searchPendingPayments.result.recordset[i].MPRIMA_ANUAL
+
+                }
+                receipts.push(receipt);
+            }
+        }
+    }
+    if(searchData.xprima == 'COBRADAS'){
+        let cestatusgeneral = 7
+        let searchCollectPayments = await bd.searchPendingPaymentsQuery(searchData, cestatusgeneral).then((res) => res);
+        if(searchCollectPayments.error){ return  { status: false, code: 500, message: searchCollectPayments.error }; }
+        receipts = [];
+        if(searchCollectPayments.result.recordset.length > 0){
+            for(let i = 0; i < searchCollectPayments.result.recordset.length; i++){
+                receipt = {
+                    xpoliza: searchCollectPayments.result.recordset[i].xpoliza,
+                    ccontratoflota: searchCollectPayments.result.recordset[i].CCONTRATOFLOTA,
+                    xnombre: searchCollectPayments.result.recordset[i].XNOMBRE + ' ' + searchCollectPayments.result.recordset[i].XAPELLIDO,
+                    xsucursalemision: searchCollectPayments.result.recordset[i].XSUCURSALEMISION,
+                    ccorredor: searchCollectPayments.result.recordset[i].CCORREDOR,
+                    xcorredor: searchCollectPayments.result.recordset[i].XCORREDOR,
+                    nrecibo: searchCollectPayments.result.recordset[i].XRECIBO + '-' + searchCollectPayments.result.recordset[i].NCONSECUTIVO,
+                    xmoneda: searchCollectPayments.result.recordset[i].xmoneda,
+                    femision: searchCollectPayments.result.recordset[i].FEMISION,
+                    fdesde_rec: searchCollectPayments.result.recordset[i].FDESDE_REC,
+                    fhasta_rec: searchCollectPayments.result.recordset[i].FHASTA_REC,
+                    mprima: searchCollectPayments.result.recordset[i].MPRIMA_PAGADA
+                }
+                receipts.push(receipt);
+            }
+        }
+    }
+    return {
+        status: true,
+        receipts: receipts
+    }
+}
+
 
 module.exports = router;

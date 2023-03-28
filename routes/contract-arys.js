@@ -2,6 +2,11 @@ const router = require('express').Router();
 const helper = require('../src/helper');
 const bd = require('../src/bd');
 
+function changeDateFormat (date) {
+    let dateArray = date.toISOString().substring(0,10).split("-");
+    return dateArray[2] + '-' + dateArray[1] + '-' + dateArray[0];
+  }
+
 router.route('/service-type-plan').post((req, res) => {
     if(!req.header('Authorization')){ 
         res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } })
@@ -77,7 +82,7 @@ const operationCreate = async(authHeader, requestBody) => {
         femision: requestBody.femision ,
         cusuario: requestBody.cusuario ? requestBody.cusuario : undefined,
         xzona_postal: requestBody.xzona_postal ? requestBody.xzona_postal : undefined,
-        cestatusgeneral: 21
+        cestatusgeneral: 13
     };
     if(userData){
         let createContractServiceArys = await bd.createContractServiceArysQuery(userData).then((res) => res);
@@ -107,6 +112,70 @@ const operationCreate = async(authHeader, requestBody) => {
         // xprofesion: lastQuote.result.recordset[0].XPROFESION, 
         // xrif: lastQuote.result.recordset[0].XRIF, 
     };
+}
+
+router.route('/detail').post((req, res) => {
+    if(!req.header('Authorization')){
+        res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } });
+        return;
+    }else{
+        operationDetailContractArys(req.header('Authorization'), req.body).then((result) => {
+            if(!result.status){
+                res.status(result.code).json({ data: result });
+                return;
+            }
+            res.json({ data: result });
+        }).catch((err) => {
+            console.log(err.message);
+            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationDetailContractArys' } });
+        });
+    }
+});
+
+const operationDetailContractArys = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    let searchData = {
+        id: requestBody.id
+    };
+    let searchontractArysDetail = await bd.searchCorporativeIssuanceDetail(searchData).then((res) => res);
+    if(searchontractArysDetail.error){ return  { status: false, code: 500, message: searchontractArysDetail.error }; }
+    if(searchontractArysDetail.result.rowsAffected < 1){ return { status: false, code: 404, message: 'Corporative Issuance not found.' }; }
+    if(searchontractArysDetail.result.rowsAffected != 0){
+        planList = []
+        for(let i = 0; i < searchontractArysDetail.result.recordset.length; i++){
+            planList.push({
+                xtiposervicio: searchontractArysDetail.result.recordset[i].XTIPOSERVICIO
+            })
+        }
+    }
+    return {
+        status: true,
+        id: searchCorporativeIssuanceDetail.result.recordset[0].ID,
+        ccarga: searchCorporativeIssuanceDetail.result.recordset[0].CCARGA,
+        clote: searchCorporativeIssuanceDetail.result.recordset[0].CLOTE,
+        xpoliza: searchCorporativeIssuanceDetail.result.recordset[0].XPOLIZA,
+        xcertificado: searchCorporativeIssuanceDetail.result.recordset[0].XCERTIFICADO,
+        fcarga: changeDateFormat(searchCorporativeIssuanceDetail.result.recordset[0].FCARGA),
+        xcliente: searchCorporativeIssuanceDetail.result.recordset[0].XCLIENTE,
+        xdocidentidadcliente: searchCorporativeIssuanceDetail.result.recordset[0].XDOCIDENTIDADCLIENTE,
+        xemailcliente: searchCorporativeIssuanceDetail.result.recordset[0].XEMAILCLIENTE,
+        xpropietario: searchCorporativeIssuanceDetail.result.recordset[0].XPROPIETARIO,
+        xdocidentidadpropietario: searchCorporativeIssuanceDetail.result.recordset[0].XDOCIDENTIDADPROPIETARIO,
+        xemailpropietario: searchCorporativeIssuanceDetail.result.recordset[0].XEMAILPROPIETARIO,
+        xmarca: searchCorporativeIssuanceDetail.result.recordset[0].XMARCA,
+        xmodelo: searchCorporativeIssuanceDetail.result.recordset[0].XMODELO,
+        xversion: searchCorporativeIssuanceDetail.result.recordset[0].XVERSION,
+        cano: searchCorporativeIssuanceDetail.result.recordset[0].CANO,
+        xtipo: searchCorporativeIssuanceDetail.result.recordset[0].XTIPO,
+        xclase: searchCorporativeIssuanceDetail.result.recordset[0].XCLASE,
+        xserialcarroceria: searchCorporativeIssuanceDetail.result.recordset[0].XSERIALCARROCERIA,
+        xserialmotor: searchCorporativeIssuanceDetail.result.recordset[0].XSERIALMOTOR,
+        xcolor: searchCorporativeIssuanceDetail.result.recordset[0].XCOLOR,
+        ncapacidadpasajeros: searchCorporativeIssuanceDetail.result.recordset[0].NCAPACIDADPASAJEROS,
+        xplaca: searchCorporativeIssuanceDetail.result.recordset[0].XPLACA,
+        fdesde_pol: changeDateFormat(searchCorporativeIssuanceDetail.result.recordset[0].FDESDE_POL),
+        fhasta_pol: changeDateFormat(searchCorporativeIssuanceDetail.result.recordset[0].FHASTA_POL)
+    }
 }
 
 module.exports = router;
