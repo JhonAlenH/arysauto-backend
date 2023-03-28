@@ -1072,6 +1072,247 @@ const operationUpdateFleetContractManagement = async(authHeader, requestBody) =>
     }
 }
 
+const validateIsInteger = (num, key, rowLine) => {
+    if (!/^[1-9]\d*$/.test(num)) {
+        return {
+            error: `Error, la columna ${key} de la fila ${rowLine + 2} debe de ser de tipo Entero. Por favor arréglelo e intente nuevamente.`
+        }
+    }
+    return true;
+}
+
+const validateIsFloat = (num, key, rowLine) => {
+    if (!/^\d+(\.\d+)?$/.test(num)) {
+        return {
+            error: `Error, la columna ${key} de la fila ${rowLine + 2} debe de ser un número decimal. Por favor arréglelo e intente nuevamente.`
+        }
+    }
+    return true;
+}
+
+const validateIsDate = (date, key, rowLine) => {
+    if (!/^(0?[1-9]|[1-2][0-9]|3[0-1])\/(0?[1-9]|1[0-2])\/\d{4}$/.test(date)) {
+        var dateParts = date.split("/");
+        var day = parseInt(dateParts[0]);
+        var month = parseInt(dateParts[1]);
+        var year = parseInt(dateParts[2]);
+        if (!Number.isInteger(day) || !Number.isInteger(month) || !Number.isInteger(year)) {
+            return {
+                error: `Error, la columna ${key} de la fila ${rowLine + 2} debe de ser de tipo fecha y seguir el formato dd/mm/yyyy. Por favor arréglelo e intente nuevamente.`
+            }
+        }
+        else {
+            return {
+                error: `Error, la columna ${key} de la fila ${rowLine + 2} debe de ser de tipo fecha y seguir el formato dd/mm/yyyy. Por favor arréglelo e intente nuevamente.`
+            }
+        }
+    }
+    return true;
+}
+
+const validateChargeContract = (contract, rowLine) => {
+    for (const key in contract) {
+        if (contract[key] === null || contract[key] === undefined) {
+            if (key !== 'FNAC' && key !== 'XTELEFONO1' && key !== 'XTELEFONO2' && key !== 'SUMA ASEGURADA OTROS') {
+                return {
+                    error: `Error, la columna ${key} de la fila ${rowLine + 2} No acepta valores nulos. Por favor arréglelo e intente nuevamente.`
+                }
+            }
+        }
+        let error = "";
+        switch (key) {
+            case 'No':
+                error = validateIsInteger(contract[key], key, rowLine).error;
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'POLIZA':
+                error = validateIsInteger(contract[key], key, rowLine).error;
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'CERTIFICADO':
+                error = validateIsInteger(contract[key], key, rowLine).error;
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'Rif_Cliente':
+                error = validateIsInteger(contract[key], key, rowLine).error;
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'letra':
+                if (contract[key] !== 'V' && contract[key] !== 'J') {
+                    return {
+                        error: `Error, la columna ${key} de la fila ${rowLine + 2} solo admite los valores V o J. Por favor arréglelo e intente nuevamente.`
+                    }
+                }
+                break;
+            case 'CEDULA':
+                error = validateIsInteger(contract[key], key, rowLine).error;
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'FNAC':
+                if (contract[key]) {
+                    error = validateIsDate(contract[key], key, rowLine).error
+                    if (error) {
+                        return {
+                            error: error
+                        }
+                    }
+                }
+                break;
+            case 'CPLAN':
+                error = validateIsInteger(contract[key], key, rowLine).error;
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'CMARCA':
+                error = validateIsInteger(contract[key], key, rowLine).error;
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'CMODELO':
+                error = validateIsInteger(contract[key], key, rowLine).error;
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'CVERSION':
+                error = validateIsInteger(contract[key], key, rowLine).error;
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'AÑO':
+                error = validateIsInteger(contract[key], key, rowLine).error;
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'PTOS':
+                error = validateIsInteger(contract[key], key, rowLine).error;
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'EMAIL':
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contract[key])) {
+                    return {
+                        error: `Error, la columna ${key} de la fila ${rowLine + 2} debe contener un correo válido, debe de seguir el formato: ejemplo@direccion.algo. Por favor arréglelo e intente nuevamente.`
+                    }
+                }
+                break;
+            case 'FEMISION':
+                error = validateIsDate(contract[key], key, rowLine).error;
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'FPOLIZA_DES':
+                error = validateIsDate(contract[key], key, rowLine).error;
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'FPOLIZA_HAS':
+                error = validateIsDate(contract[key], key, rowLine).error;
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'CASEGURADORA':
+                error = validateIsInteger(contract[key], key, rowLine).error;
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'SUMA ASEGURADORA':
+                error = validateIsFloat(contract[key], key, rowLine).error
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'SUMA ASEGURADORA OTROS':
+                if (contract[key]){
+                    error = validateIsFloat(contract[key], key, rowLine).error
+                    if (error) {
+                        return {
+                            error: error
+                        }
+                    }
+                }
+                break;
+            case 'MONTO DEDUCIBLE':
+                error = validateIsFloat(contract[key], key, rowLine).error
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'FCREACION':
+                error = validateIsDate(contract[key], key, rowLine).error;
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            case 'CUSUARIOCREACION':
+                error = validateIsInteger(contract[key], key, rowLine).error;
+                if (error) {
+                    return {
+                        error: error
+                    }
+                }
+                break;
+            default: break;
+        }
+    }
+    return true;
+}
+
 router.route('/charge-contracts').post((req, res) => {
     if(!req.header('Authorization')){
         res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } });
@@ -1092,7 +1333,11 @@ router.route('/charge-contracts').post((req, res) => {
 
 const operationChargeContracts = async(authHeader, requestBody) => { 
     if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
-    //let createNewChargeBatch = await bd.createChargeBatchQuery(requestBody.ccarga, requestBody.xobservacion); ccarga, cusuario, batchData, lastBatchCode
+    if (requestBody.parsedData.length < 1) { return { status: false, code: 400, message: 'No puede guardar un archivo vacío' } }
+    for (let i = 0; i < requestBody.parsedData.length; i++) {
+        let error = validateChargeContract(requestBody.parsedData[i], i).error;
+        if (error) { console.log(error); return { status: false, code: 400, message: error } };
+    }
     let getLastBatchCode = await bd.getLastParentPolicyBatchQuery(requestBody.ccarga).then((res) => res);
     if (getLastBatchCode.error){ console.log(getLastBatchCode.error); return { status: false, code: 500, message: getLastBatchCode.error }; }
     let createBatchQuery = await bd.createBatchQuery(requestBody.ccarga, requestBody.cusuario, requestBody.xobservacion, getLastBatchCode.result.clote);
@@ -1105,7 +1350,7 @@ const operationChargeContracts = async(authHeader, requestBody) => {
     return {
         status: true,
         code: 200,
-        message: "todo bien"
+        message: `Se ha generado el lote N° ${getLastBatchCode.result.clote + 1} - ${requestBody.xobservacion} exitosamente`
     }
 }
 
