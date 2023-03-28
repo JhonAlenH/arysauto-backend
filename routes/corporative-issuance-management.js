@@ -169,4 +169,49 @@ const operationDetailCorporativeIssuanceCertificate = async(authHeader, requestB
     }
 }
 
+router.route('/search-receipt').post((req, res) => {
+    if(!req.header('Authorization')){
+        res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } });
+        return;
+    }else{
+        operationSearchReceipt(req.header('Authorization'), req.body).then((result) => {
+            if(!result.status){
+                res.status(result.code).json({ data: result });
+                return;
+            }
+            res.json({ data: result });
+        }).catch((err) => {
+            console.log(err.message);
+            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchReceipt' } });
+        });
+    }
+});
+
+const operationSearchReceipt = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    let searchData = {
+        ccarga: requestBody.ccarga
+    };
+    let planList = [];
+    let searchPlan= await bd.searchPlanFromCorporativeQuery(searchData).then((res) => res);
+    if(searchPlan.error){ return  { status: false, code: 500, message: searchPlan.error }; }
+    if(searchPlan.result.rowsAffected > 0){
+        for(let i = 0; i < searchPlan.result.recordset.length; i++){
+            planList.push({
+                cplan: searchPlan.result.recordset[i].CPLAN
+            })
+        }
+    }
+    let searchReceipt= await bd.searchReceiptQuery(searchData).then((res) => res);
+    if(searchReceipt.error){ return  { status: false, code: 500, message: searchReceipt.error }; }
+    if(searchReceipt.result.rowsAffected < 1){ return { status: false, code: 404, message: 'Corporative Issuance not found.' }; }
+    return {
+        status: true,
+        ccarga: searchReceipt.result.recordset[0].CCARGA,
+        ccliente: searchReceipt.result.recordset[0].CCLIENTE,
+        fhasta_pol: changeDateFormat(searchReceipt.result.recordset[0].FHASTA_POL),
+        plan: planList
+    }
+}
+
 module.exports = router;
