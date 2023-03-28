@@ -1350,7 +1350,7 @@ const operationChargeContracts = async(authHeader, requestBody) => {
     return {
         status: true,
         code: 200,
-        message: `Se ha generado el lote N° ${maxId + 1} - ${requestBody.xobservacion} exitosamente`
+        message: `Se ha generado el lote N° ${getLastBatchCode.result.clote + 1} - ${requestBody.xobservacion} exitosamente`
     }
 }
 
