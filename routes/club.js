@@ -371,4 +371,36 @@ const operationStoreProcedureFromClub = async(authHeader, requestBody) => {
     }else{ return { status: false, code: 404, message: 'Replacement not found.' }; }
 }
 
+router.route('/client-agenda').post((req, res) => {
+    CreateAgenda(req.body).then((result) => {
+        if(!result.status){ 
+            res.status(result.code).json({ data: result });
+            return;
+        }
+        res.json({ data: result });
+    }).catch((err) => {
+        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'CreateAgenda' } });
+    });
+});
+
+const CreateAgenda = async(requestBody) => {
+    console.log(requestBody)
+    let DataAgenda = {
+        cservicio: requestBody.cservicio,
+        cestado: requestBody.cestado,
+        cciudad: requestBody.cciudad,
+    };
+    let Agenda = await bd.ClienDataProveedor(DataAgenda).then((res) => res);
+    if(Agenda.error){ return { status: false, code: 500, message: Agenda.error }; }
+    if(Agenda.rowsAffected == 0){ return { status: false, code: 404 }; }
+
+    return { 
+        status: true, 
+        calendarEvents :{
+            title : 'Event name',
+            start : '2023-03-11'
+        },
+    }
+}
+
 module.exports = router;
