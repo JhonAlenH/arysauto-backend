@@ -65,36 +65,39 @@ router.route('/create').post((req, res) => {
 
 const operationCreateFeesRegister = async (authHeader, requestBody) => {
     if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
-    if(!helper.validateRequestObj(requestBody, ['cpais', 'ccompania', 'ccliente', 'casociado', 'bactivo', 'cusuariocreacion'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
-    let vehicleTypes = [];
-    if(requestBody.vehicleTypes){
-        vehicleTypes = requestBody.vehicleTypes;
-        for(let i = 0; i < vehicleTypes.length; i++){
-            if(!helper.validateRequestObj(vehicleTypes[i], ['ctipovehiculo', 'miniciointervalo', 'mfinalintervalo', 'ptasa'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
-            if(vehicleTypes[i].intervals)
-            for(let j = 0; j < vehicleTypes[i].intervals.length; j++){
-                if(!helper.validateRequestObj(vehicleTypes[i].intervals[j], ['fanoinicio', 'fanofinal', 'ptasainterna'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
-            }
-        }
-    }
     let feesRegisterData = {
         cpais: requestBody.cpais,
         ccompania: requestBody.ccompania,
-        vehicleTypes: vehicleTypes ? vehicleTypes : undefined,
         ccliente: requestBody.ccliente,
-        casociado: requestBody.casociado,
-        bactivo: requestBody.bactivo,
         cusuariocreacion: requestBody.cusuariocreacion
     }
-    let verifyFeesRegisterAssociate = await bd.verifyFeesRegisterAssociateToCreateQuery(feesRegisterData).then((res) => res);
-    if(verifyFeesRegisterAssociate.error){ return { status: false, code: 500, message: verifyFeesRegisterAssociate.error }; }
-    if(verifyFeesRegisterAssociate.result.rowsAffected > 0){ return { status: false, code: 200, condition: 'associate-already-exist' }; }
-    else{
-        let createFeesRegister = await bd.createFeesRegisterQuery(feesRegisterData).then((res) => res);
-        if(createFeesRegister.error){ return { status: false, code: 500, message: createFeesRegister.error }; }
-        if(createFeesRegister.result.rowsAffected > 0){ return { status: true, cregistrotasa: createFeesRegister.result.recordset[0].CREGISTROTASA }; }
-        else{ return { status: false, code: 500, message: 'Server Internal Error.', hint: 'createFeesRegister' }; }
+    let rateList = []
+    if(requestBody.rates){
+        for(let i = 0; i < requestBody.rates.length; i++){
+            rateList.push({
+                xclase: +requestBody.rates[i].xclase,
+                xintervalo: requestBody.rates[i].xintervalo,
+                xtasa: parseFloat(requestBody.rates[i].xtasa.replace(",", ".")),
+                f2024: parseFloat(requestBody.rates[i].f2024.replace(",", ".")),
+                f2019: parseFloat(requestBody.rates[i].f2019.replace(",", ".")),
+                f2017: parseFloat(requestBody.rates[i].f2017.replace(",", ".")),
+                f2014: parseFloat(requestBody.rates[i].f2014.replace(",", ".")),
+                f2011: parseFloat(requestBody.rates[i].f2011.replace(",", ".")),
+                f2006: parseFloat(requestBody.rates[i].f2006.replace(",", ".")),
+                f2003: parseFloat(requestBody.rates[i].f2003.replace(",", "."))
+            })
+        }
+        console.log(rateList)
     }
+    // let verifyFeesRegisterAssociate = await bd.verifyFeesRegisterAssociateToCreateQuery(feesRegisterData).then((res) => res);
+    // if(verifyFeesRegisterAssociate.error){ return { status: false, code: 500, message: verifyFeesRegisterAssociate.error }; }
+    // if(verifyFeesRegisterAssociate.result.rowsAffected > 0){ return { status: false, code: 200, condition: 'associate-already-exist' }; }
+    // else{
+    //     let createFeesRegister = await bd.createFeesRegisterQuery(feesRegisterData).then((res) => res);
+    //     if(createFeesRegister.error){ return { status: false, code: 500, message: createFeesRegister.error }; }
+    //     if(createFeesRegister.result.rowsAffected > 0){ return { status: true, cregistrotasa: createFeesRegister.result.recordset[0].CREGISTROTASA }; }
+    //     else{ return { status: false, code: 500, message: 'Server Internal Error.', hint: 'createFeesRegister' }; }
+    // }
 }
 
 router.route('/detail').post((req, res) => {

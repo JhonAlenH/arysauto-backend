@@ -14478,5 +14478,31 @@ storeProcedureFromClubQuery: async(data) => {
         return { error: err.message };
         }
 },
+searchReceiptQuery: async(searchData) => {
+    try {
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('ccarga', sql.Int, searchData.ccarga)
+            .query('select * FROM SURECIBO WHERE CCARGA = @ccarga')
+        return {result: result};
+    }
+    catch(err){
+        console.log(err.message);
+        return { error: err.message };
+    }
+},
+searchPlanFromCorporativeQuery: async(searchData) => {
+    try {
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('ccarga', sql.Int, searchData.ccarga)
+            .query('select distinct(CPLAN) from SUCONTRATOFLOTA where CCARGA = @ccarga')
+        return {result: result};
+    }
+    catch(err){
+        console.log(err.message);
+        return { error: err.message };
+    }
+},
 }
 
