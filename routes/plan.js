@@ -225,6 +225,33 @@ const operationCreatePlan = async(authHeader, requestBody) => {
                 let updateServiceFromQuantity = await bd.updateServiceFromQuantityQuery(quantityList, cplan).then((res) => res);
                 if(updateServiceFromQuantity.error){ return  { status: false, code: 500, message: updateServiceFromQuantity.error }; }
             }
+            let rateList = []
+            if(requestBody.rates){
+                for(let i = 0; i < requestBody.rates.length; i++){
+                    rateList.push({
+                        cano: +requestBody.rates[i].cano,
+                        particular1: parseFloat(requestBody.rates[i].particular1),
+                        particular2: parseFloat(requestBody.rates[i].particular2),
+                        rustico1: parseFloat(requestBody.rates[i].rustico1),
+                        rustico2: parseFloat(requestBody.rates[i].rustico2),
+                        pickup1: parseFloat(requestBody.rates[i].pickup1),
+                        pickup2: parseFloat(requestBody.rates[i].pickup2),
+                        carga2_1: parseFloat(requestBody.rates[i].carga2_1),
+                        carga2_2: parseFloat(requestBody.rates[i].carga2_2),
+                        carga5_1: parseFloat(requestBody.rates[i].carga5_1),
+                        carga5_2: parseFloat(requestBody.rates[i].carga5_2),
+                        carga8_1: parseFloat(requestBody.rates[i].carga8_1),
+                        carga8_2: parseFloat(requestBody.rates[i].carga8_2),
+                        carga12_1: parseFloat(requestBody.rates[i].carga12_1),
+                        carga12_2: parseFloat(requestBody.rates[i].carga12_2),
+                        moto1: parseFloat(requestBody.rates[i].moto1),
+                        moto2: parseFloat(requestBody.rates[i].moto2),
+                        iestado: requestBody.rates[i].iestado
+                    })
+                }
+                let createFeesRegister = await bd.createFeesRegisterQuery(cplan, rateList).then((res) => res);
+                if(createFeesRegister.error){ return { status: false, code: 500, message: createFeesRegister.error }; }
+            }
             let searchLastPlan = await bd.searchLastPlanQuery().then((res) => res);
             if(searchLastPlan.error){ return  { status: false, code: 500, message: searchLastPlan.error }; }
             if(createPlan.result.rowsAffected > 0){return {status: true, cplan: searchLastPlan.result.recordset[0].CPLAN, list: apovList}}
