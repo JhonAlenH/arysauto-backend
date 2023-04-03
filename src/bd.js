@@ -14500,5 +14500,17 @@ searchPlanFromCorporativeQuery: async(searchData) => {
         return { error: err.message };
     }
 },
+getRatesArysQuery: async(cplan) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cplan', sql.Int, cplan)
+            .query('select * from POTASAS_ARYS where CPLAN = @cplan');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
 }
 
