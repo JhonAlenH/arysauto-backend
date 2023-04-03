@@ -14565,7 +14565,43 @@ searchCodeFlotaQuery: async() => {
         let pool = await sql.connect(config);
         let result = await pool.request()
             .query('select MAX(ID) AS ID from TMEMISION_FLOTA');
+            return { result: result };
+        }
+        catch(err){
+            console.log(err.message)
+            return { error: err.message };
+        }},
         //sql.close();
+DataCreateAgendaClient: async(DataAgenda) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cpropietario', sql.Int, DataAgenda.cpropietario)
+            .input('id', sql.Int, DataAgenda.id)
+            .input('xtitulo', sql.NVarChar, DataAgenda.xtitulo)
+            .input('finicio', sql.Date, DataAgenda.finicio)
+            .input('fhasta', sql.Date, DataAgenda.fhasta)
+            .input('condicion', sql.Bit, DataAgenda.condicion)
+            .query('insert into TRAGENDA (CPROPIETARIO, ID,XTITULO, FINICIO, FHASTA, CONDICION) values (@cpropietario, @id ,@xtitulo, @finicio, @fhasta, @condicion)');
+        if(result.rowsAffected > 0){
+            let query = await pool.request()
+                .input('cpropietario', sql.Int, DataAgenda.cpropietario)
+                .query('select * from TRAGENDA where CPROPIETARIO = @cpropietario');
+            return { result: query };
+        }else{
+            return { result: result };
+            
+        }
+    }catch(err){
+        return { error: err.message };
+    }
+},
+DataAgendaClient: async(DataAgenda) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+        .input('cpropietario', sql.Int, DataAgenda.cpropietario)
+        .query('SELECT dbo.fecha(FINICIO) , * FROM TRAGENDA');
         return { result: result };
     }catch(err){
         return { error: err.message };
