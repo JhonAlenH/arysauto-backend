@@ -7225,16 +7225,14 @@ module.exports = {
             return { error: err.message };
         }
     },
-    createFeesRegisterQuery: async(cplan, rateList) => {
+    createFeesRegisterQuery: async(cplan, rateList, dataList) => {
         try{
             let rowsAffected = 0;
             let pool = await sql.connect(config);
             for(let i = 0; i < rateList.length; i++){
                 let insert = await pool.request()
                 .input('cplan', sql.Int, cplan)
-                .input('ccompania', sql.Int, feesRegisterData.ccompania)
-                .input('ccliente', sql.Int, feesRegisterData.ccliente)
-                .input('cusuariocreacion', sql.Int, feesRegisterData.cusuariocreacion)
+                .input('cusuariocreacion', sql.Int, dataList.cusuario)
                 .input('cano', sql.Int, rateList[i].cano)
                 .input('particular1', sql.Numeric(18, 2), rateList[i].particular1)
                 .input('particular2', sql.Numeric(18, 2), rateList[i].particular2)
@@ -7252,10 +7250,9 @@ module.exports = {
                 .input('carga12_2', sql.Numeric(18, 2), rateList[i].carga12_2)
                 .input('moto1', sql.Numeric(18, 2), rateList[i].moto1)
                 .input('moto2', sql.Numeric(18, 2), rateList[i].moto2)
-                .input('iestado', sql.Char, rateList[i].iestado)
                 .input('fcreacion', sql.DateTime, new Date())
-                .query('insert into TMTASAS_ARYS (CANO, PARTICULAR1, PARTICULAR2, RUSTICO1, RUSTICO2, PICKUP1, PICKUP2, CARGA2_1, CARGA2_2, CARGA5_1, CARGA5_2, CARGA8_1, CARGA8_2, CARGA12_1, CARGA12_2, MOTO1, MOTO2, IESTADO, CCLIENTE, CPAIS, CCOMPANIA, CUSUARIOCREACION, FCREACION)' +
-                        'values (@cano, @particular1, @particular2, @rustico1, @rustico2, @pickup1, @pickup2, @carga2_1, @carga2_2, @carga5_1, @carga5_2, @carga8_1, @carga8_2, @carga12_1, @carga12_2, @moto1, @moto2, @iestado, @ccliente, @cpais, @ccompania, @cusuariocreacion, @fcreacion)');
+                .query('insert into POTASAS_ARYS (CPLAN, CANO, PARTICULAR1, PARTICULAR2, RUSTICO1, RUSTICO2, PICKUP1, PICKUP2, CARGA2_1, CARGA2_2, CARGA5_1, CARGA5_2, CARGA8_1, CARGA8_2, CARGA12_1, CARGA12_2, MOTO1, MOTO2, CUSUARIOCREACION, FCREACION)' +
+                        'values (@cplan, @cano, @particular1, @particular2, @rustico1, @rustico2, @pickup1, @pickup2, @carga2_1, @carga2_2, @carga5_1, @carga5_2, @carga8_1, @carga8_2, @carga12_1, @carga12_2, @moto1, @moto2, @cusuariocreacion, @fcreacion)');
                 rowsAffected = rowsAffected + insert.rowsAffected;
             }
             return { result: { rowsAffected: rowsAffected } };
@@ -7318,22 +7315,36 @@ module.exports = {
             return { error: err.message };
         }
     },
-    updateFeesRegisterQuery: async(feesRegisterData) => {
+    updateFeesRegisterQuery: async(cplan, rateList) => {
         try{
+            let rowsAffected = 0;
             let pool = await sql.connect(config);
-            let result = await pool.request()
-                .input('cpais', sql.Numeric(4, 0), feesRegisterData.cpais)
-                .input('ccompania', sql.Int, feesRegisterData.ccompania)
-                .input('cregistrotasa', sql.Int, feesRegisterData.cregistrotasa)
-                .input('ccliente', sql.Int, feesRegisterData.ccliente)
-                .input('casociado', sql.Int, feesRegisterData.casociado)
-                .input('bactivo', sql.Bit, feesRegisterData.bactivo)
-                .input('cusuariomodificacion', sql.Int, feesRegisterData.cusuariomodificacion)
-                .input('fmodificacion', sql.DateTime, new Date())
-                .query('update CTREGISTROTASA set CCLIENTE = @ccliente, CASOCIADO = @casociado, BACTIVO = @bactivo, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion where CREGISTROTASA = @cregistrotasa and CPAIS = @cpais and CCOMPANIA = @ccompania');
-            //sql.close();
-            return { result: result };
+            for(let i = 0; i < rateList.length; i++){
+                let update = await pool.request()
+                .input('cplan', sql.Int, cplan)
+                .input('cano', sql.Int, rateList[i].cano)
+                .input('particular1', sql.Numeric(18, 2), rateList[i].particular1)
+                .input('particular2', sql.Numeric(18, 2), rateList[i].particular2)
+                .input('rustico1', sql.Numeric(18, 2), rateList[i].rustico1)
+                .input('rustico2', sql.Numeric(18, 2), rateList[i].rustico2)
+                .input('pickup1', sql.Numeric(18, 2), rateList[i].pickup1)
+                .input('pickup2', sql.Numeric(18, 2), rateList[i].pickup2)
+                .input('carga2_1', sql.Numeric(18, 2), rateList[i].carga2_1)
+                .input('carga2_2', sql.Numeric(18, 2), rateList[i].carga2_2)
+                .input('carga5_1', sql.Numeric(18, 2), rateList[i].carga5_1)
+                .input('carga5_2', sql.Numeric(18, 2), rateList[i].carga5_2)
+                .input('carga8_1', sql.Numeric(18, 2), rateList[i].carga8_1)
+                .input('carga8_2', sql.Numeric(18, 2), rateList[i].carga8_2)
+                .input('carga12_1', sql.Numeric(18, 2), rateList[i].carga12_1)
+                .input('carga12_2', sql.Numeric(18, 2), rateList[i].carga12_2)
+                .input('moto1', sql.Numeric(18, 2), rateList[i].moto1)
+                .input('moto2', sql.Numeric(18, 2), rateList[i].moto2)
+                .query('update POTASAS_ARYS set PARTICULAR1 = @particular1, PARTICULAR2 = @particular2, RUSTICO1 = @rustico1, RUSTICO2 = @rustico2, PICKUP1 = @pickup1, PICKUP2 = @pickup2, CARGA2_1 = @carga2_1, CARGA2_2 = @carga2_2, CARGA5_1 = @carga5_1, CARGA5_2 = @carga5_2, CARGA8_1 = @carga8_1, CARGA8_2 = @carga8_2, CARGA12_1 = @carga12_1, CARGA12_2 = @carga12_2, MOTO1 = @moto1, MOTO2 = @moto2 WHERE CPLAN = @cplan');
+                rowsAffected = rowsAffected + update.rowsAffected;
+            }
+            return { result: { rowsAffected: rowsAffected } };
         }catch(err){
+            console.log(err.message)
             return { error: err.message };
         }
     },
