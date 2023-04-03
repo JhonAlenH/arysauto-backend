@@ -96,6 +96,33 @@ const operationDetailPlan = async(authHeader, requestBody) => {
             servicesInsurers.push(serviceInsurer);
         }
     }
+    let ratesArys = [];
+    let ratesArysData = await bd.getRatesArysQuery(planData.cplan).then((res) => res);
+    if(ratesArysData.error){ return { status: false, code: 500, message: ratesArysData.error }; }
+    if(ratesArysData.result.rowsAffected > 0){
+        for(let i = 0; i < ratesArysData.result.recordset.length; i++){
+            let ratesArysList = {
+                cano: ratesArysData.result.recordset[i].CANO,
+                particular1: ratesArysData.result.recordset[i].PARTICULAR1,
+                particular2: ratesArysData.result.recordset[i].PARTICULAR2,
+                rustico1: ratesArysData.result.recordset[i].RUSTICO1,
+                rustico2: ratesArysData.result.recordset[i].RUSTICO2,
+                pickup1: ratesArysData.result.recordset[i].PICKUP1,
+                pickup2: ratesArysData.result.recordset[i].PICKUP2,
+                carga2_1: ratesArysData.result.recordset[i].CARGA2_1,
+                carga2_2: ratesArysData.result.recordset[i].CARGA2_2,
+                carga5_1: ratesArysData.result.recordset[i].CARGA5_1,
+                carga5_2: ratesArysData.result.recordset[i].CARGA5_2,
+                carga8_1: ratesArysData.result.recordset[i].CARGA8_1,
+                carga8_2: ratesArysData.result.recordset[i].CARGA8_2,
+                carga12_1: ratesArysData.result.recordset[i].CARGA12_1,
+                carga12_2: ratesArysData.result.recordset[i].CARGA12_2,
+                moto1: ratesArysData.result.recordset[i].MOTO1,
+                moto2: ratesArysData.result.recordset[i].MOTO2,
+            }
+            ratesArys.push(ratesArysList);
+        }
+    }
     return { 
         status: true,
         cplan: getPlanData.result.recordset[0].CPLAN,
@@ -106,6 +133,7 @@ const operationDetailPlan = async(authHeader, requestBody) => {
         bactivo: getPlanData.result.recordset[0].BACTIVO,
         services: servicesTypeList,
         servicesInsurers: servicesInsurers,
+        ratesArys: ratesArys,
         parys: getPlanData.result.recordset[0].PARYS, 
         paseguradora: getPlanData.result.recordset[0].PASEGURADORA,
         cmoneda: getPlanData.result.recordset[0].CMONEDA,
@@ -198,7 +226,7 @@ const operationCreatePlan = async(authHeader, requestBody) => {
         //Crea el plan
         let cplan = searchCodePlan.result.recordset[0].CPLAN + 1;
         let apovList = [];
-
+        
         let createPlan = await bd.createPlanQuery(dataList, cplan).then((res) => res);
         if(createPlan.error){return { status: false, code: 500, message: createPlan.error }; }
         if(createPlan.result.rowsAffected > 0){  
@@ -224,6 +252,35 @@ const operationCreatePlan = async(authHeader, requestBody) => {
                 }
                 let updateServiceFromQuantity = await bd.updateServiceFromQuantityQuery(quantityList, cplan).then((res) => res);
                 if(updateServiceFromQuantity.error){ return  { status: false, code: 500, message: updateServiceFromQuantity.error }; }
+            }
+            let rateList = []
+            console.log(cplan)
+            console.log(requestBody.rates)
+            if(requestBody.rates){
+                for(let i = 0; i < requestBody.rates.length; i++){
+                    rateList.push({
+                        cano: +requestBody.rates[i].cano,
+                        particular1: parseFloat(requestBody.rates[i].particular1),
+                        particular2: parseFloat(requestBody.rates[i].particular2),
+                        rustico1: parseFloat(requestBody.rates[i].rustico1),
+                        rustico2: parseFloat(requestBody.rates[i].rustico2),
+                        pickup1: parseFloat(requestBody.rates[i].pickup1),
+                        pickup2: parseFloat(requestBody.rates[i].pickup2),
+                        carga2_1: parseFloat(requestBody.rates[i].carga2_1),
+                        carga2_2: parseFloat(requestBody.rates[i].carga2_2),
+                        carga5_1: parseFloat(requestBody.rates[i].carga5_1),
+                        carga5_2: parseFloat(requestBody.rates[i].carga5_2),
+                        carga8_1: parseFloat(requestBody.rates[i].carga8_1),
+                        carga8_2: parseFloat(requestBody.rates[i].carga8_2),
+                        carga12_1: parseFloat(requestBody.rates[i].carga12_1),
+                        carga12_2: parseFloat(requestBody.rates[i].carga12_2),
+                        moto1: parseFloat(requestBody.rates[i].moto1),
+                        moto2: parseFloat(requestBody.rates[i].moto2),
+                    })
+                    console.log(rateList)
+                }
+                let createFeesRegister = await bd.createFeesRegisterQuery(cplan, rateList, dataList).then((res) => res);
+                if(createFeesRegister.error){ return { status: false, code: 500, message: createFeesRegister.error }; }
             }
             let searchLastPlan = await bd.searchLastPlanQuery().then((res) => res);
             if(searchLastPlan.error){ return  { status: false, code: 500, message: searchLastPlan.error }; }
@@ -434,6 +491,33 @@ const operationUpdatePlan = async(authHeader, requestBody) => {
         }
         let updateExcesoFromPlan = await bd.updateExcesoFromPlanQuery(excesoList).then((res) => res);
         if(updateExcesoFromPlan.error){return { status: false, code: 500, message: updateExcesoFromPlan.error }; }
+    }
+
+    let rateList = []
+    if(requestBody.rates){
+        for(let i = 0; i < requestBody.rates.length; i++){
+            rateList.push({
+                cano: +requestBody.rates[i].cano,
+                particular1: parseFloat(requestBody.rates[i].particular1),
+                particular2: parseFloat(requestBody.rates[i].particular2),
+                rustico1: parseFloat(requestBody.rates[i].rustico1),
+                rustico2: parseFloat(requestBody.rates[i].rustico2),
+                pickup1: parseFloat(requestBody.rates[i].pickup1),
+                pickup2: parseFloat(requestBody.rates[i].pickup2),
+                carga2_1: parseFloat(requestBody.rates[i].carga2_1),
+                carga2_2: parseFloat(requestBody.rates[i].carga2_2),
+                carga5_1: parseFloat(requestBody.rates[i].carga5_1),
+                carga5_2: parseFloat(requestBody.rates[i].carga5_2),
+                carga8_1: parseFloat(requestBody.rates[i].carga8_1),
+                carga8_2: parseFloat(requestBody.rates[i].carga8_2),
+                carga12_1: parseFloat(requestBody.rates[i].carga12_1),
+                carga12_2: parseFloat(requestBody.rates[i].carga12_2),
+                moto1: parseFloat(requestBody.rates[i].moto1),
+                moto2: parseFloat(requestBody.rates[i].moto2),
+            })
+        }
+        let createFeesRegister = await bd.updateFeesRegisterQuery(dataList.cplan, rateList).then((res) => res);
+        if(createFeesRegister.error){ return { status: false, code: 500, message: createFeesRegister.error }; }
     }
 
     return{status: true, cplan: dataList.cplan}
