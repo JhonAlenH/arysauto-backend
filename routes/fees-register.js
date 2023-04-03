@@ -75,29 +75,32 @@ const operationCreateFeesRegister = async (authHeader, requestBody) => {
     if(requestBody.rates){
         for(let i = 0; i < requestBody.rates.length; i++){
             rateList.push({
-                xclase: +requestBody.rates[i].xclase,
-                xintervalo: requestBody.rates[i].xintervalo,
-                xtasa: parseFloat(requestBody.rates[i].xtasa.replace(",", ".")),
-                f2024: parseFloat(requestBody.rates[i].f2024.replace(",", ".")),
-                f2019: parseFloat(requestBody.rates[i].f2019.replace(",", ".")),
-                f2017: parseFloat(requestBody.rates[i].f2017.replace(",", ".")),
-                f2014: parseFloat(requestBody.rates[i].f2014.replace(",", ".")),
-                f2011: parseFloat(requestBody.rates[i].f2011.replace(",", ".")),
-                f2006: parseFloat(requestBody.rates[i].f2006.replace(",", ".")),
-                f2003: parseFloat(requestBody.rates[i].f2003.replace(",", "."))
+                cano: +requestBody.rates[i].cano,
+                particular1: parseFloat(requestBody.rates[i].particular1),
+                particular2: parseFloat(requestBody.rates[i].particular2),
+                rustico1: parseFloat(requestBody.rates[i].rustico1),
+                rustico2: parseFloat(requestBody.rates[i].rustico2),
+                pickup1: parseFloat(requestBody.rates[i].pickup1),
+                pickup2: parseFloat(requestBody.rates[i].pickup2),
+                carga2_1: parseFloat(requestBody.rates[i].carga2_1),
+                carga2_2: parseFloat(requestBody.rates[i].carga2_2),
+                carga5_1: parseFloat(requestBody.rates[i].carga5_1),
+                carga5_2: parseFloat(requestBody.rates[i].carga5_2),
+                carga8_1: parseFloat(requestBody.rates[i].carga8_1),
+                carga8_2: parseFloat(requestBody.rates[i].carga8_2),
+                carga12_1: parseFloat(requestBody.rates[i].carga12_1),
+                carga12_2: parseFloat(requestBody.rates[i].carga12_2),
+                moto1: parseFloat(requestBody.rates[i].moto1),
+                moto2: parseFloat(requestBody.rates[i].moto2),
+                iestado: requestBody.rates[i].iestado
             })
         }
-        console.log(rateList)
     }
-    // let verifyFeesRegisterAssociate = await bd.verifyFeesRegisterAssociateToCreateQuery(feesRegisterData).then((res) => res);
-    // if(verifyFeesRegisterAssociate.error){ return { status: false, code: 500, message: verifyFeesRegisterAssociate.error }; }
-    // if(verifyFeesRegisterAssociate.result.rowsAffected > 0){ return { status: false, code: 200, condition: 'associate-already-exist' }; }
-    // else{
-    //     let createFeesRegister = await bd.createFeesRegisterQuery(feesRegisterData).then((res) => res);
-    //     if(createFeesRegister.error){ return { status: false, code: 500, message: createFeesRegister.error }; }
-    //     if(createFeesRegister.result.rowsAffected > 0){ return { status: true, cregistrotasa: createFeesRegister.result.recordset[0].CREGISTROTASA }; }
-    //     else{ return { status: false, code: 500, message: 'Server Internal Error.', hint: 'createFeesRegister' }; }
-    // }
+    let createFeesRegister = await bd.createFeesRegisterQuery(feesRegisterData, rateList).then((res) => res);
+    if(createFeesRegister.error){ return { status: false, code: 500, message: createFeesRegister.error }; }
+    if(createFeesRegister.result.rowsAffected > 0){ return { status: true }; }
+    else{ return { status: false, code: 500, message: 'Server Internal Error.', hint: 'createFeesRegister' }; }
+
 }
 
 router.route('/detail').post((req, res) => {

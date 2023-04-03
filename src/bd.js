@@ -7225,57 +7225,39 @@ module.exports = {
             return { error: err.message };
         }
     },
-    createFeesRegisterQuery: async(feesRegisterData) => {
+    createFeesRegisterQuery: async(cplan, rateList, dataList) => {
         try{
+            let rowsAffected = 0;
             let pool = await sql.connect(config);
-            let result = await pool.request()
-                .input('cpais', sql.Numeric(4, 0), feesRegisterData.cpais)
-                .input('ccompania', sql.Int, feesRegisterData.ccompania)
-                .input('ccliente', sql.Int, feesRegisterData.ccliente)
-                .input('casociado', sql.Int, feesRegisterData.casociado)
-                .input('bactivo', sql.Bit, feesRegisterData.bactivo)
-                .input('cusuariocreacion', sql.Int, feesRegisterData.cusuariocreacion)
+            for(let i = 0; i < rateList.length; i++){
+                let insert = await pool.request()
+                .input('cplan', sql.Int, cplan)
+                .input('cusuariocreacion', sql.Int, dataList.cusuario)
+                .input('cano', sql.Int, rateList[i].cano)
+                .input('particular1', sql.Numeric(18, 2), rateList[i].particular1)
+                .input('particular2', sql.Numeric(18, 2), rateList[i].particular2)
+                .input('rustico1', sql.Numeric(18, 2), rateList[i].rustico1)
+                .input('rustico2', sql.Numeric(18, 2), rateList[i].rustico2)
+                .input('pickup1', sql.Numeric(18, 2), rateList[i].pickup1)
+                .input('pickup2', sql.Numeric(18, 2), rateList[i].pickup2)
+                .input('carga2_1', sql.Numeric(18, 2), rateList[i].carga2_1)
+                .input('carga2_2', sql.Numeric(18, 2), rateList[i].carga2_2)
+                .input('carga5_1', sql.Numeric(18, 2), rateList[i].carga5_1)
+                .input('carga5_2', sql.Numeric(18, 2), rateList[i].carga5_2)
+                .input('carga8_1', sql.Numeric(18, 2), rateList[i].carga8_1)
+                .input('carga8_2', sql.Numeric(18, 2), rateList[i].carga8_2)
+                .input('carga12_1', sql.Numeric(18, 2), rateList[i].carga12_1)
+                .input('carga12_2', sql.Numeric(18, 2), rateList[i].carga12_2)
+                .input('moto1', sql.Numeric(18, 2), rateList[i].moto1)
+                .input('moto2', sql.Numeric(18, 2), rateList[i].moto2)
                 .input('fcreacion', sql.DateTime, new Date())
-                .query('insert into CTREGISTROTASA (CPAIS, CCOMPANIA, CCLIENTE, CASOCIADO, BACTIVO, CUSUARIOCREACION, FCREACION) values (@cpais, @ccompania, @ccliente, @casociado, @bactivo, @cusuariocreacion, @fcreacion)');
-            if(result.rowsAffected > 0){
-                let query = await pool.request()
-                    .input('cpais', sql.Numeric(4, 0), feesRegisterData.cpais)
-                    .input('ccompania', sql.Int, feesRegisterData.ccompania)
-                    .input('ccliente', sql.Int, feesRegisterData.ccliente)
-                    .input('casociado', sql.Int, feesRegisterData.casociado)
-                    .query('select * from CTREGISTROTASA where CCLIENTE = @ccliente and CASOCIADO = @casociado and CPAIS = @cpais and CCOMPANIA = @ccompania');
-                if(query.rowsAffected > 0 && feesRegisterData.vehicleTypes){
-                    for(let i = 0; i < feesRegisterData.vehicleTypes.length; i++){
-                        let insert = await pool.request()
-                            .input('cregistrotasa', sql.Int, query.recordset[0].CREGISTROTASA)
-                            .input('ctipovehiculo', sql.Int, feesRegisterData.vehicleTypes[i].ctipovehiculo)
-                            .input('miniciointervalo', sql.Numeric(11, 2), feesRegisterData.vehicleTypes[i].miniciointervalo)
-                            .input('mfinalintervalo', sql.Numeric(11, 2), feesRegisterData.vehicleTypes[i].mfinalintervalo)
-                            .input('ptasa', sql.Numeric(5,2), feesRegisterData.vehicleTypes[i].ptasa)
-                            .input('cusuariocreacion', sql.Int, feesRegisterData.cusuariocreacion)
-                            .input('fcreacion', sql.DateTime, new Date())
-                            .query('insert into CTTIPOVEHICULOREGISTROTASA (CREGISTROTASA, CTIPOVEHICULO, MINICIOINTERVALO, MFINALINTERVALO, PTASA, CUSUARIOCREACION, FCREACION) output inserted.CTIPOVEHICULOREGISTROTASA values (@cregistrotasa, @ctipovehiculo, @miniciointervalo, @mfinalintervalo, @ptasa, @cusuariocreacion, @fcreacion)')
-                        if(feesRegisterData.vehicleTypes[i].intervals){
-                            for(let j = 0; j < feesRegisterData.vehicleTypes[i].intervals.length; j++){
-                                let subInsert = await pool.request()
-                                    .input('ctipovehiculoregistrotasa', sql.Int, insert.recordset[0].CTIPOVEHICULOREGISTROTASA)
-                                    .input('fanoinicio', sql.Numeric(4, 0), feesRegisterData.vehicleTypes[i].intervals[j].fanoinicio)
-                                    .input('fanofinal', sql.Numeric(4, 0), feesRegisterData.vehicleTypes[i].intervals[j].fanofinal)
-                                    .input('ptasainterna', sql.Numeric(5, 2), feesRegisterData.vehicleTypes[i].intervals[j].ptasainterna)
-                                    .input('cusuariocreacion', sql.Int, feesRegisterData.cusuariocreacion)
-                                    .input('fcreacion', sql.DateTime, new Date())
-                                    .query('insert into CTRANGOANOTIPOVEHICULO (CTIPOVEHICULOREGISTROTASA, FANOINICIO, FANOFINAL, PTASAINTERNA, CUSUARIOCREACION, FCREACION) values (@ctipovehiculoregistrotasa, @fanoinicio, @fanofinal, @ptasainterna, @cusuariocreacion, @fcreacion)')
-                            }
-                        }
-                    }
-                }
-                //sql.close();
-                return { result: query };
-            }else{
-                //sql.close();
-                return { result: result };
+                .query('insert into POTASAS_ARYS (CPLAN, CANO, PARTICULAR1, PARTICULAR2, RUSTICO1, RUSTICO2, PICKUP1, PICKUP2, CARGA2_1, CARGA2_2, CARGA5_1, CARGA5_2, CARGA8_1, CARGA8_2, CARGA12_1, CARGA12_2, MOTO1, MOTO2, CUSUARIOCREACION, FCREACION)' +
+                        'values (@cplan, @cano, @particular1, @particular2, @rustico1, @rustico2, @pickup1, @pickup2, @carga2_1, @carga2_2, @carga5_1, @carga5_2, @carga8_1, @carga8_2, @carga12_1, @carga12_2, @moto1, @moto2, @cusuariocreacion, @fcreacion)');
+                rowsAffected = rowsAffected + insert.rowsAffected;
             }
+            return { result: { rowsAffected: rowsAffected } };
         }catch(err){
+            console.log(err.message)
             return { error: err.message };
         }
     },
@@ -7333,22 +7315,36 @@ module.exports = {
             return { error: err.message };
         }
     },
-    updateFeesRegisterQuery: async(feesRegisterData) => {
+    updateFeesRegisterQuery: async(cplan, rateList) => {
         try{
+            let rowsAffected = 0;
             let pool = await sql.connect(config);
-            let result = await pool.request()
-                .input('cpais', sql.Numeric(4, 0), feesRegisterData.cpais)
-                .input('ccompania', sql.Int, feesRegisterData.ccompania)
-                .input('cregistrotasa', sql.Int, feesRegisterData.cregistrotasa)
-                .input('ccliente', sql.Int, feesRegisterData.ccliente)
-                .input('casociado', sql.Int, feesRegisterData.casociado)
-                .input('bactivo', sql.Bit, feesRegisterData.bactivo)
-                .input('cusuariomodificacion', sql.Int, feesRegisterData.cusuariomodificacion)
-                .input('fmodificacion', sql.DateTime, new Date())
-                .query('update CTREGISTROTASA set CCLIENTE = @ccliente, CASOCIADO = @casociado, BACTIVO = @bactivo, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion where CREGISTROTASA = @cregistrotasa and CPAIS = @cpais and CCOMPANIA = @ccompania');
-            //sql.close();
-            return { result: result };
+            for(let i = 0; i < rateList.length; i++){
+                let update = await pool.request()
+                .input('cplan', sql.Int, cplan)
+                .input('cano', sql.Int, rateList[i].cano)
+                .input('particular1', sql.Numeric(18, 2), rateList[i].particular1)
+                .input('particular2', sql.Numeric(18, 2), rateList[i].particular2)
+                .input('rustico1', sql.Numeric(18, 2), rateList[i].rustico1)
+                .input('rustico2', sql.Numeric(18, 2), rateList[i].rustico2)
+                .input('pickup1', sql.Numeric(18, 2), rateList[i].pickup1)
+                .input('pickup2', sql.Numeric(18, 2), rateList[i].pickup2)
+                .input('carga2_1', sql.Numeric(18, 2), rateList[i].carga2_1)
+                .input('carga2_2', sql.Numeric(18, 2), rateList[i].carga2_2)
+                .input('carga5_1', sql.Numeric(18, 2), rateList[i].carga5_1)
+                .input('carga5_2', sql.Numeric(18, 2), rateList[i].carga5_2)
+                .input('carga8_1', sql.Numeric(18, 2), rateList[i].carga8_1)
+                .input('carga8_2', sql.Numeric(18, 2), rateList[i].carga8_2)
+                .input('carga12_1', sql.Numeric(18, 2), rateList[i].carga12_1)
+                .input('carga12_2', sql.Numeric(18, 2), rateList[i].carga12_2)
+                .input('moto1', sql.Numeric(18, 2), rateList[i].moto1)
+                .input('moto2', sql.Numeric(18, 2), rateList[i].moto2)
+                .query('update POTASAS_ARYS set PARTICULAR1 = @particular1, PARTICULAR2 = @particular2, RUSTICO1 = @rustico1, RUSTICO2 = @rustico2, PICKUP1 = @pickup1, PICKUP2 = @pickup2, CARGA2_1 = @carga2_1, CARGA2_2 = @carga2_2, CARGA5_1 = @carga5_1, CARGA5_2 = @carga5_2, CARGA8_1 = @carga8_1, CARGA8_2 = @carga8_2, CARGA12_1 = @carga12_1, CARGA12_2 = @carga12_2, MOTO1 = @moto1, MOTO2 = @moto2 WHERE CPLAN = @cplan');
+                rowsAffected = rowsAffected + update.rowsAffected;
+            }
+            return { result: { rowsAffected: rowsAffected } };
         }catch(err){
+            console.log(err.message)
             return { error: err.message };
         }
     },
@@ -14501,6 +14497,18 @@ searchPlanFromCorporativeQuery: async(searchData) => {
     }
     catch(err){
         console.log(err.message);
+        return { error: err.message };
+    }
+},
+getRatesArysQuery: async(cplan) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cplan', sql.Int, cplan)
+            .query('select * from POTASAS_ARYS where CPLAN = @cplan');
+        //sql.close();
+        return { result: result };
+    }catch(err){
         return { error: err.message };
     }
 },
