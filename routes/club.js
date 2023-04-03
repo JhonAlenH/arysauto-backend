@@ -384,23 +384,76 @@ router.route('/client-agenda').post((req, res) => {
 });
 
 const CreateAgenda = async(requestBody) => {
-    console.log(requestBody)
     let DataAgenda = {
-        cservicio: requestBody.cservicio,
-        cestado: requestBody.cestado,
-        cciudad: requestBody.cciudad,
+        cpropietario: requestBody.cpropietario,
+        id: requestBody.id,
+        xtitulo: requestBody.title,
+        finicio: requestBody.start,
+        fhasta: requestBody.end,
+        condicion: requestBody.allDay,
     };
-    let Agenda = await bd.ClienDataProveedor(DataAgenda).then((res) => res);
+    let Agenda = await bd.DataCreateAgendaClient(DataAgenda).then((res) => res);
     if(Agenda.error){ return { status: false, code: 500, message: Agenda.error }; }
     if(Agenda.rowsAffected == 0){ return { status: false, code: 404 }; }
+    if(Agenda.result.rowsAffected > 0){
+        let events = [];
+        for(let i = 0; i < Agenda.result.recordset.length; i++){
+            events.push({
+                id: Agenda.result.recordset[i].ID, 
+                title: Agenda.result.recordset[i].XTITULO,
+                start: Agenda.result.recordset[i].FINICIO,
+                end: Agenda.result.recordset[i].FHASTA,
+                allDay : Agenda.result.recordset[i].CONDICION
+            });
+        }
+        return { status: true, list: events };
+    }
 
     return { 
-        status: true, 
-        calendarEvents :{
-            title : 'Event name',
-            start : '2023-03-11'
-        },
-    }
+    status: false, 
+
+};
+    
 }
 
+router.route('/search/client-agenda').post((req, res) => {
+    SearcheAgenda(req.body).then((result) => {
+        if(!result.status){ 
+            res.status(result.code).json({ data: result });
+            return;
+        }
+        res.json({ data: result });
+    }).catch((err) => {
+        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'SearcheAgenda' } });
+    });
+});
+
+const SearcheAgenda = async(requestBody) => {
+    let DataAgenda = {
+        cpropietario: requestBody.cpropietario,
+    };
+    let Agenda = await bd.DataAgendaClient(DataAgenda).then((res) => res);
+    if(Agenda.error){ return { status: false, code: 500, message: Agenda.error }; }
+    if(Agenda.rowsAffected == 0){ return { status: false, code: 404 }; }
+    if(Agenda.result.rowsAffected > 0){
+        console.log(Agenda.result)
+        let events = [];
+        for(let i = 0; i < Agenda.result.recordset.length; i++){
+            events.push({
+                id: Agenda.result.recordset[i].ID, 
+                title:Agenda.result.recordset[i].XTITULO, 
+                start: Agenda.result.recordset[i].FINICIO,
+                end: Agenda.result.recordset[i].FHASTA,
+            });
+        }
+        console.log(events)
+        return { status: true, list: events };
+    }
+
+    return { 
+    status: false, 
+
+};
+    
+}
 module.exports = router;
