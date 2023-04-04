@@ -13899,7 +13899,8 @@ valrepPlanWithoutRcvQuery: async(searchData) => {
         let result = await pool.request()
             .input('cpais', sql.Numeric(4, 0), searchData.cpais)
             .input('ccompania', sql.Int, searchData.ccompania)
-            .query('select * from VWBUSCARPLANDATA where CPAIS = @cpais and CCOMPANIA = @ccompania AND BRCV = 0 AND BACTIVO = 1 AND CTIPOPLAN = 2');
+            .input('ctipoplan', sql.Int, searchData.ctipoplan)
+            .query('select * from VWBUSCARPLANDATA where CPAIS = @cpais and CCOMPANIA = @ccompania AND BRCV = 0 AND BACTIVO = 1 AND CTIPOPLAN = @ctipoplan');
         //sql.close();
         return { result: result };
     }catch(err){
@@ -14492,11 +14493,10 @@ searchPlanFromCorporativeQuery: async(searchData) => {
         let pool = await sql.connect(config);
         let result = await pool.request()
             .input('ccarga', sql.Int, searchData.ccarga)
-            .query('select distinct(CPLAN) from SUCONTRATOFLOTA where CCARGA = @ccarga')
+            .query('select distinct(CPLAN), XPLAN from VWBUSCARPLANXCONTRATOXDISCTINT where CCARGA = @ccarga')
         return {result: result};
     }
     catch(err){
-        console.log(err.message);
         return { error: err.message };
     }
 },
@@ -14509,6 +14509,48 @@ getRatesArysQuery: async(cplan) => {
         //sql.close();
         return { result: result };
     }catch(err){
+        return { error: err.message };
+    }
+},
+createInclusionContractQuery: async(userData) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        let insert = await pool.request()
+            .input('xnombre', sql.NVarChar, userData.xnombre ? userData.xnombre: undefined)
+            .input('cano', sql.Numeric(11, 0), userData.cano)
+            .input('xcolor', sql.NVarChar, userData.xcolor)
+            .input('cmarca', sql.Int, userData.cmarca)
+            .input('cmodelo', sql.Int, userData.cmodelo)
+            .input('cversion', sql.Int, userData.cversion)
+            .input('xrif_cliente', sql.NVarChar, userData.xrif_cliente)
+            .input('email', sql.NVarChar, userData.email)
+            .input('xtelefono_prop', sql.NVarChar , userData.xtelefono_prop)
+            .input('xdireccionfiscal', sql.NVarChar, userData.xdireccionfiscal)
+            .input('xserialmotor', sql.NVarChar, userData.xserialmotor)
+            .input('xserialcarroceria', sql.NVarChar, userData.xserialcarroceria)
+            .input('xplaca', sql.NVarChar, userData.xplaca)
+            .input('xtelefono_emp', sql.NVarChar, userData.xtelefono_emp)
+            .input('cplan', sql.Numeric(11, 0), userData.cplan)
+            .input('xcedula', sql.NVarChar, userData.xcedula)
+            .input('ncapacidad_p', sql.NVarChar, userData.ncapacidad_p)
+            .input('femision',  sql.DateTime, userData.femision)
+            // .input('cestado', sql.Numeric(11, 0), userData.cestado)
+            // .input('cciudad', sql.Numeric(11, 0), userData.cciudad)
+            // .input('cpais', sql.Numeric(11, 0), userData.cpais)
+            .input('fdesde_pol', sql.DateTime, userData.fdesde_pol)
+            .input('fhasta_pol', sql.DateTime, userData.fhasta_pol)
+            .input('ccarga', sql.Int, userData.ccarga)
+            .input('clote', sql.Int, userData.clote)
+            .input('msuma_a_casco', sql.Numeric(18, 2), userData.msuma_a_casco)
+            .input('mdeducible', sql.Numeric(18, 2), userData.mdeducible)
+            .input('icedula', sql.NVarChar, userData.icedula)
+            .input('cusuariocreacion', sql.Int, userData.cusuariocreacion ? userData.cusuariocreacion: 0)
+            .input('fcreacion', sql.DateTime, new Date())
+            .query('insert into TMEMISION_FLOTA(CCARGA, CLOTE, XPOLIZA, XCERTIFICADO, XRIF_CLIENTE, XNOMBRE, ICEDULA, XCEDULA, CPLAN, XSERIALCARROCERIA, XSERIALMOTOR, XPLACA, CMARCA, CMODELO, CVERSION, CANO, XCOLOR, XTIPO, XCLASE, NCAPACIDAD_P, XTELEFONO_EMP, XTELEFONO_PROP, XDIRECCIONFISCAL, EMAIL, FEMISION, FDESDE_POL, FHASTA_POL, MSUMA_A_CASCO, MDEDUCIBLE, FCREACION, CUSUARIOCREACION) values (@ccarga, @clote, @xpoliza, @xcertificado, @xrif_cliente, @xnombre, @icedula, @xcedula, @cplan, @xserialcarroceria, @xserialmotor, @xplaca, @cmarca, @cmodelo, @cversion, @cano, @xcolor, @xtipo, @xclase, @ncapacidad_p, @xtelefono_emp, @xtelefono_prop, @xdireccionfiscal, @email, @femision, @fdesde_pol, @fhasta_pol, @msuma_a_casco, @mdeducible, @fcreacion, @cusuariocreacion)')                
+             return { result: { rowsAffected: rowsAffected} };
+    }
+    catch(err){
         return { error: err.message };
     }
 },

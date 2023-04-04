@@ -198,7 +198,8 @@ const operationSearchReceipt = async(authHeader, requestBody) => {
     if(searchPlan.result.rowsAffected > 0){
         for(let i = 0; i < searchPlan.result.recordset.length; i++){
             planList.push({
-                cplan: searchPlan.result.recordset[i].CPLAN
+                cplan: searchPlan.result.recordset[i].CPLAN,
+                xplan: searchPlan.result.recordset[i].XPLAN,
             })
         }
     }
@@ -209,9 +210,89 @@ const operationSearchReceipt = async(authHeader, requestBody) => {
         status: true,
         ccarga: searchReceipt.result.recordset[0].CCARGA,
         ccliente: searchReceipt.result.recordset[0].CCLIENTE,
-        fhasta_pol: changeDateFormat(searchReceipt.result.recordset[0].FHASTA_POL),
+        fdesde_pol: searchReceipt.result.recordset[0].FDESDE_POL,
+        fhasta_pol: searchReceipt.result.recordset[0].FHASTA_POL,
         plan: planList
     }
+}
+
+router.route('/create-inclusion-contract').post((req, res) => {
+    operationCreateInclusionContract(req.header('Authorization'), req.body).then((result) => {
+        if(!result.status){
+            res.status(result.code).json({ data: result });
+            return;
+        }
+        res.json({ data: result });
+    }).catch((err) => {
+        console.log(err.message)
+        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationCreateInclusionContract' } });
+    });
+});
+
+const operationCreateInclusionContract = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    
+    let userData = {
+        xnombre: requestBody.xnombre.toUpperCase(),
+        xapellido: requestBody.xapellido.toUpperCase(),
+        cano: requestBody.cano ? requestBody.cano : undefined,
+        xcolor: requestBody.xcolor ? requestBody.xcolor : undefined,
+        cmarca: requestBody.cmarca ? requestBody.cmarca : undefined,
+        cmodelo: requestBody.cmodelo ? requestBody.cmodelo : undefined,
+        cversion: requestBody.cversion ? requestBody.cversion : undefined,
+        xrif_cliente: requestBody.xrif_cliente ? requestBody.xrif_cliente : undefined,
+        email: requestBody.email ? requestBody.email : undefined,
+        xtelefono_prop: requestBody.xtelefono_prop ? requestBody.xtelefono_prop : undefined,
+        xdireccionfiscal: requestBody.xdireccionfiscal.toUpperCase(),
+        xserialmotor: requestBody.xserialmotor.toUpperCase(),
+        xserialcarroceria: requestBody.xserialcarroceria.toUpperCase(),
+        xplaca: requestBody.xplaca.toUpperCase(),
+        xtelefono_emp: requestBody.xtelefono_emp,
+        cplan: requestBody.cplan,
+        xcedula:requestBody.xcedula,
+        ncapacidad_p: requestBody.ncapacidad_p,
+        // cestado: requestBody.cestado ? requestBody.cestado : undefined,
+        // cciudad: requestBody.cciudad ? requestBody.cciudad : undefined,
+        // cpais: requestBody.cpais ? requestBody.cpais : undefined,
+        icedula: requestBody.icedula ? requestBody.icedula : undefined,
+        femision: requestBody.femision ,
+        cusuariocreacion: requestBody.cusuario ? requestBody.cusuario : undefined,
+        fdesde_pol: requestBody.fdesde_pol,
+        fhasta_pol: requestBody.fhasta_pol,
+        ccarga: requestBody.ccarga,
+        clote: requestBody.clote,
+        msuma_a_casco: requestBody.msuma_a_casco,
+        mdeducible: requestBody.mdeducible,
+    };
+    console.log(userData)
+    if(userData){
+        let createInclusionContract = await bd.createInclusionContractQuery(userData).then((res) => res);
+        if(createInclusionContract.error){ return { status: false, code: 500, message: createInclusionContract.error }; }
+    }
+    // let lastQuote = await bd.getLastQuoteQuery();
+    // if(lastQuote.error){ return { status: false, code: 500, message: lastQuote.error }; }
+    return { 
+        status: true, 
+        code: 200, 
+        // xnombre: lastQuote.result.recordset[0].XNOMBRE, 
+        // xapellido: lastQuote.result.recordset[0].XAPELLIDO, 
+        // icedula: lastQuote.result.recordset[0].ICEDULA, 
+        // xcedula: lastQuote.result.recordset[0].XCEDULA, 
+        // xserialcarroceria: lastQuote.result.recordset[0].XSERIALCARROCERIA, 
+        // xserialmotor: lastQuote.result.recordset[0].XSERIALMOTOR, 
+        // xplaca: lastQuote.result.recordset[0].XPLACA, 
+        // xmarca: lastQuote.result.recordset[0].XMARCA, 
+        // xmodelo: lastQuote.result.recordset[0].XMODELO, 
+        // xversion: lastQuote.result.recordset[0].XVERISON, 
+        // cano: lastQuote.result.recordset[0].CANO, 
+        // xestatusgeneral: lastQuote.result.recordset[0].XESTATUSGENERAL, 
+        // xtipovehiculo: lastQuote.result.recordset[0].XTIPOVEHICULO, 
+        // xuso: lastQuote.result.recordset[0].XUSO, 
+        // xclase: lastQuote.result.recordset[0].XCLASE, 
+        // xtomador: lastQuote.result.recordset[0].XTOMADOR, 
+        // xprofesion: lastQuote.result.recordset[0].XPROFESION, 
+        // xrif: lastQuote.result.recordset[0].XRIF, 
+    };
 }
 
 module.exports = router;
