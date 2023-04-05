@@ -2768,7 +2768,8 @@ const operationValrepPlanContract = async(authHeader, requestBody) => {
     // if(!helper.validateRequestObj(requestBody, ['cpais', 'ccompania', 'ctipoplan'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
     let searchData = {
         cpais: requestBody.cpais,
-        ccompania: requestBody.ccompania
+        ccompania: requestBody.ccompania,
+        ctipoplan: requestBody.ctipoplan
     };
     let valrepPlanWithoutRcv = await bd.valrepPlanWithoutRcvQuery(searchData).then((res) => res);
     if(valrepPlanWithoutRcv.error){ return { status: false, code: 500, message: valrepPlanWithoutRcv.error }; }
