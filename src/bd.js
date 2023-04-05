@@ -11632,7 +11632,7 @@ module.exports = {
             let result = await pool.request()
                 .input('cpais', sql.Numeric(4, 0), searchData.cpais)
                 .input('ccompania', sql.Int, searchData.ccompania)
-                .query('select CASEGURADORA, XASEGURADORA, BACTIVO from TRASEGURADORA where CPAIS = @cpais and CCOMPANIA = @ccompania');
+                .query('select CASEGURADORA, XASEGURADORA, BACTIVO from MAASEGURADORAS');
             //sql.close();
             return { result: result };
         }catch(err){
@@ -13773,6 +13773,10 @@ createPlanQuery: async(dataList, cplan) => {
             .input('binternacional', sql.Bit, dataList.binternacional ? dataList.binternacional: 0)
             .input('brcv', sql.Int, dataList.brcv)
             .input('cpais', sql.Int, dataList.cpais)
+            .input('cmetodologiapago', sql.Int, dataList.cmetodologiapago)
+            .input('fdesde', sql.DateTime, dataList.fdesde)
+            .input('fhasta', sql.DateTime, dataList.fhasta)
+            .input('caseguradora', sql.Int, dataList.caseguradora)
             .input('ccompania', sql.Int, dataList.ccompania)
             .input('mcosto', sql.Numeric(18, 2), dataList.mcosto)
             .input('mcosto_mensual', sql.Numeric(18, 2), dataList.mcosto_mensual)
@@ -13787,7 +13791,7 @@ createPlanQuery: async(dataList, cplan) => {
             .input('bactivo', sql.Bit, dataList.bactivo)
             .input('cusuariocreacion', sql.Int, dataList.cusuario)
             .input('fcreacion', sql.DateTime, new Date())
-            .query('insert into POPLAN (CPLAN, XPLAN, CTIPOPLAN, BINTERNACIONAL, BRCV, PTASA_CASCO, PTASA_CATASTROFICO, MSUMA_RECUPERACION, MPRIMA_RECUPERACION, MDEDUCIBLE, CPAIS, CCOMPANIA, MCOSTO, MCOSTO_MENSUAL, PARYS, PASEGURADORA, CMONEDA, BACTIVO, CUSUARIOCREACION, FCREACION ) values (@cplan, @xplan, @ctipoplan, @binternacional, @brcv, @ptasa_casco, @ptasa_catastrofico, @msuma_recuperacion, @mprima_recuperacion, @mdeducible, @cpais, @ccompania, @mcosto, @mcosto_mensual, @parys, @paseguradora, @cmoneda, @bactivo, @cusuariocreacion, @fcreacion)')
+            .query('insert into POPLAN (CPLAN, XPLAN, CTIPOPLAN, BINTERNACIONAL, BRCV, PTASA_CASCO, PTASA_CATASTROFICO, MSUMA_RECUPERACION, MPRIMA_RECUPERACION, MDEDUCIBLE, CPAIS,CMETODOLOGIAPAGO,FDESDE,FHASTA,CASEGURADORA, CCOMPANIA, MCOSTO, MCOSTO_MENSUAL, PARYS, PASEGURADORA, CMONEDA, BACTIVO, CUSUARIOCREACION, FCREACION ) values (@cplan, @xplan, @ctipoplan, @binternacional, @brcv, @ptasa_casco, @ptasa_catastrofico, @msuma_recuperacion, @mprima_recuperacion, @mdeducible, @cpais, @cmetodologiapago ,@fdesde, @fhasta,@caseguradora, @ccompania, @mcosto, @mcosto_mensual, @parys, @paseguradora, @cmoneda, @bactivo, @cusuariocreacion, @fcreacion)')
 
             return { result: result, cplan};
     }
@@ -14491,7 +14495,7 @@ DataCreateAgendaClient: async(DataAgenda) => {
         if(result.rowsAffected > 0){
             let query = await pool.request()
                 .input('cpropietario', sql.Int, DataAgenda.cpropietario)
-                .query('select * from TRAGENDA where CPROPIETARIO = @cpropietario');
+                .query('SELECT * FROM TRAGENDA  where CPROPIETARIO = @cpropietario');
             return { result: query };
         }else{
             return { result: result };
@@ -14506,7 +14510,7 @@ DataAgendaClient: async(DataAgenda) => {
         let pool = await sql.connect(config);
         let result = await pool.request()
         .input('cpropietario', sql.Int, DataAgenda.cpropietario)
-        .query('SELECT dbo.fecha(FINICIO) , * FROM TRAGENDA');
+        .query('SELECT * FROM TRAGENDA  where CPROPIETARIO = @cpropietario');
         return { result: result };
     }catch(err){
         return { error: err.message };
