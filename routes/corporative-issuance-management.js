@@ -234,7 +234,6 @@ const operationCreateInclusionContract = async(authHeader, requestBody) => {
     
     let userData = {
         xnombre: requestBody.xnombre.toUpperCase(),
-        xapellido: requestBody.xapellido.toUpperCase(),
         cano: requestBody.cano ? requestBody.cano : undefined,
         xcolor: requestBody.xcolor ? requestBody.xcolor : undefined,
         cmarca: requestBody.cmarca ? requestBody.cmarca : undefined,
@@ -263,6 +262,8 @@ const operationCreateInclusionContract = async(authHeader, requestBody) => {
         clote: requestBody.clote,
         msuma_a_casco: requestBody.msuma_a_casco,
         mdeducible: requestBody.mdeducible,
+        xpoliza: requestBody.xpoliza,
+        xcertificado: requestBody.xcertificado,
     };
     console.log(userData)
     if(userData){

@@ -14545,12 +14545,15 @@ createInclusionContractQuery: async(userData) => {
             .input('msuma_a_casco', sql.Numeric(18, 2), userData.msuma_a_casco)
             .input('mdeducible', sql.Numeric(18, 2), userData.mdeducible)
             .input('icedula', sql.NVarChar, userData.icedula)
+            .input('xpoliza', sql.NVarChar, userData.xpoliza)
+            .input('xcertificado', sql.NVarChar, userData.xcertificado)
             .input('cusuariocreacion', sql.Int, userData.cusuariocreacion ? userData.cusuariocreacion: 0)
             .input('fcreacion', sql.DateTime, new Date())
             .query('insert into TMEMISION_FLOTA(CCARGA, CLOTE, XPOLIZA, XCERTIFICADO, XRIF_CLIENTE, XNOMBRE, ICEDULA, XCEDULA, CPLAN, XSERIALCARROCERIA, XSERIALMOTOR, XPLACA, CMARCA, CMODELO, CVERSION, CANO, XCOLOR, XTIPO, XCLASE, NCAPACIDAD_P, XTELEFONO_EMP, XTELEFONO_PROP, XDIRECCIONFISCAL, EMAIL, FEMISION, FDESDE_POL, FHASTA_POL, MSUMA_A_CASCO, MDEDUCIBLE, FCREACION, CUSUARIOCREACION) values (@ccarga, @clote, @xpoliza, @xcertificado, @xrif_cliente, @xnombre, @icedula, @xcedula, @cplan, @xserialcarroceria, @xserialmotor, @xplaca, @cmarca, @cmodelo, @cversion, @cano, @xcolor, @xtipo, @xclase, @ncapacidad_p, @xtelefono_emp, @xtelefono_prop, @xdireccionfiscal, @email, @femision, @fdesde_pol, @fhasta_pol, @msuma_a_casco, @mdeducible, @fcreacion, @cusuariocreacion)')                
              return { result: { rowsAffected: rowsAffected} };
     }
     catch(err){
+        console.log(err.message)
         return { error: err.message };
     }
 },
