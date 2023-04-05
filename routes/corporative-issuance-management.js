@@ -198,7 +198,8 @@ const operationSearchReceipt = async(authHeader, requestBody) => {
     if(searchPlan.result.rowsAffected > 0){
         for(let i = 0; i < searchPlan.result.recordset.length; i++){
             planList.push({
-                cplan: searchPlan.result.recordset[i].CPLAN
+                cplan: searchPlan.result.recordset[i].CPLAN,
+                xplan: searchPlan.result.recordset[i].XPLAN,
             })
         }
     }
@@ -209,9 +210,77 @@ const operationSearchReceipt = async(authHeader, requestBody) => {
         status: true,
         ccarga: searchReceipt.result.recordset[0].CCARGA,
         ccliente: searchReceipt.result.recordset[0].CCLIENTE,
-        fhasta_pol: changeDateFormat(searchReceipt.result.recordset[0].FHASTA_POL),
+        xcliente: searchReceipt.result.recordset[0].XCLIENTE,
+        fdesde_pol: searchReceipt.result.recordset[0].FDESDE_POL,
+        fhasta_pol: searchReceipt.result.recordset[0].FHASTA_POL,
         plan: planList
     }
+}
+
+router.route('/create-inclusion-contract').post((req, res) => {
+    operationCreateInclusionContract(req.header('Authorization'), req.body).then((result) => {
+        if(!result.status){
+            res.status(result.code).json({ data: result });
+            return;
+        }
+        res.json({ data: result });
+    }).catch((err) => {
+        console.log(err.message)
+        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationCreateInclusionContract' } });
+    });
+});
+
+const operationCreateInclusionContract = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    
+    let userData = {
+        xnombre: requestBody.xnombre.toUpperCase(),
+        cano: requestBody.cano ? requestBody.cano : undefined,
+        xcolor: requestBody.xcolor ? requestBody.xcolor : undefined,
+        cmarca: requestBody.cmarca ? requestBody.cmarca : undefined,
+        cmodelo: requestBody.cmodelo ? requestBody.cmodelo : undefined,
+        cversion: requestBody.cversion ? requestBody.cversion : undefined,
+        xrif_cliente: requestBody.xrif_cliente ? requestBody.xrif_cliente : undefined,
+        email: requestBody.email ? requestBody.email : undefined,
+        xtelefono_prop: requestBody.xtelefono_prop ? requestBody.xtelefono_prop : undefined,
+        xdireccionfiscal: requestBody.xdireccionfiscal.toUpperCase(),
+        xserialmotor: requestBody.xserialmotor.toUpperCase(),
+        xserialcarroceria: requestBody.xserialcarroceria.toUpperCase(),
+        xplaca: requestBody.xplaca.toUpperCase(),
+        xtelefono_emp: requestBody.xtelefono_emp,
+        cplan: requestBody.cplan,
+        xcedula:requestBody.xcedula,
+        ncapacidad_p: requestBody.ncapacidad_p,
+        // cestado: requestBody.cestado ? requestBody.cestado : undefined,
+        // cciudad: requestBody.cciudad ? requestBody.cciudad : undefined,
+        // cpais: requestBody.cpais ? requestBody.cpais : undefined,
+        icedula: requestBody.icedula ? requestBody.icedula : undefined,
+        femision: requestBody.femision ,
+        cusuariocreacion: requestBody.cusuario ? requestBody.cusuario : undefined,
+        fdesde_pol: requestBody.fdesde_pol,
+        fhasta_pol: requestBody.fhasta_pol,
+        ccarga: requestBody.ccarga,
+        clote: requestBody.clote,
+        msuma_a_casco: requestBody.msuma_a_casco,
+        mdeducible: requestBody.mdeducible,
+        xpoliza: requestBody.xpoliza,
+        xcertificado: requestBody.xcertificado,
+        xtipo: requestBody.xtipo,
+        xclase: requestBody.xclase,
+    };
+    let searchCode = await bd.searchCodeFlotaQuery().then((res) => res);
+    if(searchCode.error){return { status: false, code: 500, message: searchCode.error }; }
+    if(searchCode.result.rowsAffected > 0){ 
+        let id = searchCode.result.recordset[0].ID + 1;
+        if(userData){
+            let createInclusionContract = await bd.createInclusionContractQuery(userData, id).then((res) => res);
+            if(createInclusionContract.error){ return { status: false, code: 500, message: createInclusionContract.error }; }
+        }
+    }else{
+        return { status: false, code: 500, message: "Ha ocurrido un error, no se pudo guardar la información."};
+    }
+
+    return { status: true, code: 200};
 }
 
 module.exports = router;
