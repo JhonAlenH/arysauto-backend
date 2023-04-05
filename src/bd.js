@@ -14480,7 +14480,7 @@ searchReceiptQuery: async(searchData) => {
         let pool = await sql.connect(config);
         let result = await pool.request()
             .input('ccarga', sql.Int, searchData.ccarga)
-            .query('select * FROM SURECIBO WHERE CCARGA = @ccarga')
+            .query('select * FROM VWBUSCARCLIENTEXRECIBO WHERE CCARGA = @ccarga')
         return {result: result};
     }
     catch(err){
@@ -14512,11 +14512,12 @@ getRatesArysQuery: async(cplan) => {
         return { error: err.message };
     }
 },
-createInclusionContractQuery: async(userData) => {
+createInclusionContractQuery: async(userData, id) => {
     try{
         let rowsAffected = 0;
         let pool = await sql.connect(config);
         let insert = await pool.request()
+            .input('id', sql.Int, id)
             .input('xnombre', sql.NVarChar, userData.xnombre ? userData.xnombre: undefined)
             .input('cano', sql.Numeric(11, 0), userData.cano)
             .input('xcolor', sql.NVarChar, userData.xcolor)
@@ -14547,13 +14548,26 @@ createInclusionContractQuery: async(userData) => {
             .input('icedula', sql.NVarChar, userData.icedula)
             .input('xpoliza', sql.NVarChar, userData.xpoliza)
             .input('xcertificado', sql.NVarChar, userData.xcertificado)
+            .input('xtipo', sql.NVarChar, userData.xtipo)
+            .input('xclase', sql.NVarChar, userData.xclase)
             .input('cusuariocreacion', sql.Int, userData.cusuariocreacion ? userData.cusuariocreacion: 0)
             .input('fcreacion', sql.DateTime, new Date())
-            .query('insert into TMEMISION_FLOTA(CCARGA, CLOTE, XPOLIZA, XCERTIFICADO, XRIF_CLIENTE, XNOMBRE, ICEDULA, XCEDULA, CPLAN, XSERIALCARROCERIA, XSERIALMOTOR, XPLACA, CMARCA, CMODELO, CVERSION, CANO, XCOLOR, XTIPO, XCLASE, NCAPACIDAD_P, XTELEFONO_EMP, XTELEFONO_PROP, XDIRECCIONFISCAL, EMAIL, FEMISION, FDESDE_POL, FHASTA_POL, MSUMA_A_CASCO, MDEDUCIBLE, FCREACION, CUSUARIOCREACION) values (@ccarga, @clote, @xpoliza, @xcertificado, @xrif_cliente, @xnombre, @icedula, @xcedula, @cplan, @xserialcarroceria, @xserialmotor, @xplaca, @cmarca, @cmodelo, @cversion, @cano, @xcolor, @xtipo, @xclase, @ncapacidad_p, @xtelefono_emp, @xtelefono_prop, @xdireccionfiscal, @email, @femision, @fdesde_pol, @fhasta_pol, @msuma_a_casco, @mdeducible, @fcreacion, @cusuariocreacion)')                
+            .query('insert into TMEMISION_FLOTA(ID, CCARGA, CLOTE, XPOLIZA, XCERTIFICADO, XRIF_CLIENTE, XNOMBRE, ICEDULA, XCEDULA, CPLAN, XSERIALCARROCERIA, XSERIALMOTOR, XPLACA, CMARCA, CMODELO, CVERSION, CANO, XCOLOR, XTIPO, XCLASE, NCAPACIDAD_P, XTELEFONO_EMP, XTELEFONO_PROP, XDIRECCIONFISCAL, EMAIL, FEMISION, FDESDE_POL, FHASTA_POL, MSUMA_A_CASCO, MDEDUCIBLE, FCREACION, CUSUARIOCREACION) values (@id, @ccarga, @clote, @xpoliza, @xcertificado, @xrif_cliente, @xnombre, @icedula, @xcedula, @cplan, @xserialcarroceria, @xserialmotor, @xplaca, @cmarca, @cmodelo, @cversion, @cano, @xcolor, @xtipo, @xclase, @ncapacidad_p, @xtelefono_emp, @xtelefono_prop, @xdireccionfiscal, @email, @femision, @fdesde_pol, @fhasta_pol, @msuma_a_casco, @mdeducible, @fcreacion, @cusuariocreacion)')                
              return { result: { rowsAffected: rowsAffected} };
     }
     catch(err){
         console.log(err.message)
+        return { error: err.message };
+    }
+},
+searchCodeFlotaQuery: async() => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .query('select MAX(ID) AS ID from TMEMISION_FLOTA');
+        //sql.close();
+        return { result: result };
+    }catch(err){
         return { error: err.message };
     }
 },

@@ -210,6 +210,7 @@ const operationSearchReceipt = async(authHeader, requestBody) => {
         status: true,
         ccarga: searchReceipt.result.recordset[0].CCARGA,
         ccliente: searchReceipt.result.recordset[0].CCLIENTE,
+        xcliente: searchReceipt.result.recordset[0].XCLIENTE,
         fdesde_pol: searchReceipt.result.recordset[0].FDESDE_POL,
         fhasta_pol: searchReceipt.result.recordset[0].FHASTA_POL,
         plan: planList
@@ -264,36 +265,22 @@ const operationCreateInclusionContract = async(authHeader, requestBody) => {
         mdeducible: requestBody.mdeducible,
         xpoliza: requestBody.xpoliza,
         xcertificado: requestBody.xcertificado,
+        xtipo: requestBody.xtipo,
+        xclase: requestBody.xclase,
     };
-    console.log(userData)
-    if(userData){
-        let createInclusionContract = await bd.createInclusionContractQuery(userData).then((res) => res);
-        if(createInclusionContract.error){ return { status: false, code: 500, message: createInclusionContract.error }; }
+    let searchCode = await bd.searchCodeFlotaQuery().then((res) => res);
+    if(searchCode.error){return { status: false, code: 500, message: searchCode.error }; }
+    if(searchCode.result.rowsAffected > 0){ 
+        let id = searchCode.result.recordset[0].ID + 1;
+        if(userData){
+            let createInclusionContract = await bd.createInclusionContractQuery(userData, id).then((res) => res);
+            if(createInclusionContract.error){ return { status: false, code: 500, message: createInclusionContract.error }; }
+        }
+    }else{
+        return { status: false, code: 500, message: "Ha ocurrido un error, no se pudo guardar la información."};
     }
-    // let lastQuote = await bd.getLastQuoteQuery();
-    // if(lastQuote.error){ return { status: false, code: 500, message: lastQuote.error }; }
-    return { 
-        status: true, 
-        code: 200, 
-        // xnombre: lastQuote.result.recordset[0].XNOMBRE, 
-        // xapellido: lastQuote.result.recordset[0].XAPELLIDO, 
-        // icedula: lastQuote.result.recordset[0].ICEDULA, 
-        // xcedula: lastQuote.result.recordset[0].XCEDULA, 
-        // xserialcarroceria: lastQuote.result.recordset[0].XSERIALCARROCERIA, 
-        // xserialmotor: lastQuote.result.recordset[0].XSERIALMOTOR, 
-        // xplaca: lastQuote.result.recordset[0].XPLACA, 
-        // xmarca: lastQuote.result.recordset[0].XMARCA, 
-        // xmodelo: lastQuote.result.recordset[0].XMODELO, 
-        // xversion: lastQuote.result.recordset[0].XVERISON, 
-        // cano: lastQuote.result.recordset[0].CANO, 
-        // xestatusgeneral: lastQuote.result.recordset[0].XESTATUSGENERAL, 
-        // xtipovehiculo: lastQuote.result.recordset[0].XTIPOVEHICULO, 
-        // xuso: lastQuote.result.recordset[0].XUSO, 
-        // xclase: lastQuote.result.recordset[0].XCLASE, 
-        // xtomador: lastQuote.result.recordset[0].XTOMADOR, 
-        // xprofesion: lastQuote.result.recordset[0].XPROFESION, 
-        // xrif: lastQuote.result.recordset[0].XRIF, 
-    };
+
+    return { status: true, code: 200};
 }
 
 module.exports = router;
