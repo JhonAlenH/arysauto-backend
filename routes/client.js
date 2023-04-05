@@ -123,6 +123,32 @@ const operationDetailClient = async(authHeader, requestBody) => {
             documents.push(document);
         }
     }
+    let associates = [];
+    let getClientAssociatesData = await bd.getClientAssociatesDataQuery(clientData.ccliente).then((res) => res);
+    if(getClientAssociatesData.error){ return { status: false, code: 500, message: getClientAssociatesData.error }; }
+    if(getClientAssociatesData.result.rowsAffected > 0){
+        for(let i = 0; i < getClientAssociatesData.result.recordset.length; i++){
+            let associate = {
+                casociado: getClientAssociatesData.result.recordset[i].CASOCIADO,
+                xasociado: getClientAssociatesData.result.recordset[i].XASOCIADO,
+            }
+            associates.push(associate);
+        }
+    }
+    let bonds = [];
+    let getClientBondsData = await bd.getClientBondsDataQuery(clientData.ccliente).then((res) => res);
+    if(getClientBondsData.error){ return { status: false, code: 500, message: getClientBondsData.error }; }
+    if(getClientBondsData.result.rowsAffected > 0){
+        for(let i = 0; i < getClientBondsData.result.recordset.length; i++){
+            let bond = {
+                cbono: getClientBondsData.result.recordset[i].CBONO,
+                pbono: getClientBondsData.result.recordset[i].PBONO,
+                mbono: getClientBondsData.result.recordset[i].MBONO,
+                fefectiva: getClientBondsData.result.recordset[i].FEFECTIVA,
+            }
+            bonds.push(bond);
+        }
+    }
     return { 
         status: true,
         ccliente: getClientData.result.recordset[0].CCLIENTE,
@@ -143,7 +169,9 @@ const operationDetailClient = async(authHeader, requestBody) => {
         bactivo: getClientData.result.recordset[0].BACTIVO,
         banks: banks,
         contacts: contacts,
-        documents: documents
+        documents: documents,
+        associates: associates,
+        bonds: bonds
     }
 }
 
@@ -231,6 +259,28 @@ const operationCreateClient = async(authHeader, requestBody) => {
             let createDocumentsFromClient = await bd.createDocumentsFromClientQuery(clientData, documentsList, createClient.result.recordset[0].CCLIENTE).then((res) => res);
             if(createDocumentsFromClient.error){return { status: false, code: 500, message: createDocumentsFromClient.error }; }
         }
+        if(requestBody.associates){
+            let associates = [];
+            for(let i = 0; i < requestBody.associates.length; i++){
+                associates.push({
+                    casociado: requestBody.associates[i].casociado
+                })
+            }
+            let createAssociatesFromClient = await bd.createAssociatesFromClientQuery(clientData, associates, createClient.result.recordset[0].CCLIENTE).then((res) => res);
+            if(createAssociatesFromClient.error){return { status: false, code: 500, message: createAssociatesFromClient.error }; }
+        }
+        if(requestBody.bonds){
+            let bonds = [];
+            for(let i = 0; i < requestBody.bonds.length; i++){
+                bonds.push({
+                    pbono: requestBody.bonds[i].pbono,
+                    mbono: requestBody.bonds[i].mbono,
+                    fefectiva: requestBody.bonds[i].fefectiva,
+                })
+            }
+            let createBondsFromClient = await bd.createBondsFromClientQuery(clientData, bonds, createClient.result.recordset[0].CCLIENTE).then((res) => res);
+            if(createBondsFromClient.error){return { status: false, code: 500, message: createBondsFromClient.error }; }
+        }
         return{status: true, ccliente: createClient.result.recordset[0].CCLIENTE}
     }
 }
@@ -272,7 +322,8 @@ const operationUpdateClient = async(authHeader, requestBody) => {
         xpaginaweb: requestBody.xpaginaweb ? requestBody.xpaginaweb : null,
         xrutaimagen: requestBody.xrutaimagen ? requestBody.xrutaimagen : null,
         bactivo: requestBody.bactivo,
-        cusuariomodificacion: requestBody.cusuariomodificacion
+        cusuariomodificacion: requestBody.cusuario,
+        cusuariocreacion: requestBody.cusuario
     }
     console.log(clientData)
     let updateClient = await bd.updateClientQuery(clientData).then((res) => res);
@@ -369,6 +420,55 @@ const operationUpdateClient = async(authHeader, requestBody) => {
             }
             let updateDocumentsFromClient = await bd.updateDocumentsByClientUpdateQuery(clientData, updateDocumentsList).then((res) => res);
             if(updateDocumentsFromClient.error){return { status: false, code: 500, message: updateDocumentsFromClient.error }; }
+        }
+    }
+    if(requestBody.associates){
+        if(requestBody.associates.create){
+            let createAssociatesList = [];
+            for(let i = 0; i < requestBody.associates.create.length; i++){
+                createAssociatesList.push({
+                    casociado: requestBody.associates.create[i].casociado,
+                })
+            }
+            let createAssociatesFromClient = await bd.createAssociatesFromClientUpdateQuery(clientData, createAssociatesList).then((res) => res);
+            if(createAssociatesFromClient.error){console.log(createAssociatesFromClient.error); return { status: false, code: 500, message: createAssociatesFromClient.error }; }
+        }
+        if(requestBody.associates.update){
+            let updateAssociatesList = [];
+            for(let i = 0; i < requestBody.associates.update.length; i++){
+                updateAssociatesList.push({
+                    casociado: requestBody.associates.update[i].casociado,
+                })
+            }
+            let updateAssociatesFromClient = await bd.updateAssociatesByClientUpdateQuery(clientData, updateAssociatesList).then((res) => res);
+            if(updateAssociatesFromClient.error){console.log(updateAssociatesFromClient.error);return { status: false, code: 500, message: updateAssociatesFromClient.error }; }
+        }
+    }
+    if(requestBody.bonds){
+        if(requestBody.bonds.create){
+            let createBondsList = [];
+            for(let i = 0; i < requestBody.bonds.create.length; i++){
+                createBondsList.push({
+                    pbono: requestBody.bonds.create[i].pbono,
+                    mbono: requestBody.bonds.create[i].mbono,
+                    fefectiva: requestBody.bonds.create[i].fefectiva,
+                })
+            }
+            let createBondsFromClientUpdate = await bd.createBondsFromClientUpdateQuery(clientData, createBondsList).then((res) => res);
+            if(createBondsFromClientUpdate.error){console.log(createBondsFromClientUpdate.error); return { status: false, code: 500, message: createBondsFromClientUpdate.error }; }
+        }
+        if(requestBody.bonds.update){
+            let updateBondsList = [];
+            for(let i = 0; i < requestBody.bonds.update.length; i++){
+                updateBondsList.push({
+                    cbono: requestBody.bonds.update[i].cbono,
+                    pbono: requestBody.bonds.update[i].pbono,
+                    mbono: requestBody.bonds.update[i].mbono,
+                    fefectiva: requestBody.bonds.update[i].fefectiva,
+                })
+            }
+            let updateBondsListFromClientUpdate = await bd.updateBondsByClientUpdateQuery(clientData, updateBondsList).then((res) => res);
+            if(updateBondsListFromClientUpdate.error){console.log(updateBondsListFromClientUpdate.error);return { status: false, code: 500, message: updateBondsListFromClientUpdate.error }; }
         }
     }
     return{status: true, ccliente: clientData.ccliente}
