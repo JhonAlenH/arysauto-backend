@@ -401,17 +401,15 @@ const CreateAgenda = async(requestBody) => {
             events.push({
                 id: Agenda.result.recordset[i].ID, 
                 title: Agenda.result.recordset[i].XTITULO,
-                start: Agenda.result.recordset[i].FINICIO,
-                end: Agenda.result.recordset[i].FHASTA,
+                start: Agenda.result.recordset[i].FINICIO.toISOString().replace(/T.*$/, ''),
+                end: Agenda.result.recordset[i].FHASTA.toISOString().replace(/T.*$/, ''),
                 allDay : Agenda.result.recordset[i].CONDICION
             });
         }
         return { status: true, list: events };
     }
-
     return { 
     status: false, 
-
 };
     
 }
@@ -436,17 +434,15 @@ const SearcheAgenda = async(requestBody) => {
     if(Agenda.error){ return { status: false, code: 500, message: Agenda.error }; }
     if(Agenda.rowsAffected == 0){ return { status: false, code: 404 }; }
     if(Agenda.result.rowsAffected > 0){
-        console.log(Agenda.result)
         let events = [];
         for(let i = 0; i < Agenda.result.recordset.length; i++){
             events.push({
                 id: Agenda.result.recordset[i].ID, 
                 title:Agenda.result.recordset[i].XTITULO, 
-                start: Agenda.result.recordset[i].FINICIO,
-                end: Agenda.result.recordset[i].FHASTA,
+                start: Agenda.result.recordset[i].FINICIO.toISOString().replace(/T.*$/, ''),
+                end: Agenda.result.recordset[i].FHASTA.toISOString().replace(/T.*$/, ''),
             });
         }
-        console.log(events)
         return { status: true, list: events };
     }
 

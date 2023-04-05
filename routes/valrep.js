@@ -2799,7 +2799,7 @@ router.route('/insurer').post((req, res) => {
 
 const operationValrepInsurer = async(authHeader, requestBody) => {
     if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
-    if(!helper.validateRequestObj(requestBody, ['cpais', 'ccompania'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
+    // if(!helper.validateRequestObj(requestBody, ['cpais', 'ccompania'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
     let searchData = {
         cpais: requestBody.cpais,
         ccompania: requestBody.ccompania
@@ -2808,7 +2808,10 @@ const operationValrepInsurer = async(authHeader, requestBody) => {
     if(query.error){ return { status: false, code: 500, message: query.error }; }
     let jsonArray = [];
     for(let i = 0; i < query.result.recordset.length; i++){
-        jsonArray.push({ caseguradora: query.result.recordset[i].CASEGURADORA, xaseguradora: helper.decrypt(query.result.recordset[i].XASEGURADORA), bactivo: query.result.recordset[i].BACTIVO });
+        jsonArray.push({ 
+            caseguradora: query.result.recordset[i].CASEGURADORA, 
+            xaseguradora: query.result.recordset[i].XASEGURADORA, 
+            bactivo: query.result.recordset[i].BACTIVO });
     }
     return { status: true, list: jsonArray }
 }
