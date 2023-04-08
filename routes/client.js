@@ -149,6 +149,79 @@ const operationDetailClient = async(authHeader, requestBody) => {
             bonds.push(bond);
         }
     }
+    let brokers = [];
+    let getClientBrokersData = await bd.getClientBrokersDataQuery(clientData.ccliente).then((res) => res);
+    if(getClientBrokersData.error){ return { status: false, code: 500, message: getClientBrokersData.error }; }
+    if(getClientBrokersData.result.rowsAffected > 0){
+        for(let i = 0; i < getClientBrokersData.result.recordset.length; i++){
+            let broker = {
+                ccorredor: getClientBrokersData.result.recordset[i].CCORREDOR,
+                xcorredor: getClientBrokersData.result.recordset[i].XCORREDOR,
+                pcorredor: getClientBrokersData.result.recordset[i].PCORREDOR,
+                mcorredor: getClientBrokersData.result.recordset[i].MCORREDOR,
+                fefectiva: getClientBrokersData.result.recordset[i].FEFECTIVA,
+            }
+            brokers.push(broker);
+        }
+    }
+    let depreciations = [];
+    let getClientDepreciationData = await bd.getClientDepreciationsDataQuery(clientData.ccliente).then((res) => res);
+    if(getClientDepreciationData.error){ return { status: false, code: 500, message: getClientDepreciationData.error }; }
+    if(getClientDepreciationData.result.rowsAffected > 0){
+        for(let i = 0; i < getClientDepreciationData.result.recordset.length; i++){
+            let depreciation = {
+                cdepreciacion: getClientDepreciationData.result.recordset[i].CDEPRECIACION,
+                xdepreciacion: getClientDepreciationData.result.recordset[i].XDEPRECIACION,
+                pdepreciacion: getClientDepreciationData.result.recordset[i].PDEPRECIACION,
+                mdepreciacion: getClientDepreciationData.result.recordset[i].MDEPRECIACION,
+                fefectiva: getClientDepreciationData.result.recordset[i].FEFECTIVA,
+            }
+            depreciations.push(depreciation);
+        }
+    }
+    let relationships = [];
+    let getClientRelationshipsData = await bd.getClientRelationshipDataQuery(clientData.ccliente).then((res) => res);
+    if(getClientRelationshipsData.error){ return { status: false, code: 500, message: getClientRelationshipsData.error }; }
+    if(getClientRelationshipsData.result.rowsAffected > 0){
+        for(let i = 0; i < getClientRelationshipsData.result.recordset.length; i++){
+            let relationship = {
+                cparentesco: getClientRelationshipsData.result.recordset[i].CPARENTESCO,
+                xparentesco: getClientRelationshipsData.result.recordset[i].XPARENTESCO,
+                xobservacion: getClientRelationshipsData.result.recordset[i].XOBSERVACION,
+                fefectiva: getClientDepreciationData.result.recordset[i].FEFECTIVA,
+            }
+            relationships.push(relationship);
+        }
+    }
+    let penalties = [];
+    let getClientPenaltiesData = await bd.getClientPenaltiesDataQuery(clientData.ccliente).then((res) => res);
+    if(getClientPenaltiesData.error){ return { status: false, code: 500, message: getClientPenaltiesData.error }; }
+    if(getClientPenaltiesData.result.rowsAffected > 0){
+        for(let i = 0; i < getClientPenaltiesData.result.recordset.length; i++){
+            let penalty = {
+                cpenalizacion: getClientPenaltiesData.result.recordset[i].CPENALIZACION,
+                xpenalizacion: getClientPenaltiesData.result.recordset[i].XPENALIZACION,
+                ppenalizacion: getClientPenaltiesData.result.recordset[i].PPENALIZACION,
+                mpenalizacion: getClientPenaltiesData.result.recordset[i].MPENALIZACION,
+                fefectiva: getClientPenaltiesData.result.recordset[i].FEFECTIVA,
+            }
+            penalties.push(penalty);
+        }
+    }
+    let providers = [];
+    let getClientProvidersData = await bd.getClientProvidersDataQuery(clientData.ccliente).then((res) => res);
+    if(getClientProvidersData.error){ return { status: false, code: 500, message: getClientProvidersData.error }; }
+    if(getClientProvidersData.result.rowsAffected > 0){
+        for(let i = 0; i < getClientProvidersData.result.recordset.length; i++){
+            let provider = {
+                cproveedor: getClientProvidersData.result.recordset[i].CPROVEEDOR,
+                xnombre: getClientProvidersData.result.recordset[i].XNOMBRE,
+                xobservacion: getClientProvidersData.result.recordset[i].XOBSERVACION,
+                fefectiva: getClientProvidersData.result.recordset[i].FEFECTIVA,
+            }
+            providers.push(provider);
+        }
+    }
     return { 
         status: true,
         ccliente: getClientData.result.recordset[0].CCLIENTE,
@@ -171,7 +244,12 @@ const operationDetailClient = async(authHeader, requestBody) => {
         contacts: contacts,
         documents: documents,
         associates: associates,
-        bonds: bonds
+        bonds: bonds,
+        brokers: brokers,
+        depreciations: depreciations,
+        relationships: relationships,
+        penalties: penalties,
+        providers: providers
     }
 }
 
@@ -281,6 +359,69 @@ const operationCreateClient = async(authHeader, requestBody) => {
             let createBondsFromClient = await bd.createBondsFromClientQuery(clientData, bonds, createClient.result.recordset[0].CCLIENTE).then((res) => res);
             if(createBondsFromClient.error){return { status: false, code: 500, message: createBondsFromClient.error }; }
         }
+        if(requestBody.brokers){
+            let brokers = [];
+            for(let i = 0; i < requestBody.brokers.length; i++){
+                brokers.push({
+                    ccorredor: requestBody.brokers[i].ccorredor,
+                    pcorredor: requestBody.brokers[i].pcorredor,
+                    mcorredor: requestBody.brokers[i].mcorredor,
+                    fefectiva: requestBody.brokers[i].fefectiva,
+                })
+            }
+            let createBrokersFromClient = await bd.createBrokersFromClientQuery(clientData, brokers, createClient.result.recordset[0].CCLIENTE).then((res) => res);
+            if(createBrokersFromClient.error){return { status: false, code: 500, message: createBrokersFromClient.error }; }
+        }
+        if(requestBody.depreciations){
+            let depreciations = [];
+            for(let i = 0; i < requestBody.depreciations.length; i++){
+                depreciations.push({
+                    cdepreciacion: requestBody.depreciations[i].cdepreciacion,
+                    pdepreciacion: requestBody.depreciations[i].pdepreciacion,
+                    mdepreciacion: requestBody.depreciations[i].mdepreciacion,
+                    fefectiva: requestBody.depreciations[i].fefectiva,
+                })
+            }
+            let createDepreciationFromClient = await bd.createDepreciationsFromClientQuery(clientData, depreciations, createClient.result.recordset[0].CCLIENTE).then((res) => res);
+            if(createDepreciationFromClient.error){return { status: false, code: 500, message: createDepreciationFromClient.error }; }
+        }
+        if(requestBody.relationships){
+            let relationships = [];
+            for(let i = 0; i < requestBody.relationships.length; i++){
+                relationships.push({
+                    cparentesco: requestBody.relationships[i].cparentesco,
+                    xobservacion: requestBody.relationships[i].xobservacion,
+                    fefectiva: requestBody.relationships[i].fefectiva,
+                })
+            }
+            let createRelationshipsFromClient = await bd.createRelationshipsFromClientQuery(clientData, relationships, createClient.result.recordset[0].CCLIENTE).then((res) => res);
+            if(createRelationshipsFromClient.error){return { status: false, code: 500, message: createRelationshipsFromClient.error }; }
+        }
+        if(requestBody.penalties){
+            let penalties = [];
+            for(let i = 0; i < requestBody.penalties.length; i++){
+                penalties.push({
+                    cpenalizacion: requestBody.penalties[i].cpenalizacion,
+                    ppenalizacion: requestBody.penalties[i].ppenalizacion,
+                    mpenalizacion: requestBody.penalties[i].mpenalizacion,
+                    fefectiva: requestBody.penalties[i].fefectiva,
+                })
+            }
+            let createPenaltiesFromClient = await bd.createPenaltiesFromClientQuery(clientData, penalties, createClient.result.recordset[0].CCLIENTE).then((res) => res);
+            if(createPenaltiesFromClient.error){return { status: false, code: 500, message: createPenaltiesFromClient.error }; }
+        }
+        if(requestBody.providers){
+            let providers = [];
+            for(let i = 0; i < requestBody.providers.length; i++){
+                providers.push({
+                    cproveedor: requestBody.providers[i].cproveedor,
+                    xobservacion: requestBody.providers[i].xobservacion,
+                    fefectiva: requestBody.providers[i].fefectiva,
+                })
+            }
+            let createProvidersFromClient = await bd.createProvidersFromClientQuery(clientData, providers, createClient.result.recordset[0].CCLIENTE).then((res) => res);
+            if(createProvidersFromClient.error){return { status: false, code: 500, message: createProvidersFromClient.error }; }
+        }
         return{status: true, ccliente: createClient.result.recordset[0].CCLIENTE}
     }
 }
@@ -374,7 +515,7 @@ const operationUpdateClient = async(authHeader, requestBody) => {
                     xtelefonooficina: requestBody.contacts.create[i].xtelefonooficina,
                 })
             }
-            let createContactsFromClient = await bd.createContactsFromClientQuery(clientData, createContactsList).then((res) => res);
+            let createContactsFromClient = await bd.createContactsFromClientUpdateQuery(clientData, createContactsList).then((res) => res);
             if(createContactsFromClient.error){return { status: false, code: 500, message: createContactsFromClient.error }; }
         }
         if(requestBody.contacts.update){
@@ -469,6 +610,142 @@ const operationUpdateClient = async(authHeader, requestBody) => {
             }
             let updateBondsListFromClientUpdate = await bd.updateBondsByClientUpdateQuery(clientData, updateBondsList).then((res) => res);
             if(updateBondsListFromClientUpdate.error){console.log(updateBondsListFromClientUpdate.error);return { status: false, code: 500, message: updateBondsListFromClientUpdate.error }; }
+        }
+    }
+    if(requestBody.brokers){
+        if(requestBody.brokers.create){
+            let createBrokersList = [];
+            for(let i = 0; i < requestBody.brokers.create.length; i++){
+                createBrokersList.push({
+                    ccorredor: requestBody.brokers.create[i].ccorredor,
+                    pcorredor: requestBody.brokers.create[i].pcorredor,
+                    mcorredor: requestBody.brokers.create[i].mcorredor,
+                    fefectiva: requestBody.brokers.create[i].fefectiva,
+                })
+            }
+            let createBrokersFromClientUpdate = await bd.createBrokersFromClientUpdateQuery(clientData, createBrokersList).then((res) => res);
+            if(createBrokersFromClientUpdate.error){console.log(createBrokersFromClientUpdate.error); return { status: false, code: 500, message: createBrokersFromClientUpdate.error }; }
+        }
+        if(requestBody.brokers.update){
+            let updateBrokersList = [];
+            for(let i = 0; i < requestBody.brokers.update.length; i++){
+                updateBrokersList.push({
+                    ccorredor: requestBody.brokers.update[i].ccorredor,
+                    pcorredor: requestBody.brokers.update[i].pcorredor,
+                    mcorredor: requestBody.brokers.update[i].mcorredor,
+                    fefectiva: requestBody.brokers.update[i].fefectiva,
+                })
+            }
+            let updateBrokersListFromClientUpdate = await bd.updateBrokersByClientUpdateQuery(clientData, updateBrokersList).then((res) => res);
+            if(updateBrokersListFromClientUpdate.error){console.log(updateBrokersListFromClientUpdate.error);return { status: false, code: 500, message: updateBrokersListFromClientUpdate.error }; }
+        }
+    }
+    if(requestBody.depreciations){
+        if(requestBody.depreciations.create){
+            let createDepreciationsList = [];
+            for(let i = 0; i < requestBody.depreciations.create.length; i++){
+                createDepreciationsList.push({
+                    cdepreciacion: requestBody.depreciations.create[i].cdepreciacion,
+                    pdepreciacion: requestBody.depreciations.create[i].pdepreciacion,
+                    mdepreciacion: requestBody.depreciations.create[i].mdepreciacion,
+                    fefectiva: requestBody.depreciations.create[i].fefectiva,
+                })
+            }
+            let createDepreciationsFromClientUpdate = await bd.createDepreciationsFromClientUpdateQuery(clientData, createDepreciationsList).then((res) => res);
+            if(createDepreciationsFromClientUpdate.error){console.log(createDepreciationsFromClientUpdate.error); return { status: false, code: 500, message: createDepreciationsFromClientUpdate.error }; }
+        }
+        if(requestBody.depreciations.update){
+            let updateDepreciationsList = [];
+            for(let i = 0; i < requestBody.depreciations.update.length; i++){
+                updateDepreciationsList.push({
+                    cdepreciacion: requestBody.depreciations.update[i].cdepreciacion,
+                    pdepreciacion: requestBody.depreciations.update[i].pdepreciacion,
+                    mdepreciacion: requestBody.depreciations.update[i].mdepreciacion,
+                    fefectiva: requestBody.depreciations.update[i].fefectiva,
+                })
+            }
+            let updateDepreciationsFromClientUpdate = await bd.updateDepreciationsByClientUpdateQuery(clientData, updateDepreciationsList).then((res) => res);
+            if(updateDepreciationsFromClientUpdate.error){console.log(updateDepreciationsFromClientUpdate.error);return { status: false, code: 500, message: updateDepreciationsFromClientUpdate.error }; }
+        }
+    }
+    if(requestBody.relationships){
+        if(requestBody.relationships.create){
+            let createRelationshipsList = [];
+            for(let i = 0; i < requestBody.relationships.create.length; i++){
+                createRelationshipsList.push({
+                    cparentesco: requestBody.relationships.create[i].cparentesco,
+                    xobservacion: requestBody.relationships.create[i].xobservacion,
+                    fefectiva: requestBody.relationships.create[i].fefectiva,
+                })
+            }
+            let createRelationshipsFromClientUpdate = await bd.createPenaltiesFromClientUpdateQuery(clientData, createRelationshipsList).then((res) => res);
+            if(createRelationshipsFromClientUpdate.error){console.log(createRelationshipsFromClientUpdate.error); return { status: false, code: 500, message: createRelationshipsFromClientUpdate.error }; }
+        }
+        if(requestBody.relationships.update){
+            let updateRelationshipsList = [];
+            for(let i = 0; i < requestBody.relationships.update.length; i++){
+                updateRelationshipsList.push({
+                    cparentesco: requestBody.relationships.update[i].cparentesco,
+                    xobservacion: requestBody.relationships.update[i].xobservacion,
+                    fefectiva: requestBody.relationships.update[i].fefectiva,
+                })
+            }
+            let updateRelationshipFromClientUpdate = await bd.updateRelationshipByClientUpdateQuery(clientData, updateRelationshipsList).then((res) => res);
+            if(updateRelationshipFromClientUpdate.error){console.log(updateRelationshipFromClientUpdate.error);return { status: false, code: 500, message: updateRelationshipFromClientUpdate.error }; }
+        }
+    }
+    if(requestBody.penalties){
+        if(requestBody.penalties.create){
+            let createPenaltiesList = [];
+            for(let i = 0; i < requestBody.penalties.create.length; i++){
+                createPenaltiesList.push({
+                    cpenalizacion: requestBody.penalties.create[i].cpenalizacion,
+                    ppenalizacion: requestBody.penalties.create[i].ppenalizacion,
+                    mpenalizacion: requestBody.penalties.create[i].mpenalizacion,
+                    fefectiva: requestBody.penalties.create[i].fefectiva,
+                })
+            }
+            let createPenaltiesFromClientUpdate = await bd.createPenaltiesFromClientUpdateQuery(clientData, createPenaltiesList).then((res) => res);
+            if(createPenaltiesFromClientUpdate.error){console.log(createPenaltiesFromClientUpdate.error); return { status: false, code: 500, message: createPenaltiesFromClientUpdate.error }; }
+        }
+        if(requestBody.penalties.update){
+            let updatePenaltiesList = [];
+            for(let i = 0; i < requestBody.penalties.update.length; i++){
+                updatePenaltiesList.push({
+                    cpenalizacion: requestBody.penalties.update[i].cpenalizacion,
+                    ppenalizacion: requestBody.penalties.update[i].ppenalizacion,
+                    mpenalizacion: requestBody.penalties.update[i].mpenalizacion,
+                    fefectiva: requestBody.penalties.update[i].fefectiva,
+                })
+            }
+            let updatePenaltiesFromClientUpdate = await bd.updatePenaltiesByClientUpdateQuery(clientData, updatePenaltiesList).then((res) => res);
+            if(updatePenaltiesFromClientUpdate.error){console.log(updatePenaltiesFromClientUpdate.error);return { status: false, code: 500, message: updatePenaltiesFromClientUpdate.error }; }
+        }
+    }
+    if(requestBody.providers){
+        if(requestBody.providers.create){
+            let createProvidersList = [];
+            for(let i = 0; i < requestBody.providers.create.length; i++){
+                createProvidersList.push({
+                    cproveedor: requestBody.providers.create[i].cproveedor,
+                    xobservacion: requestBody.providers.create[i].xobservacion,
+                    fefectiva: requestBody.providers.create[i].fefectiva,
+                })
+            }
+            let createProvidersFromClientUpdate = await bd.createProvidersFromClientUpdateQuery(clientData, createProvidersList).then((res) => res);
+            if(createProvidersFromClientUpdate.error){console.log(createProvidersFromClientUpdate.error); return { status: false, code: 500, message: createProvidersFromClientUpdate.error }; }
+        }
+        if(requestBody.providers.update){
+            let updateProvidersList = [];
+            for(let i = 0; i < requestBody.providers.update.length; i++){
+                updateProvidersList.push({
+                    cproveedor: requestBody.providers.update[i].cproveedor,
+                    xobservacion: requestBody.providers.update[i].xobservacion,
+                    fefectiva: requestBody.providers.update[i].fefectiva,
+                })
+            }
+            let updateProvidersFromClientUpdate = await bd.updateProvidersByClientUpdateQuery(clientData, updateProvidersList).then((res) => res);
+            if(updateProvidersFromClientUpdate.error){console.log(updateProvidersFromClientUpdate.error);return { status: false, code: 500, message: updateProvidersFromClientUpdate.error }; }
         }
     }
     return{status: true, ccliente: clientData.ccliente}
