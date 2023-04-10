@@ -14798,6 +14798,455 @@ getClientProvidersDataQuery: async(ccliente) => {
         return { error: err.message };
     }
 },
+createModelsFromClientQuery: async(clientData, models, ccliente) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < models.length; i++){
+            let insert = await pool.request()
+            .input('ccliente', sql.Int, ccliente)
+            .input('cmarca', sql.Int, models[i].cmarca)
+            .input('cmodelo', sql.Int, models[i].cmodelo)
+            .input('xobservacion', sql.NVarChar, models[i].xobservacion)
+            .input('cusuariocreacion', sql.Int, clientData.cusuariocreacion)
+            .input('fcreacion', sql.DateTime, new Date())
+            .query('insert into CLMODELOEXCLUIDO (CCLIENTE, CMARCA, CMODELO, XOBSERVACION, CUSUARIOCREACION, FCREACION) values (@ccliente, @cmarca, @cmarca, @xobservacion, @cusuariocreacion, @fcreacion)')
+            rowsAffected = rowsAffected + insert.rowsAffected;
+        }
+        return { result: { rowsAffected: rowsAffected } };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+createModelsFromClientUpdateQuery: async(clientData, createModelsList) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < createModelsList.length; i++){
+            let insert = await pool.request()
+            .input('ccliente', sql.Int, clientData.ccliente)
+            .input('cmarca', sql.Int, createModelsList[i].cmarca)
+            .input('cmodelo', sql.Int, createModelsList[i].cmodelo)
+            .input('xobservacion', sql.NVarChar, createModelsList[i].xobservacion)
+            .input('cusuariocreacion', sql.Int, clientData.cusuariocreacion)
+            .input('fcreacion', sql.DateTime, new Date())
+            .query('insert into CLMODELOEXCLUIDO (CCLIENTE, CMARCA, CMODELO, XOBSERVACION, CUSUARIOCREACION, FCREACION) values (@ccliente, @cmarca, @cmodelo, @xobservacion, @cusuariocreacion, @fcreacion)')
+            rowsAffected = rowsAffected + insert.rowsAffected;
+        }
+        return { result: { rowsAffected: rowsAffected } };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+updateModelsByClientUpdateQuery: async(clientData, updateModelsList) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < updateModelsList.length; i++){
+            let update = await pool.request()
+                .input('ccliente', sql.Int, clientData.ccliente)
+                .input('cmarca', sql.Int, updateModelsList[i].cmarca)
+                .input('cmodelo', sql.Int, updateModelsList[i].cmodelo)
+                .input('xobservacion', sql.NVarChar, updateModelsList[i].xobservacion)
+                .input('cusuariomodificacion', sql.Int, clientData.cusuariomodificacion)
+                .input('fmodificacion', sql.DateTime, new Date())
+                .query('update CLMODELOEXCLUIDO set XOBSERVACION = @xobservacion, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion where CCLIENTE = @ccliente AND CMARCA = @cmarca AND CMODELO = @cmodelo');
+            rowsAffected = rowsAffected + update.rowsAffected;
+        }
+        //sql.close();
+        return { result: { rowsAffected: rowsAffected } };
+    }
+    catch(err){
+        console.log(err.message)
+        return { error: err.message };
+    }
+},
+getClientModelsDataQuery: async(ccliente) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('ccliente', sql.Int, ccliente)
+            .query('select * from VWBUSCARMODELOEXCLUIDOXCLIENTEDATA where CCLIENTE = @ccliente');
+        //sql.close();
+        console.log(result)
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+createWorkersFromClientQuery: async(clientData, workers, ccliente) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < workers.length; i++){
+            let insert = await pool.request()
+            .input('ccliente', sql.Int, ccliente)
+            .input('xnombre', sql.NVarChar, workers[i].xnombre)
+            .input('xapellido', sql.NVarChar, workers[i].xapellido)
+            .input('ctipodocidentidad', sql.Int,  workers[i].ctipodocidentidad)
+            .input('xdocidentidad', sql.NVarChar, workers[i].xdocidentidad)
+            .input('xtelefonocelular', sql.NVarChar, workers[i].xtelefonocelular)
+            .input('xemail', sql.NVarChar, workers[i].xemail)
+            .input('xprofesion', sql.NVarChar, workers[i].xprofesion ? workers[i].xprofesion : null)
+            .input('xocupacion', sql.NVarChar, workers[i].xocupacion ? workers[i].xocupacion : null)
+            .input('xtelefonocasa', sql.NVarChar, workers[i].xtelefonocasa ? workers[i].xtelefonocasa : null)
+            .input('xfax', sql.NVarChar, workers[i].xfax ? workers[i].xfax : null)
+            .input('cparentesco', sql.Int, workers[i].cparentesco)
+            .input('cestadocivil', sql.Int, workers[i].cestadocivil)
+            .input('fnacimiento', sql.DateTime, workers[i].fnacimiento)
+            .input('xdireccion', sql.NVarChar, workers[i].xdireccion)
+            .input('cestado', sql.Int, workers[i].cestado)
+            .input('cciudad', sql.Int, workers[i].cciudad)
+            .input('cusuariocreacion', sql.Int, clientData.cusuariocreacion)
+            .input('fcreacion', sql.DateTime, new Date())
+            .query('insert into CLTRABAJADOR (CCLIENTE, XNOMBRE, XAPELLIDO, CTIPODOCIDENTIDAD, XDOCIDENTIDAD, XTELEFONOCELULAR, XEMAIL, XPROFESION, XOCUPACION, XTELEFONOCASA, XFAX, CPARENTESCO, CESTADOCIVIL, FNACIMIENTO, XDIRECCION, CESTADO, CCIUDAD, CUSUARIOCREACION, FCREACION) values (@ccliente, @xnombre, @xapellido, @ctipodocidentidad, @xdocidentidad, @xtelefonocelular, @xemail, @xprofesion, @xocupacion, @xtelefonocasa, @xfax, @cparentesco, @cestadocivil, @fnacimiento, @xdireccion, @cestado, @cciudad, @cusuariocreacion, @fcreacion)')
+            rowsAffected = rowsAffected + insert.rowsAffected;
+        }
+        return { result: { rowsAffected: rowsAffected } };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+createWorkersFromClientUpdateQuery: async(clientData, createWorkersList) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < createWorkersList.length; i++){
+            let insert = await pool.request()
+            .input('ccliente', sql.Int, clientData.ccliente)
+            .input('xnombre', sql.NVarChar, createWorkersList[i].xnombre)
+            .input('xapellido', sql.NVarChar, createWorkersList[i].xapellido)
+            .input('ctipodocidentidad', sql.Int,  createWorkersList[i].ctipodocidentidad)
+            .input('xdocidentidad', sql.NVarChar, createWorkersList[i].xdocidentidad)
+            .input('xtelefonocelular', sql.NVarChar, createWorkersList[i].xtelefonocelular)
+            .input('xemail', sql.NVarChar, createWorkersList[i].xemail)
+            .input('xprofesion', sql.NVarChar, createWorkersList[i].xprofesion ? createWorkersList[i].xprofesion : null)
+            .input('xocupacion', sql.NVarChar, createWorkersList[i].xocupacion ? createWorkersList[i].xocupacion : null)
+            .input('xtelefonocasa', sql.NVarChar, createWorkersList[i].xtelefonocasa ? createWorkersList[i].xtelefonocasa : null)
+            .input('xfax', sql.NVarChar, createWorkersList[i].xfax ? createWorkersList[i].xfax : null)
+            .input('cparentesco', sql.Int, createWorkersList[i].cparentesco)
+            .input('cestadocivil', sql.Int, createWorkersList[i].cestadocivil)
+            .input('fnacimiento', sql.DateTime, createWorkersList[i].fnacimiento)
+            .input('xdireccion', sql.NVarChar, createWorkersList[i].xdireccion)
+            .input('cestado', sql.Int, createWorkersList[i].cestado)
+            .input('cciudad', sql.Int, createWorkersList[i].cciudad)
+            .input('cusuariocreacion', sql.Int, clientData.cusuariocreacion)
+            .input('fcreacion', sql.DateTime, new Date())
+            .query('insert into CLTRABAJADOR (CCLIENTE, XNOMBRE, XAPELLIDO, CTIPODOCIDENTIDAD, XDOCIDENTIDAD, XTELEFONOCELULAR, XEMAIL, XPROFESION, XOCUPACION, XTELEFONOCASA, XFAX, CPARENTESCO, CESTADOCIVIL, FNACIMIENTO, XDIRECCION, CESTADO, CCIUDAD, CUSUARIOCREACION, FCREACION) values (@ccliente, @xnombre, @xapellido, @ctipodocidentidad, @xdocidentidad, @xtelefonocelular, @xemail, @xprofesion, @xocupacion, @xtelefonocasa, @xfax, @cparentesco, @cestadocivil, @fnacimiento, @xdireccion, @cestado, @cciudad, @cusuariocreacion, @fcreacion)')
+            rowsAffected = rowsAffected + insert.rowsAffected;
+        }
+        return { result: { rowsAffected: rowsAffected } };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+updateWorkersByClientUpdateQuery: async(clientData, updateWorkersList) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < updateWorkersList.length; i++){
+            let update = await pool.request()
+                .input('ccliente', sql.Int, clientData.ccliente)
+                .input('ctrabajador', sql.Int, updateWorkersList[i].ctrabajador)
+                .input('xnombre', sql.NVarChar, updateWorkersList[i].xnombre)
+                .input('xapellido', sql.NVarChar, updateWorkersList[i].xapellido)
+                .input('ctipodocidentidad', sql.Int,  updateWorkersList[i].ctipodocidentidad)
+                .input('xdocidentidad', sql.NVarChar, updateWorkersList[i].xdocidentidad)
+                .input('xtelefonocelular', sql.NVarChar, updateWorkersList[i].xtelefonocelular)
+                .input('xemail', sql.NVarChar, updateWorkersList[i].xemail)
+                .input('xprofesion', sql.NVarChar, updateWorkersList[i].xprofesion ? updateWorkersList[i].xprofesion : null)
+                .input('xocupacion', sql.NVarChar, updateWorkersList[i].xocupacion ? updateWorkersList[i].xocupacion : null)
+                .input('xtelefonocasa', sql.NVarChar, updateWorkersList[i].xtelefonocasa ? updateWorkersList[i].xtelefonocasa : null)
+                .input('xfax', sql.NVarChar, updateWorkersList[i].xfax ? updateWorkersList[i].xfax : null)
+                .input('cparentesco', sql.Int, updateWorkersList[i].cparentesco)
+                .input('cestadocivil', sql.Int, updateWorkersList[i].cestadocivil)
+                .input('fnacimiento', sql.DateTime, updateWorkersList[i].fnacimiento)
+                .input('xdireccion', sql.NVarChar, updateWorkersList[i].xdireccion)
+                .input('cestado', sql.Int, updateWorkersList[i].cestado)
+                .input('cciudad', sql.Int, updateWorkersList[i].cciudad)
+                .input('cusuariomodificacion', sql.Int, clientData.cusuariomodificacion)
+                .input('fmodificacion', sql.DateTime, new Date())
+                .query('update CLTRABAJADOR set XNOMBRE = @xnombre, XAPELLIDO = @xapellido, CTIPODOCIDENTIDAD = @ctipodocidentidad, XDOCIDENTIDAD = @xdocidentidad, XTELEFONOCELULAR = @xtelefonocelular, XEMAIL = @xemail, XPROFESION = @xprofesion, XOCUPACION = @xocupacion, XTELEFONOCASA = @xtelefonocasa, XFAX = @xfax, CPARENTESCO = @cparentesco, CESTADOCIVIL = @cestadocivil, FNACIMIENTO = @fnacimiento, XDIRECCION = @xdireccion, CESTADO = @cestado, CCIUDAD = @cciudad, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion where CTRABAJADOR = @ctrabajador and CCLIENTE = @ccliente');
+            rowsAffected = rowsAffected + update.rowsAffected;
+        }
+        //sql.close();
+        return { result: { rowsAffected: rowsAffected } };
+    }
+    catch(err){
+        console.log(err.message)
+        return { error: err.message };
+    }
+},
+getClientWorkersDataQuery: async(ccliente) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('ccliente', sql.Int, ccliente)
+            .query('select * from CLTRABAJADOR where CCLIENTE = @ccliente');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+createGroupersByClientQuery: async(clientData, createGroupersList, createGroupersBanksList, ccliente) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < createGroupersList.length; i++){
+            let insert = await pool.request()
+                .input('ccliente', sql.Int, ccliente)
+                .input('xcontratoalternativo', sql.NVarChar, createGroupersList[i].xcontratoalternativo)
+                .input('xnombre', sql.NVarChar, createGroupersList[i].xnombre)
+                .input('xrazonsocial', sql.NVarChar, createGroupersList[i].xrazonsocial)
+                .input('cestado', sql.Int, createGroupersList[i].cestado)
+                .input('cciudad', sql.Int, createGroupersList[i].cciudad)
+                .input('xdireccionfiscal', sql.NVarChar, createGroupersList[i].xdireccionfiscal)
+                .input('ctipodocidentidad', sql.Int, createGroupersList[i].ctipodocidentidad)
+                .input('xdocidentidad', sql.NVarChar, createGroupersList[i].xdocidentidad)
+                .input('bfacturar', sql.Bit, createGroupersList[i].bfacturar)
+                .input('bcontribuyente', sql.Bit, createGroupersList[i].bcontribuyente)
+                .input('bimpuesto', sql.Bit, createGroupersList[i].bimpuesto)
+                .input('xtelefono', sql.NVarChar, createGroupersList[i].xtelefono)
+                .input('xfax', sql.NVarChar, createGroupersList[i].xfax ? createGroupersList[i].xfax : null)
+                .input('xemail', sql.NVarChar, createGroupersList[i].xemail)
+                .input('xrutaimagen', sql.NVarChar, createGroupersList[i].xrutaimagen ? createGroupersList[i].xrutaimagen : null)
+                .input('bactivo', sql.Bit, createGroupersList[i].bactivo)
+                .input('cusuariocreacion', sql.Int, clientData.cusuariomodificacion)
+                .input('fcreacion', sql.DateTime, new Date())
+                .query('insert into CLAGRUPADOR (CCLIENTE, XCONTRATOALTERNATIVO, XNOMBRE, XRAZONSOCIAL, CESTADO, CCIUDAD, XDIRECCIONFISCAL, CTIPODOCIDENTIDAD, XDOCIDENTIDAD, BFACTURAR, BCONTRIBUYENTE, BIMPUESTO, XTELEFONO, XFAX, XEMAIL, XRUTAIMAGEN, BACTIVO, CUSUARIOCREACION, FCREACION) output inserted.CAGRUPADOR values (@ccliente, @xcontratoalternativo, @xnombre, @xrazonsocial, @cestado, @cciudad, @xdireccionfiscal, @ctipodocidentidad, @xdocidentidad, @bfacturar, @bcontribuyente, @bimpuesto, @xtelefono, @xfax, @xemail, @xrutaimagen, @bactivo, @cusuariocreacion, @fcreacion)')
+            rowsAffected = rowsAffected + insert.rowsAffected;
+            if(insert.rowsAffected > 0 && createGroupersBanksList){
+                for(let j = 0; j < createGroupersBanksList.length; j++){
+                    let subInsert = await pool.request()
+                        .input('cagrupador', sql.Int, insert.recordset[0].CAGRUPADOR)
+                        .input('cbanco', sql.Int, createGroupersBanksList[j].cbanco)
+                        .input('ctipocuentabancaria', sql.Int, createGroupersBanksList[j].ctipocuentabancaria)
+                        .input('xnumerocuenta', sql.NVarChar, createGroupersBanksList[j].xnumerocuenta)
+                        .input('xcontrato', sql.NVarChar, createGroupersBanksList[j].xcontrato)
+                        .input('bprincipal', sql.Bit, createGroupersBanksList[j].bprincipal)
+                        .input('cusuariocreacion', sql.Int, clientData.cusuariomodificacion)
+                        .input('fcreacion', sql.DateTime, new Date())
+                        .query('insert into CLBANCOAGRUPADOR (CAGRUPADOR, CBANCO, CTIPOCUENTABANCARIA, XNUMEROCUENTA, XCONTRATO, BPRINCIPAL, CUSUARIOCREACION, FCREACION) values (@cagrupador, @cbanco, @ctipocuentabancaria, @xnumerocuenta, @xcontrato, @bprincipal, @cusuariocreacion, @fcreacion)')
+                }
+            }
+        }
+        //sql.close();
+        return { result: { rowsAffected: rowsAffected } };
+    }
+    catch(err){
+        console.log(err.message)
+        return { error: err.message };
+    }
+},
+createGroupersByClientUpdateQuery: async(clientData, createGroupersList, createGroupersBanksList) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < createGroupersList.length; i++){
+            let insert = await pool.request()
+                .input('ccliente', sql.Int, clientData.ccliente)
+                .input('xcontratoalternativo', sql.NVarChar, createGroupersList[i].xcontratoalternativo)
+                .input('xnombre', sql.NVarChar, createGroupersList[i].xnombre)
+                .input('xrazonsocial', sql.NVarChar, createGroupersList[i].xrazonsocial)
+                .input('cestado', sql.Int, createGroupersList[i].cestado)
+                .input('cciudad', sql.Int, createGroupersList[i].cciudad)
+                .input('xdireccionfiscal', sql.NVarChar, createGroupersList[i].xdireccionfiscal)
+                .input('ctipodocidentidad', sql.Int, createGroupersList[i].ctipodocidentidad)
+                .input('xdocidentidad', sql.NVarChar, createGroupersList[i].xdocidentidad)
+                .input('bfacturar', sql.Bit, createGroupersList[i].bfacturar)
+                .input('bcontribuyente', sql.Bit, createGroupersList[i].bcontribuyente)
+                .input('bimpuesto', sql.Bit, createGroupersList[i].bimpuesto)
+                .input('xtelefono', sql.NVarChar, createGroupersList[i].xtelefono)
+                .input('xfax', sql.NVarChar, createGroupersList[i].xfax ? createGroupersList[i].xfax : null)
+                .input('xemail', sql.NVarChar, createGroupersList[i].xemail)
+                .input('xrutaimagen', sql.NVarChar, createGroupersList[i].xrutaimagen ? createGroupersList[i].xrutaimagen : null)
+                .input('bactivo', sql.Bit, createGroupersList[i].bactivo)
+                .input('cusuariocreacion', sql.Int, clientData.cusuariomodificacion)
+                .input('fcreacion', sql.DateTime, new Date())
+                .query('insert into CLAGRUPADOR (CCLIENTE, XCONTRATOALTERNATIVO, XNOMBRE, XRAZONSOCIAL, CESTADO, CCIUDAD, XDIRECCIONFISCAL, CTIPODOCIDENTIDAD, XDOCIDENTIDAD, BFACTURAR, BCONTRIBUYENTE, BIMPUESTO, XTELEFONO, XFAX, XEMAIL, XRUTAIMAGEN, BACTIVO, CUSUARIOCREACION, FCREACION) output inserted.CAGRUPADOR values (@ccliente, @xcontratoalternativo, @xnombre, @xrazonsocial, @cestado, @cciudad, @xdireccionfiscal, @ctipodocidentidad, @xdocidentidad, @bfacturar, @bcontribuyente, @bimpuesto, @xtelefono, @xfax, @xemail, @xrutaimagen, @bactivo, @cusuariocreacion, @fcreacion)')
+            rowsAffected = rowsAffected + insert.rowsAffected;
+            if(insert.rowsAffected > 0 && createGroupersBanksList){
+                for(let j = 0; j < createGroupersBanksList.length; j++){
+                    let subInsert = await pool.request()
+                        .input('cagrupador', sql.Int, insert.recordset[0].CAGRUPADOR)
+                        .input('cbanco', sql.Int, createGroupersBanksList[j].cbanco)
+                        .input('ctipocuentabancaria', sql.Int, createGroupersBanksList[j].ctipocuentabancaria)
+                        .input('xnumerocuenta', sql.NVarChar, createGroupersBanksList[j].xnumerocuenta)
+                        .input('xcontrato', sql.NVarChar, createGroupersBanksList[j].xcontrato)
+                        .input('bprincipal', sql.Bit, createGroupersBanksList[j].bprincipal)
+                        .input('cusuariocreacion', sql.Int, clientData.cusuariomodificacion)
+                        .input('fcreacion', sql.DateTime, new Date())
+                        .query('insert into CLBANCOAGRUPADOR (CAGRUPADOR, CBANCO, CTIPOCUENTABANCARIA, XNUMEROCUENTA, XCONTRATO, BPRINCIPAL, CUSUARIOCREACION, FCREACION) values (@cagrupador, @cbanco, @ctipocuentabancaria, @xnumerocuenta, @xcontrato, @bprincipal, @cusuariocreacion, @fcreacion)')
+                }
+            }
+        }
+        //sql.close();
+        return { result: { rowsAffected: rowsAffected } };
+    }
+    catch(err){
+        console.log(err.message)
+        return { error: err.message };
+    }
+},
+updateGroupersByClientUpdateQuery: async(clientData, updateGroupersList, updateGroupersBanksList) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < updateGroupersList.length; i++){
+            let update = await pool.request()
+                .input('ccliente', sql.Int, clientData.ccliente)
+                .input('cagrupador', sql.Int, updateGroupersList[i].cagrupador)
+                .input('xcontratoalternativo', sql.NVarChar, updateGroupersList[i].xcontratoalternativo)
+                .input('xnombre', sql.NVarChar, updateGroupersList[i].xnombre)
+                .input('xrazonsocial', sql.NVarChar, updateGroupersList[i].xrazonsocial)
+                .input('cestado', sql.Int, updateGroupersList[i].cestado)
+                .input('cciudad', sql.Int, updateGroupersList[i].cciudad)
+                .input('xdireccionfiscal', sql.NVarChar, updateGroupersList[i].xdireccionfiscal)
+                .input('ctipodocidentidad', sql.Int, updateGroupersList[i].ctipodocidentidad)
+                .input('xdocidentidad', sql.NVarChar, updateGroupersList[i].xdocidentidad)
+                .input('bfacturar', sql.Bit, updateGroupersList[i].bfacturar)
+                .input('bcontribuyente', sql.Bit, updateGroupersList[i].bcontribuyente)
+                .input('bimpuesto', sql.Bit, updateGroupersList[i].bimpuesto)
+                .input('xtelefono', sql.NVarChar, updateGroupersList[i].xtelefono)
+                .input('xfax', sql.NVarChar, updateGroupersList[i].xfax ? updateGroupersList[i].xfax : null)
+                .input('xemail', sql.NVarChar, updateGroupersList[i].xemail)
+                .input('xrutaimagen', sql.NVarChar, updateGroupersList[i].xrutaimagen ? updateGroupersList[i].xrutaimagen : null)
+                .input('bactivo', sql.Bit, updateGroupersList[i].bactivo)
+                .input('cusuariomodificacion', sql.Int, clientData.cusuariomodificacion)
+                .input('fmodificacion', sql.DateTime, new Date())
+                .query('update CLAGRUPADOR set XCONTRATOALTERNATIVO = @xcontratoalternativo, XNOMBRE = @xnombre, XRAZONSOCIAL = @xrazonsocial, CESTADO = @cestado, CCIUDAD = @cciudad, XDIRECCIONFISCAL = @xdireccionfiscal, CTIPODOCIDENTIDAD = @ctipodocidentidad, XDOCIDENTIDAD = @xdocidentidad, BFACTURAR = @bfacturar, BCONTRIBUYENTE = @bcontribuyente, BIMPUESTO = @bimpuesto, XTELEFONO = @xtelefono, XFAX = @xfax, XEMAIL = @xemail, XRUTAIMAGEN = @xrutaimagen, BACTIVO = @bactivo, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion where CAGRUPADOR = @cagrupador and CCLIENTE = @ccliente');
+            rowsAffected = rowsAffected + update.rowsAffected;
+            if(updateGroupersBanksList){
+                if(update.rowsAffected > 0 && updateGroupersBanksList){
+                    for(let j = 0; j < updateGroupersBanksList.length; j++){
+                        let subUpdate = await pool.request()
+                            .input('cagrupador', sql.Int, updateGroupersList[i].cagrupador)
+                            .input('cbanco', sql.Int, updateGroupersBanksList[j].cbanco)
+                            .input('ctipocuentabancaria', sql.Int, updateGroupersBanksList[j].ctipocuentabancaria)
+                            .input('xnumerocuenta', sql.NVarChar, updateGroupersBanksList[j].xnumerocuenta)
+                            .input('xcontrato', sql.NVarChar, updateGroupersBanksList[j].xcontrato)
+                            .input('bprincipal', sql.Bit, updateGroupersBanksList[j].bprincipal)
+                            .input('cusuariomodificacion', sql.Int, clientData.cusuariomodificacion)
+                            .input('fmodificacion', sql.DateTime, new Date())
+                            .query('update CLBANCOAGRUPADOR set CTIPOCUENTABANCARIA = @ctipocuentabancaria, XNUMEROCUENTA = @xnumerocuenta, XCONTRATO = @xcontrato, BPRINCIPAL = @bprincipal, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion where CBANCO = @cbanco and CAGRUPADOR = @cagrupador');
+                    }
+                }
+            }
+        }
+        //sql.close();
+        return { result: { rowsAffected: rowsAffected } };
+    }
+    catch(err){
+        console.log(err.message)
+        return { error: err.message };
+    }
+},
+getClientGroupersDataQuery: async(ccliente) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('ccliente', sql.Int, ccliente)
+            .query('select * from CLAGRUPADOR where CCLIENTE = @ccliente');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+getGrouperBanksDataQuery: async(cagrupador) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cagrupador', sql.Int, cagrupador)
+            .query('select * from VWBUSCARBANCOXAGRUPADORDATA where CAGRUPADOR = @cagrupador');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+createPlansFromClientQuery: async(clientData, plans, ccliente) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < plans.length; i++){
+            let insert = await pool.request()
+            .input('ccliente', sql.Int, ccliente)
+            .input('casociado', sql.Int, plans[i].casociado)
+            .input('ctipoplan', sql.Int, plans[i].ctipoplan)
+            .input('cplan', sql.Int, plans[i].cplan)
+            .input('fdesde', sql.DateTime, plans[i].fdesde)
+            .input('fhasta', sql.DateTime, plans[i].fhasta)
+            .input('cusuariocreacion', sql.Int, clientData.cusuariocreacion)
+            .input('fcreacion', sql.DateTime, new Date())
+            .query('insert into CLPLAN (CCLIENTE, CASOCIADO, CTIPOPLAN, CPLAN, FDESDE, FHASTA, CUSUARIOCREACION, FCREACION) values (@ccliente, @casociado, @ctipoplan, @cplan, @fdesde, @fhasta, @cusuariocreacion, @fcreacion)')
+            rowsAffected = rowsAffected + insert.rowsAffected;
+        }
+        return { result: { rowsAffected: rowsAffected } };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+createPlansFromClientUpdateQuery: async(clientData, createPlansList) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < createPlansList.length; i++){
+            let insert = await pool.request()
+            .input('ccliente', sql.Int, clientData.ccliente)
+            .input('casociado', sql.Int, createPlansList[i].casociado)
+            .input('ctipoplan', sql.Int, createPlansList[i].ctipoplan)
+            .input('cplan', sql.Int, createPlansList[i].cplan)
+            .input('fdesde', sql.DateTime, createPlansList[i].fdesde)
+            .input('fhasta', sql.DateTime, createPlansList[i].fhasta)
+            .input('cusuariocreacion', sql.Int, clientData.cusuariocreacion)
+            .input('fcreacion', sql.DateTime, new Date())
+            .query('insert into CLPLAN (CCLIENTE, CASOCIADO, CTIPOPLAN, CPLAN, FDESDE, FHASTA, CUSUARIOCREACION, FCREACION) values (@ccliente, @casociado, @ctipoplan, @cplan, @fdesde, @fhasta, @cusuariocreacion, @fcreacion)')
+            rowsAffected = rowsAffected + insert.rowsAffected;
+        }
+        return { result: { rowsAffected: rowsAffected } };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+updatePlansFromClientUpdateQuery: async(clientData, updatePlansList) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < updatePlansList.length; i++){
+            let update = await pool.request()
+                .input('ccliente', sql.Int, clientData.ccliente)
+                .input('cplancliente', sql.Int, updatePlansList[i].cplancliente)
+                .input('casociado', sql.Int, updatePlansList[i].casociado)
+                .input('ctipoplan', sql.Int, updatePlansList[i].ctipoplan)
+                .input('cplan', sql.Int, updatePlansList[i].cplan)
+                .input('fdesde', sql.DateTime, updatePlansList[i].fdesde)
+                .input('fhasta', sql.DateTime, updatePlansList[i].fhasta)
+                .input('cusuariomodificacion', sql.Int, clientData.cusuariomodificacion)
+                .input('fmodificacion', sql.DateTime, new Date())
+                .query('update CLPLAN set  CPLAN = @cplan, CASOCIADO = @casociado, CTIPOPLAN = @ctipoplan, FDESDE = @fdesde, FHASTA = @fhasta, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion where CPLANCLIENTE = @cplancliente and CCLIENTE = @ccliente');
+            rowsAffected = rowsAffected + update.rowsAffected;
+        }
+        //sql.close();
+        return { result: { rowsAffected: rowsAffected } };
+    }
+    catch(err){
+        return { error: err.message };
+    }
+},
+getClientPlansDataQuery: async(ccliente) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('ccliente', sql.Int, ccliente)
+            .query('select * from VWBUSCARPLANXCLIENTEDATA where CCLIENTE = @ccliente');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
 updateClientQuery: async(clientData) => {
     try{
         let pool = await sql.connect(config);

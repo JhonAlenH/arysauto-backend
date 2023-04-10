@@ -222,6 +222,112 @@ const operationDetailClient = async(authHeader, requestBody) => {
             providers.push(provider);
         }
     }
+    let models = [];
+    let getClientModelsData = await bd.getClientModelsDataQuery(clientData.ccliente).then((res) => res);
+    if(getClientModelsData.error){ return { status: false, code: 500, message: getClientModelsData.error }; }
+    if(getClientModelsData.result.rowsAffected > 0){
+        for(let i = 0; i < getClientModelsData.result.recordset.length; i++){
+            let model = {
+                cmodelo: getClientModelsData.result.recordset[i].CMODELO,
+                xmodelo: getClientModelsData.result.recordset[i].XMODELO,
+                cmarca: getClientModelsData.result.recordset[i].CMARCA,
+                xmarca: getClientModelsData.result.recordset[i].XMARCA,
+                xobservacion: getClientModelsData.result.recordset[i].XOBSERVACION,
+            }
+            models.push(model);
+        }
+    }
+    let workers = [];
+    let getClientWorkersData = await bd.getClientWorkersDataQuery(clientData.ccliente).then((res) => res);
+    if(getClientWorkersData.error){ return { status: false, code: 500, message: getClientWorkersData.error }; }
+    if(getClientWorkersData.result.rowsAffected > 0){
+        for(let i = 0; i < getClientWorkersData.result.recordset.length; i++){
+            let worker = {
+                ctrabajador: getClientWorkersData.result.recordset[i].CTRABAJADOR,
+                xnombre: getClientWorkersData.result.recordset[i].XNOMBRE,
+                xapellido: getClientWorkersData.result.recordset[i].XAPELLIDO,
+                ctipodocidentidad: getClientWorkersData.result.recordset[i].CTIPODOCIDENTIDAD,
+                xdocidentidad: getClientWorkersData.result.recordset[i].XDOCIDENTIDAD,
+                xtelefonocelular: getClientWorkersData.result.recordset[i].XTELEFONOCELULAR,
+                xemail: getClientWorkersData.result.recordset[i].XEMAIL,
+                xprofesion: getClientWorkersData.result.recordset[i].XPROFESION,
+                xtelefonocasa: getClientWorkersData.result.recordset[i].XTELEFONOCASA,
+                xocupacion: getClientWorkersData.result.recordset[i].XOCUPACION,
+                xfax: getClientWorkersData.result.recordset[i].XFAX,
+                cparentesco: getClientWorkersData.result.recordset[i].CPARENTESCO,
+                cestadocivil: getClientWorkersData.result.recordset[i].CESTADOCIVIL,
+                cestado: getClientWorkersData.result.recordset[i].CESTADO,
+                cciudad: getClientWorkersData.result.recordset[i].CCIUDAD,
+                xdireccion: getClientWorkersData.result.recordset[i].XDIRECCION,
+                fnacimiento: getClientWorkersData.result.recordset[i].FNACIMIENTO
+            }
+            workers.push(worker);
+        }
+    }
+    let groupers = [];
+    let getClientGroupersData = await bd.getClientGroupersDataQuery(clientData.ccliente).then((res) => res);
+    if(getClientGroupersData.error){ return { status: false, code: 500, message: getClientGroupersData.error }; }
+    if(getClientGroupersData.result.rowsAffected > 0){
+        for(let i = 0; i < getClientGroupersData.result.recordset.length; i++){
+            let banks = [];
+            let getGrouperBanksData = await bd.getGrouperBanksDataQuery(getClientGroupersData.result.recordset[i].CAGRUPADOR).then((res) => res);
+            if(getGrouperBanksData.error){ return { status: false, code: 500, message: getGrouperBanksData.error }; }
+            if(getGrouperBanksData.result.rowsAffected > 0){
+                for(let i = 0; i < getGrouperBanksData.result.recordset.length; i++){
+                    let bank = {
+                        cbanco: getGrouperBanksData.result.recordset[i].CBANCO,
+                        xbanco: getGrouperBanksData.result.recordset[i].XBANCO,
+                        ctipocuentabancaria: getGrouperBanksData.result.recordset[i].CTIPOCUENTABANCARIA,
+                        xtipocuentabancaria: getGrouperBanksData.result.recordset[i].XTIPOCUENTABANCARIA,
+                        xnumerocuenta: getGrouperBanksData.result.recordset[i].XNUMEROCUENTA,
+                        xcontrato: getGrouperBanksData.result.recordset[i].XCONTRATO,
+                        bprincipal: getGrouperBanksData.result.recordset[i].BPRINCIPAL,
+                    }
+                    banks.push(bank);
+                }
+            }
+            let grouper = {
+                cagrupador: getClientGroupersData.result.recordset[i].CAGRUPADOR,
+                xcontratoalternativo: getClientGroupersData.result.recordset[i].XCONTRATOALTERNATIVO,
+                xnombre: getClientGroupersData.result.recordset[i].XNOMBRE,
+                xrazonsocial: getClientGroupersData.result.recordset[i].XRAZONSOCIAL,
+                cestado: getClientGroupersData.result.recordset[i].CESTADO,
+                cciudad: getClientGroupersData.result.recordset[i].CCIUDAD,
+                xdireccionfiscal: getClientGroupersData.result.recordset[i].XDIRECCIONFISCAL,
+                ctipodocidentidad: getClientGroupersData.result.recordset[i].CTIPODOCIDENTIDAD,
+                xdocidentidad: getClientGroupersData.result.recordset[i].XDOCIDENTIDAD,
+                bfacturar: getClientGroupersData.result.recordset[i].BFACTURAR,
+                bcontribuyente: getClientGroupersData.result.recordset[i].BCONTRIBUYENTE,
+                bimpuesto: getClientGroupersData.result.recordset[i].BIMPUESTO,
+                xtelefono: getClientGroupersData.result.recordset[i].XTELEFONO,
+                xfax: getClientGroupersData.result.recordset[i].XFAX,
+                xemail: getClientGroupersData.result.recordset[i].XEMAIL,
+                xrutaimagen: getClientGroupersData.result.recordset[0].XRUTAIMAGEN ? getClientGroupersData.result.recordset[0].XRUTAIMAGEN : undefined,
+                bactivo: getClientGroupersData.result.recordset[i].BACTIVO,
+                banks: banks
+            }
+            groupers.push(grouper);
+        }
+    }
+    let plans = [];
+    let getClientPlansData = await bd.getClientPlansDataQuery(clientData.ccliente).then((res) => res);
+    if(getClientPlansData.error){ return { status: false, code: 500, message: getClientPlansData.error }; }
+    if(getClientPlansData.result.rowsAffected > 0){
+        for(let i = 0; i < getClientPlansData.result.recordset.length; i++){
+            let plan = {
+                cplancliente: getClientPlansData.result.recordset[i].CPLANCLIENTE,
+                cplan: getClientPlansData.result.recordset[i].CPLAN,
+                xplan: getClientPlansData.result.recordset[i].XPLAN,
+                casociado: getClientPlansData.result.recordset[i].CASOCIADO,
+                xasociado: getClientPlansData.result.recordset[i].XASOCIADO,
+                ctipoplan: getClientPlansData.result.recordset[i].CTIPOPLAN,
+                xtipoplan: getClientPlansData.result.recordset[i].XTIPOPLAN,
+                fdesde: getClientPlansData.result.recordset[i].FDESDE,
+                fhasta: getClientPlansData.result.recordset[i].FHASTA
+            }
+            plans.push(plan);
+        }
+    }
     return { 
         status: true,
         ccliente: getClientData.result.recordset[0].CCLIENTE,
@@ -249,7 +355,11 @@ const operationDetailClient = async(authHeader, requestBody) => {
         depreciations: depreciations,
         relationships: relationships,
         penalties: penalties,
-        providers: providers
+        providers: providers,
+        models: models,
+        workers: workers,
+        groupers: groupers,
+        plans: plans
     }
 }
 
@@ -421,6 +531,94 @@ const operationCreateClient = async(authHeader, requestBody) => {
             }
             let createProvidersFromClient = await bd.createProvidersFromClientQuery(clientData, providers, createClient.result.recordset[0].CCLIENTE).then((res) => res);
             if(createProvidersFromClient.error){return { status: false, code: 500, message: createProvidersFromClient.error }; }
+        }
+        if(requestBody.models){
+            let models = [];
+            for(let i = 0; i < requestBody.models.length; i++){
+                models.push({
+                    cmodelo: requestBody.models[i].cmodelo,
+                    cmarca: requestBody.models[i].cmarca,
+                    xobservacion: requestBody.models[i].xobservacion,
+                })
+            }
+            let createModelsFromClient = await bd.createModelsFromClientQuery(clientData, models, createClient.result.recordset[0].CCLIENTE).then((res) => res);
+            if(createModelsFromClient.error){return { status: false, code: 500, message: createModelsFromClient.error }; }
+        }
+        if(requestBody.workers){
+            let workers = [];
+            for(let i = 0; i < requestBody.workers.length; i++){
+                workers.push({
+                    xnombre: requestBody.workers[i].xnombre,
+                    xapellido: requestBody.workers[i].xapellido,
+                    ctipodocidentidad: requestBody.workers[i].ctipodocidentidad,
+                    xdocidentidad: requestBody.workers[i].xdocidentidad,
+                    xtelefonocelular: requestBody.workers[i].xtelefonocelular,
+                    xemail: requestBody.workers[i].xemail,
+                    xprofesion: requestBody.workers[i].xprofesion,
+                    xfax: requestBody.workers[i].xfax,
+                    xocupacion: requestBody.workers[i].xocupacion,
+                    xtelefonocasa: requestBody.workers[i].xtelefonocasa,
+                    cparentesco: requestBody.workers[i].cparentesco,
+                    cciudad: requestBody.workers[i].cciudad,
+                    cestado: requestBody.workers[i].cestado,
+                    xdireccion: requestBody.workers[i].xdireccion,
+                    fnacimiento: requestBody.workers[i].fnacimiento,
+                    cestadocivil: requestBody.workers[i].cestadocivil
+                })
+            }
+            let createWorkersFromClient = await bd.createWorkersFromClientQuery(clientData, workers, createClient.result.recordset[0].CCLIENTE).then((res) => res);
+            if(createWorkersFromClient.error){return { status: false, code: 500, message: createWorkersFromClient.error }; }
+        }
+        if(requestBody.groupers){
+            let createGroupersList = [];
+            let createGroupersBanksList = [];
+            for(let i = 0; i < requestBody.groupers.length; i++){
+                createGroupersList.push({
+                    xcontratoalternativo: requestBody.groupers[i].xcontratoalternativo,
+                    xnombre: requestBody.groupers[i].xnombre,
+                    xrazonsocial: requestBody.groupers[i].xrazonsocial,
+                    cestado: requestBody.groupers[i].cestado,
+                    cciudad: requestBody.groupers[i].cciudad,
+                    xdireccionfiscal: requestBody.groupers[i].xdireccionfiscal,
+                    ctipodocidentidad: requestBody.groupers[i].ctipodocidentidad,
+                    xdocidentidad: requestBody.groupers[i].xdocidentidad,
+                    bfacturar: requestBody.groupers[i].bfacturar,
+                    bcontribuyente: requestBody.groupers[i].bcontribuyente,
+                    bimpuesto: requestBody.groupers[i].bimpuesto,
+                    xtelefono: requestBody.groupers[i].xtelefono,
+                    xfax: requestBody.groupers[i].xfax ? requestBody.groupers[i].xfax : undefined,
+                    xemail: requestBody.groupers[i].xemail,
+                    xrutaimagen: requestBody.groupers[i].xrutaimagen ? requestBody.groupers[i].xrutaimagen : undefined,
+                    bactivo: requestBody.groupers[i].bactivo,
+                })
+                if(requestBody.groupers[i].banks){
+                    for(let j = 0; j < requestBody.groupers[i].banks.length; j++){
+                        createGroupersBanksList.push({
+                            cbanco: requestBody.groupers[i].banks[j].cbanco,
+                            ctipocuentabancaria: requestBody.groupers[i].banks[j].ctipocuentabancaria,
+                            xnumerocuenta: requestBody.groupers[i].banks[j].xnumerocuenta,
+                            xcontrato: requestBody.groupers[i].banks[j].xcontrato,
+                            bprincipal: requestBody.groupers[i].banks[j].bprincipal,
+                        })
+                    }
+                }
+            }
+            let createGroupersByClient = await bd.createGroupersByClientQuery(clientData, createGroupersList, createGroupersBanksList, createClient.result.recordset[0].CCLIENTE).then((res) => res);
+            if(createGroupersByClient.error){ return { status: false, code: 500, message: createGroupersByClientUpdate.error }; }
+        }
+        if(requestBody.plans){
+            let plans = [];
+            for(let i = 0; i < requestBody.plans.length; i++){
+                plans.push({
+                    cplan: requestBody.plans[i].cplan,
+                    casociado: requestBody.plans[i].casociado,
+                    ctipoplan: requestBody.plans[i].ctipoplan,
+                    fdesde: requestBody.plans[i].fdesde,
+                    fhasta: requestBody.plans[i].fhasta
+                })
+            }
+            let createWorkersFromClient = await bd.createPlansFromClientQuery(clientData, plans, createClient.result.recordset[0].CCLIENTE).then((res) => res);
+            if(createWorkersFromClient.error){return { status: false, code: 500, message: createWorkersFromClient.error }; }
         }
         return{status: true, ccliente: createClient.result.recordset[0].CCLIENTE}
     }
@@ -746,6 +944,193 @@ const operationUpdateClient = async(authHeader, requestBody) => {
             }
             let updateProvidersFromClientUpdate = await bd.updateProvidersByClientUpdateQuery(clientData, updateProvidersList).then((res) => res);
             if(updateProvidersFromClientUpdate.error){console.log(updateProvidersFromClientUpdate.error);return { status: false, code: 500, message: updateProvidersFromClientUpdate.error }; }
+        }
+    }
+    if(requestBody.models){
+        if(requestBody.models.create){
+            let createModelsList = [];
+            for(let i = 0; i < requestBody.models.create.length; i++){
+                createModelsList.push({
+                    cmodelo: requestBody.models.create[i].cmodelo,
+                    cmarca: requestBody.models.create[i].cmarca,
+                    xobservacion: requestBody.models.create[i].xobservacion,
+                })
+            }
+            let createModelsFromClientUpdate = await bd.createModelsFromClientUpdateQuery(clientData, createModelsList).then((res) => res);
+            if(createModelsFromClientUpdate.error){console.log(createModelsFromClientUpdate.error); return { status: false, code: 500, message: createModelsFromClientUpdate.error }; }
+        }
+        if(requestBody.models.update){
+            let updateModelsList = [];
+            for(let i = 0; i < requestBody.models.update.length; i++){
+                updateModelsList.push({
+                    cmodelo: requestBody.models.update[i].cmodelo,
+                    cmarca: requestBody.models.update[i].cmarca,
+                    xobservacion: requestBody.models.update[i].xobservacion,
+                })
+            }
+            let updateModelsFromClientUpdate = await bd.updateModelsByClientUpdateQuery(clientData, updateModelsList).then((res) => res);
+            if(updateModelsFromClientUpdate.error){console.log(updateModelsFromClientUpdate.error);return { status: false, code: 500, message: updateModelsFromClientUpdate.error }; }
+        }
+    }
+    if(requestBody.workers){
+        if(requestBody.workers.create){
+            let createWorkersList = [];
+            for(let i = 0; i < requestBody.workers.create.length; i++){
+                createWorkersList.push({
+                    xnombre: requestBody.workers.create[i].xnombre,
+                    xapellido: requestBody.workers.create[i].xapellido,
+                    ctipodocidentidad: requestBody.workers.create[i].ctipodocidentidad,
+                    xdocidentidad: requestBody.workers.create[i].xdocidentidad,
+                    xtelefonocelular: requestBody.workers.create[i].xtelefonocelular,
+                    xemail: requestBody.workers.create[i].xemail,
+                    xprofesion: requestBody.workers.create[i].xprofesion,
+                    xfax: requestBody.workers.create[i].xfax,
+                    xocupacion: requestBody.workers.create[i].xocupacion,
+                    xtelefonocasa: requestBody.workers.create[i].xtelefonocasa,
+                    cparentesco: requestBody.workers.create[i].cparentesco,
+                    cciudad: requestBody.workers.create[i].cciudad,
+                    cestado: requestBody.workers.create[i].cestado,
+                    xdireccion: requestBody.workers.create[i].xdireccion,
+                    fnacimiento: requestBody.workers.create[i].fnacimiento,
+                    cestadocivil: requestBody.workers.create[i].cestadocivil
+                })
+            }
+            let createWorkersFromClientUpdate = await bd.createWorkersFromClientUpdateQuery(clientData, createWorkersList).then((res) => res);
+            if(createWorkersFromClientUpdate.error){console.log(createWorkersFromClientUpdate.error); return { status: false, code: 500, message: createWorkersFromClientUpdate.error }; }
+        }
+        if(requestBody.workers.update){
+            let updateWorkersList = [];
+            for(let i = 0; i < requestBody.workers.update.length; i++){
+                updateWorkersList.push({
+                    ctrabajador: requestBody.workers.update[i].ctrabajador,
+                    xnombre: requestBody.workers.update[i].xnombre,
+                    xapellido: requestBody.workers.update[i].xapellido,
+                    ctipodocidentidad: requestBody.workers.update[i].ctipodocidentidad,
+                    xdocidentidad: requestBody.workers.update[i].xdocidentidad,
+                    xtelefonocelular: requestBody.workers.update[i].xtelefonocelular,
+                    xemail: requestBody.workers.update[i].xemail,
+                    xprofesion: requestBody.workers.update[i].xprofesion,
+                    xfax: requestBody.workers.update[i].xfax,
+                    xocupacion: requestBody.workers.update[i].xocupacion,
+                    xtelefonocasa: requestBody.workers.update[i].xtelefonocasa,
+                    cparentesco: requestBody.workers.update[i].cparentesco,
+                    cciudad: requestBody.workers.update[i].cciudad,
+                    cestado: requestBody.workers.update[i].cestado,
+                    xdireccion: requestBody.workers.update[i].xdireccion,
+                    fnacimiento: requestBody.workers.update[i].fnacimiento,
+                    cestadocivil: requestBody.workers.update[i].cestadocivil
+                })
+            }
+            let updateWorkersFromClientUpdate = await bd.updateWorkersByClientUpdateQuery(clientData, updateWorkersList).then((res) => res);
+            if(updateWorkersFromClientUpdate.error){console.log(updateWorkersFromClientUpdate.error);return { status: false, code: 500, message: updateWorkersFromClientUpdate.error }; }
+        }
+    }
+    if(requestBody.groupers){
+        let createGroupersList = [];
+        let createGroupersBanksList = [];
+        if(requestBody.groupers.create){
+            for(let i = 0; i < requestBody.groupers.create.length; i++){
+                createGroupersList.push({
+                    xcontratoalternativo: requestBody.groupers.create[i].xcontratoalternativo,
+                    xnombre: requestBody.groupers.create[i].xnombre,
+                    xrazonsocial: requestBody.groupers.create[i].xrazonsocial,
+                    cestado: requestBody.groupers.create[i].cestado,
+                    cciudad: requestBody.groupers.create[i].cciudad,
+                    xdireccionfiscal: requestBody.groupers.create[i].xdireccionfiscal,
+                    ctipodocidentidad: requestBody.groupers.create[i].ctipodocidentidad,
+                    xdocidentidad: requestBody.groupers.create[i].xdocidentidad,
+                    bfacturar: requestBody.groupers.create[i].bfacturar,
+                    bcontribuyente: requestBody.groupers.create[i].bcontribuyente,
+                    bimpuesto: requestBody.groupers.create[i].bimpuesto,
+                    xtelefono: requestBody.groupers.create[i].xtelefono,
+                    xfax: requestBody.groupers.create[i].xfax ? requestBody.groupers.create[i].xfax : undefined,
+                    xemail: requestBody.groupers.create[i].xemail,
+                    xrutaimagen: requestBody.groupers.create[i].xrutaimagen ? requestBody.groupers.create[i].xrutaimagen : undefined,
+                    bactivo: requestBody.groupers.create[i].bactivo,
+                })
+                if(requestBody.groupers.create[i].banks){
+                    for(let j = 0; j < requestBody.groupers.create[i].banks.length; j++){
+                        createGroupersBanksList.push({
+                            cbanco: requestBody.groupers.create[i].banks[j].cbanco,
+                            ctipocuentabancaria: requestBody.groupers.create[i].banks[j].ctipocuentabancaria,
+                            xnumerocuenta: requestBody.groupers.create[i].banks[j].xnumerocuenta,
+                            xcontrato: requestBody.groupers.create[i].banks[j].xcontrato,
+                            bprincipal: requestBody.groupers.create[i].banks[j].bprincipal,
+                        })
+                    }
+                }
+            }
+            let createGroupersByClientUpdate = await bd.createGroupersByClientUpdateQuery(clientData, createGroupersList, createGroupersBanksList).then((res) => res);
+            if(createGroupersByClientUpdate.error){ return { status: false, code: 500, message: createGroupersByClientUpdate.error }; }
+        }
+        if(requestBody.groupers.update){
+            let updateGroupersList = [];
+            let updateGroupersBanksList = [];
+            for(let i = 0; i < requestBody.groupers.update.length; i++){
+                updateGroupersList.push({
+                    cagrupador: requestBody.groupers.update[i].cagrupador,
+                    xcontratoalternativo: requestBody.groupers.update[i].xcontratoalternativo,
+                    xnombre: requestBody.groupers.update[i].xnombre,
+                    xrazonsocial: requestBody.groupers.update[i].xrazonsocial,
+                    cestado: requestBody.groupers.update[i].cestado,
+                    cciudad: requestBody.groupers.update[i].cciudad,
+                    xdireccionfiscal: requestBody.groupers.update[i].xdireccionfiscal,
+                    ctipodocidentidad: requestBody.groupers.update[i].ctipodocidentidad,
+                    xdocidentidad: requestBody.groupers.update[i].xdocidentidad,
+                    bfacturar: requestBody.groupers.update[i].bfacturar,
+                    bcontribuyente: requestBody.groupers.update[i].bcontribuyente,
+                    bimpuesto: requestBody.groupers.update[i].bimpuesto,
+                    xtelefono: requestBody.groupers.update[i].xtelefono,
+                    xfax: requestBody.groupers.update[i].xfax ? requestBody.groupers.update[i].xfax : undefined,
+                    xemail: requestBody.groupers.update[i].xemail,
+                    xrutaimagen: requestBody.groupers.update[i].xrutaimagen ? requestBody.groupers.update[i].xrutaimagen : undefined,
+                    bactivo: requestBody.groupers.update[i].bactivo,
+                })
+                if(requestBody.groupers.update[i].banks){
+                    for(let j = 0; j < requestBody.groupers.update[i].banks.length; j++){
+                        updateGroupersBanksList.push({
+                            cbanco: requestBody.groupers.update[i].banks[j].cbanco,
+                            ctipocuentabancaria: requestBody.groupers.update[i].banks[j].ctipocuentabancaria,
+                            xnumerocuenta: requestBody.groupers.update[i].banks[j].xnumerocuenta,
+                            xcontrato: requestBody.groupers.update[i].banks[j].xcontrato,
+                            bprincipal: requestBody.groupers.update[i].banks[j].bprincipal,
+                        })
+                    }
+                }
+            }
+            let updateGroupersByClientUpdate = await bd.updateGroupersByClientUpdateQuery(clientData, updateGroupersList, updateGroupersBanksList).then((res) => res);
+            if(updateGroupersByClientUpdate.error){ return { status: false, code: 500, message: updateGroupersByClientUpdate.error }; }
+        }
+    }
+    if(requestBody.plans){
+        if(requestBody.plans.create){
+            let createPlansList = [];
+            for(let i = 0; i < requestBody.plans.create.length; i++){
+                createPlansList.push({
+                    cplan: requestBody.plans.create[i].cplan,
+                    casociado: requestBody.plans.create[i].casociado,
+                    ctipoplan: requestBody.plans.create[i].ctipoplan,
+                    fdesde: requestBody.plans.create[i].fdesde,
+                    fhasta: requestBody.plans.create[i].fhasta
+                })
+            }
+            let createPlansFromClientUpdate = await bd.createPlansFromClientUpdateQuery(clientData, createPlansList).then((res) => res);
+            if(createPlansFromClientUpdate.error){console.log(createPlansFromClientUpdate.error); return { status: false, code: 500, message: createPlansFromClientUpdate.error }; }
+        }
+        if(requestBody.plans.update){
+            let updatePlansList = [];
+            for(let i = 0; i < requestBody.plans.update.length; i++){
+                updatePlansList.push({
+                    cplan: requestBody.plans.update[i].cplan,
+                    cplancliente: requestBody.plans.update[i].cplancliente,
+                    casociado: requestBody.plans.update[i].casociado,
+                    ctipoplan: requestBody.plans.update[i].ctipoplan,
+                    fdesde: requestBody.plans.update[i].fdesde,
+                    fhasta: requestBody.plans.update[i].fhasta
+                })
+            }
+            let updatePlansFromClientUpdate = await bd.updatePlansFromClientUpdateQuery(clientData, updatePlansList).then((res) => res);
+            if(updatePlansFromClientUpdate.error){console.log(updatePlansFromClientUpdate.error);return { status: false, code: 500, message: updatePlansFromClientUpdate.error }; }
         }
     }
     return{status: true, ccliente: clientData.ccliente}
