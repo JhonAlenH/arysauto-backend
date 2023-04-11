@@ -8824,8 +8824,8 @@ module.exports = {
             let result = await pool.request()
                 .input('cpais', sql.Numeric(4, 0), fleetContractData.cpais ? fleetContractData.cpais: undefined)
                 .input('ccompania', sql.Int, fleetContractData.ccompania)
-                .input('ccontratoflota', sql.Int, fleetContractData.ccontratoflota)
-                .query('select * from VWBUSCARSUCONTRATOFLOTADATA where CCONTRATOFLOTA = @ccontratoflota and CCOMPANIA = @ccompania');
+                .input('ccodigo_serv', sql.Int, fleetContractData.ccodigo_serv)
+                .query('select * from VWBUSCARSUCONTRATOFLOTADATA where CCODIGO_SERV = @ccodigo_serv and CCOMPANIA = @ccompania');
             //sql.close();
             return { result: result };
         }catch(err){
@@ -15599,6 +15599,62 @@ searchContractArysQuery: async() => {
         return { result: result };
     }catch(err){
         console.log(err.message)
+        return { error: err.message };
+    }
+},
+getContractArysDataQuery: async(contractData) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cpais', sql.Numeric(4, 0), contractData.cpais ? contractData.cpais: undefined)
+            .input('ccompania', sql.Int, contractData.ccompania)
+            .input('ccodigo_serv', sql.Int, contractData.ccodigo_serv)
+            .query('select * from VWBUSCARSUCONTRATOFLOTADATA where CCODIGO_SERV = @ccodigo_serv and CCOMPANIA = @ccompania');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+getContractArysOwnerDataQuery: async(contractData, cpropietario) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cpais', sql.Numeric(4, 0), contractData.cpais)
+            .input('ccompania', sql.Int, contractData.ccompania)
+            .input('cpropietario', sql.Int, cpropietario)
+            .query('select * from VWBUSCARPROPIETARIOXCONTRATOFLOTADATA where  CCOMPANIA = @ccompania and CPROPIETARIO = @cpropietario');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+getContractClientDataQuery: async(ccliente) => {
+    console.log(ccliente)
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('ccliente', sql.Int, ccliente)
+            .query('select * from VWBUSCARCLIENTEXCONTRATOFLOTADATA where CCLIENTE = @ccliente');
+        //sql.close();
+        console.log(result)
+        return { result: result };
+    }catch(err){
+        console.log(err.message)
+        return { error: err.message };
+    }
+},
+getPlanData: async(cplan) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cplan', sql.Int, cplan)
+            .query('select * from POPLAN where CPLAN = @cplan');
+        //sql.close();
+        console.log(result)
+        return { result: result };
+    }catch(err){
         return { error: err.message };
     }
 },
