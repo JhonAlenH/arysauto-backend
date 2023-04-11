@@ -15590,6 +15590,17 @@ searchCodeFlotaQuery: async() => {
         return { error: err.message };
     }
 },
-
+searchContractArysQuery: async() => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .query('SELECT * FROM VWBUSCARCONTRATOSSERVICIOSARYS');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        console.log(err.message)
+        return { error: err.message };
+    }
+},
 }
 

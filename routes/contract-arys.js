@@ -178,4 +178,44 @@ const operationDetailContractArys = async(authHeader, requestBody) => {
     }
 }
 
+router.route('/search-contract-arys').post((req, res) => {
+    if(!req.header('Authorization')){ 
+        res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } })
+        return;
+    }else{
+        operationSearchContractArys(req.header('Authorization'), req.body).then((result) => {
+            if(!result.status){ 
+                res.status(result.code).json({ data: result });
+                return;
+            }
+            res.json({ data: result });
+        }).catch((err) => {
+            console.log(err.message)
+            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchContractArys' } });
+        });
+    }
+});
+
+const operationSearchContractArys = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    //if(!helper.validateRequestObj(requestBody, ['cpais', 'ccompania', 'ctiposervicio'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
+    let contractArysList = [];
+    let searchContractArys = await bd.searchContractArysQuery().then((res) => res);
+    if(searchContractArys.error){ console.log(searchContractArys.error);return { status: false, code: 500, message: searchContractArys.error }; }
+    if(searchContractArys.result.rowsAffected != 0){
+        for(let i = 0; i < searchContractArys.result.recordset.length; i++){
+            let xnombres = searchContractArys.result.recordset[i].XNOMBRE + ' ' + searchContractArys.result.recordset[i].XAPELLIDO
+            let xvehiculo = searchContractArys.result.recordset[i].XMARCA + ' ' + searchContractArys.result.recordset[i].XMODELO + ' ' + searchContractArys.result.recordset[i].XVERSION
+            let xidentificacion = searchContractArys.result.recordset[i].ICEDULA + ' ' + searchContractArys.result.recordset[i].XDOCIDENTIDAD
+            contractArysList.push({ 
+                xnombres: xnombres, 
+                xvehiculo: xvehiculo, 
+                fano: searchContractArys.result.recordset[i].CANO, 
+                identificacion: xidentificacion
+            });
+        }
+    }
+    return { status: true, list: contractArysList }
+}
+
 module.exports = router;
