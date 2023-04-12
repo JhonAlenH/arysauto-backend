@@ -15658,5 +15658,17 @@ getPlanData: async(cplan) => {
         return { error: err.message };
     }
 },
+getServiceFromPlanQuery: async(cplan) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .input('cplan', sql.Int, cplan)
+            .query('select * from VWBUSCARSERVICIOSXPLAN where CPLAN = @cplan');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
 }
 

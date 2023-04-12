@@ -264,6 +264,20 @@ const operationDetailAdministrationContractArys = async(authHeader, requestBody)
         let getPlan = await bd.getPlanData(getContractArysData.result.recordset[0].CPLAN);
         if(getPlan.error){ return { status: false, code: 500, message: getPlan.error }; }
         if(getPlan.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Fleet Contract Plan not found.' }; }
+
+        let serviceList = [];
+        let getServiceFromPlan = await bd.getServiceFromPlanQuery(getContractArysData.result.recordset[0].CPLAN);
+        if(getServiceFromPlan.error){ return { status: false, code: 500, message: getServiceFromPlan.error }; }
+        if(getServiceFromPlan.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Fleet Contract Plan not found.' }; }
+        if(getServiceFromPlan.result.recordset != 0){
+            for(let i = 0; i < getServiceFromPlan.result.recordset.length; i++){
+                serviceList.push({
+                    cservicio: getServiceFromPlan.result.recordset[i].CSERVICIO,
+                    xservicio: getServiceFromPlan.result.recordset[i].XSERVICIO,
+                })
+            }
+            console.log(serviceList)
+        }
         return {
             status: true,
             ccarga: getContractArysData.result.recordset[0].ccarga,
@@ -337,7 +351,7 @@ const operationDetailAdministrationContractArys = async(authHeader, requestBody)
             ctipovehiculo: getContractArysData.result.recordset[0].CTIPOVEHICULO,
             xtipomodelovehiculo: getContractArysData.result.recordset[0].XTIPOMODELO,
             ncapacidadcargavehiculo: getContractArysData.result.recordset[0].NCAPACIDADCARGA,
-            ncapacidadpasajerosvehiculo: getContractArysData.result.recordset[0].NCAPACIDADPASAJEROS,
+            ncapacidadpasajeros: getContractArysData.result.recordset[0].NPASAJERO,
             xtomador: getContractArysData.result.recordset[0].XTOMADOR,
             xprofesion: getContractArysData.result.recordset[0].XPROFESION,
             xrif: getContractArysData.result.recordset[0].XRIF,
@@ -350,6 +364,7 @@ const operationDetailAdministrationContractArys = async(authHeader, requestBody)
             xclase: getContractArysData.result.recordset[0].XCLASE,
             nkilometraje: getContractArysData.result.recordset[0].NKILOMETRAJE,
             xzona_postal_propietario: getContractArysData.result.recordset[0].XZONA_POSTAL_PROPIETARIO,
+            services: serviceList
         }
     }else{ return { status: false, code: 404, message: 'Fleet Contract not found.' }; }
 }
