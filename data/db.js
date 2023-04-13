@@ -3533,25 +3533,26 @@ module.exports = {
             return { error: err.message };
         }
     },
-    updateServicesByProviderUpdateQuery: async(services, providerData) => {
-        try{
-            let rowsAffected = 0;
-            let pool = await sql.connect(config);
-            for(let i = 0; i < services.length; i++){
-                let update = await pool.request()
-                    .input('cproveedor', sql.Int, providerData.cproveedor)
-                    .input('cservicio', sql.Int, services[i].cservicio)
-                    .input('cestado', sql.Int, services[i].cestado)
-                    .query('update PRPROVEEDOR_SERVICIO set CSERVICIO = @cservicio, CESTADO = @cestado where CPROVEEDOR = @cproveedor');
-                rowsAffected = rowsAffected + update.rowsAffected;
-            }
-            //sql.close();
-            return { result: { rowsAffected: rowsAffected } };
-        }
-        catch(err){
-            return { error: err.message };
-        }
-    },
+    //No tiene sentido esta función
+    //updateServicesByProviderUpdateQuery: async(services, providerData) => {
+    //    try{
+    //        let rowsAffected = 0;
+    //        let pool = await sql.connect(config);
+    //        for(let i = 0; i < services.length; i++){
+    //            let update = await pool.request()
+    //                .input('cproveedor', sql.Int, providerData.cproveedor)
+    //                .input('cservicio', sql.Int, services[i].cservicio)
+    //                .input('cestado', sql.Int, services[i].cestado)
+    //                .query('update PRPROVEEDOR_SERVICIO set CSERVICIO = @cservicio, CESTADO = @cestado where CPROVEEDOR = @cproveedor');
+    //            rowsAffected = rowsAffected + update.rowsAffected;
+    //        }
+    //        //sql.close();
+    //        return { result: { rowsAffected: rowsAffected } };
+    //    }
+    //    catch(err){
+    //        return { error: err.message };
+    //    }
+    //},
     deleteServicesByProviderUpdateQuery: async(services, providerData) => {
         try{
             let rowsAffected = 0;
@@ -3560,7 +3561,7 @@ module.exports = {
                 let erase = await pool.request()
                     .input('cproveedor', sql.Int, providerData.cproveedor)
                     .input('cservicio', sql.Int, services[i].cservicio)
-                    .query('delete from PRSERVICIO where CSERVICIO = @cservicio and CPROVEEDOR = @cproveedor');
+                    .query('delete from PRPROVEEDOR_SERVICIO where CSERVICIO = @cservicio and CPROVEEDOR = @cproveedor');
                 rowsAffected = rowsAffected + erase.rowsAffected;
             }
             //sql.close();
