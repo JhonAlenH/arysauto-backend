@@ -315,12 +315,14 @@ router.route('/Data/Solicitud').post((req, res) => {
 const operationGenerateSolicitud = async(requestBody) => {
     let ClientData = {       
         cestado: requestBody.cestado,
+        cpais: requestBody.cpais,
         cciudad: requestBody.cciudad,
         cservicio: requestBody.cservicio,
         ctiposervicio: requestBody.ctiposervicio,
         cproveedor: requestBody.cproveedor,
         cpropietario: requestBody.cpropietario,
-        ccontratoflota: requestBody.ccontratoflota
+        ccontratoflota: requestBody.ccontratoflota,
+        fsolicitud: requestBody.fsolicitud,
     };
     let client = await bd.SolicitudServiceClub(ClientData).then((res) => res);
     if(client.error){ return { status: false, code: 500, message: client.error }; }
@@ -350,25 +352,25 @@ router.route('/Data/store-procedure/service').post((req, res) => {
 });
 
 const operationStoreProcedureFromClub = async(authHeader, requestBody) => {
-    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
-    let data = {
-        ccontratoflota: requestBody.ccontratoflota,
-        cusuariocreacion: requestBody.cusuariocreacion,
-        cplan: requestBody.cplan,
-        ctiposervicio: requestBody.ctiposervicio,
+if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+let data = {
+    ccontratoflota: requestBody.ccontratoflota,
+    cusuariocreacion: requestBody.cusuariocreacion,
+    cplan: requestBody.cplan,
+    ctiposervicio: requestBody.ctiposervicio,
+}
+let storeProcedure = await bd.storeProcedureFromClubQuery(data).then((res) => res);
+if(storeProcedure.error){ return  { status: false, code: 500, message: storeProcedure.error }; }
+if(storeProcedure.result.rowsAffected > 0){
+    let jsonList = [];
+    for(let i = 0; i < storeProcedure.result.recordset.length; i++){
+        jsonList.push({
+            cservicio: storeProcedure.result.recordset[i].CSERVICIO,
+            xservicio: storeProcedure.result.recordset[i].XSERVICIO,
+        });
     }
-    let storeProcedure = await bd.storeProcedureFromClubQuery(data).then((res) => res);
-    if(storeProcedure.error){ return  { status: false, code: 500, message: storeProcedure.error }; }
-    if(storeProcedure.result.rowsAffected > 0){
-        let jsonList = [];
-        for(let i = 0; i < storeProcedure.result.recordset.length; i++){
-            jsonList.push({
-                cservicio: storeProcedure.result.recordset[i].CSERVICIO,
-                xservicio: storeProcedure.result.recordset[i].XSERVICIO,
-            });
-        }
-        return { status: true, list: jsonList };
-    }else{ return { status: false, code: 404, message: 'Replacement not found.' }; }
+    return { status: true, list: jsonList };
+}else{ return { status: false, code: 404, message: 'Replacement not found.' }; };
 }
 
 router.route('/client-agenda').post((req, res) => {
@@ -388,7 +390,7 @@ const CreateAgenda = async(requestBody) => {
         cpropietario: requestBody.cpropietario,
         id: requestBody.id,
         xtitulo: requestBody.title,
-        finicio: requestBody.start,
+        fdesde: requestBody.start,
         fhasta: requestBody.end,
         condicion: requestBody.allDay,
     };
@@ -401,9 +403,9 @@ const CreateAgenda = async(requestBody) => {
             events.push({
                 id: Agenda.result.recordset[i].ID, 
                 title: Agenda.result.recordset[i].XTITULO,
-                start: Agenda.result.recordset[i].FINICIO.toISOString().replace(/T.*$/, ''),
+                start: Agenda.result.recordset[i].FDESDE.toISOString().replace(/T.*$/, ''),
                 end: Agenda.result.recordset[i].FHASTA.toISOString().replace(/T.*$/, ''),
-                allDay : Agenda.result.recordset[i].CONDICION
+                allDay : Agenda.result.recordset[i].XCONDICION
             });
         }
         return { status: true, list: events };
@@ -427,29 +429,215 @@ router.route('/search/client-agenda').post((req, res) => {
 });
 
 const SearcheAgenda = async(requestBody) => {
+
     let DataAgenda = {
         cpropietario: requestBody.cpropietario,
     };
-    let Agenda = await bd.DataAgendaClient(DataAgenda).then((res) => res);
-    if(Agenda.error){ return { status: false, code: 500, message: Agenda.error }; }
-    if(Agenda.rowsAffected == 0){ return { status: false, code: 404 }; }
+
+    // Declaracion de variables con la ejecucion de los querys
+    let AgendaEvent = await bd.DataAgendaClientSolicitud(DataAgenda).then((res) => res); //busqueda de solicitudes de servicio
+
+    let Agenda = await bd.DataAgendaClient(DataAgenda).then((res) => res); //busqueda de eventos de la agenda
+
+    let BirthdayEvent = await bd.BirthdayClient(DataAgenda).then((res) => res); //busqueda de fecha de nacimiento
+    //obtener fecha actual
+
+    const DateNow = new Date().toLocaleDateString('en-us', { day:"numeric", month:"numeric"})
+
+
+    if(AgendaEvent.error){ return { status: false, code: 500, message: Agenda.error }; }
+
+    if(AgendaEvent.rowsAffected == 0){ return { status: false, code: 404 }; }
+
+     // primero entra a la busqueda de solicitudes de servicio (busca solicitudes,eventos,fecha de nacimiento)
     if(Agenda.result.rowsAffected > 0){
-        let events = [];
+        let agenda = [];
+
         for(let i = 0; i < Agenda.result.recordset.length; i++){
-            events.push({
+            agenda.push({
                 id: Agenda.result.recordset[i].ID, 
-                title:Agenda.result.recordset[i].XTITULO, 
-                start: Agenda.result.recordset[i].FINICIO.toISOString().replace(/T.*$/, ''),
+                title: Agenda.result.recordset[i].XTITULO,
+                start: Agenda.result.recordset[i].FDESDE.toISOString().replace(/T.*$/, ''),
                 end: Agenda.result.recordset[i].FHASTA.toISOString().replace(/T.*$/, ''),
             });
         }
-        return { status: true, list: events };
+
+        let datagenda = agenda 
+        //si la agenda contiene solicitudes de servcio procede a buscar los eventos guardados de la agenda
+        if(AgendaEvent.result.rowsAffected > 0){
+            let solicitud = [];
+
+            for(let i = 0; i < AgendaEvent.result.recordset.length; i++){
+                solicitud.push({
+                    id: AgendaEvent.result.recordset[i].CSOLICITUDSERVICIO, 
+                    title:AgendaEvent.result.recordset[i].XSERVICIO, 
+                    start: AgendaEvent.result.recordset[i].FCREACION.toISOString().replace(/T.*$/, ''),
+                    end: AgendaEvent.result.recordset[i].FCREACION.toISOString().replace(/T.*$/, ''),
+                });
+            }
+
+            let agendaEvent = solicitud
+
+            const datebirtday = BirthdayEvent.result.recordset[0].FNACIMIENTO
+            const dateprocess = datebirtday.toLocaleDateString('en-us', { day:"numeric", month:"numeric"})
+            // valida en comparacion con la fecha actual si el usuario esta de cumpleaños o no
+            if(dateprocess == DateNow){
+                    const name = BirthdayEvent.result.recordset[0].XNOMBRE 
+                    const apellido = BirthdayEvent.result.recordset[0].XAPELLIDO
+
+                    let query = await bd.companyValrepQuery().then((res) => res);
+                    const company =  query.result.recordset[0].XCOMPANIA
+                    const message = 'En ' + company + ' sabemos que estás de cumpleaños, por eso te deseamos que pases un excelente día rodeado de tus seres queridos'
+                    const datagendbr = datagenda
+                    const dataeventdbr = agendaEvent
+                    const list = datagendbr.concat(dataeventdbr);
+                        return { 
+                            status: true, 
+                            list: list,
+                            message : message,
+                            name: name,
+                            apellido: apellido
+                        };  
+            }else{
+                const datagendbr = datagenda
+                const dataeventdbr = agendaEvent
+                const list = datagendbr.concat(dataeventdbr);
+                    return { 
+                        status: true, 
+                        list: list
+                    }; 
+            }   
+        }
+
+        return { 
+            status: true, 
+            list: datagenda
+        }; 
     }
+    // sino entra en la busqueda de eventos de la agenda (busca eventos y fecha de nacimiento)
+     else{
+        let solicitud = [];
+
+        for(let i = 0; i < AgendaEvent.result.recordset.length; i++){
+            solicitud.push({
+                id: AgendaEvent.result.recordset[i].CSOLICITUDSERVICIO, 
+                title:AgendaEvent.result.recordset[i].XSERVICIO, 
+                start: AgendaEvent.result.recordset[i].FCREACION.toISOString().replace(/T.*$/, ''),
+                end: AgendaEvent.result.recordset[i].FCREACION.toISOString().replace(/T.*$/, ''),
+            });
+        }
+
+        let list = solicitud
+
+        const datebirtday = BirthdayEvent.result.recordset[0].FNACIMIENTO
+        const dateprocess = datebirtday.toLocaleDateString('en-us', { day:"numeric", month:"numeric"})
+        // valida en comparacion con la fecha actual si el usuario esta de cumpleaños o no
+        if(dateprocess == DateNow){
+            const name = BirthdayEvent.result.recordset[0].XNOMBRE 
+            const apellido = BirthdayEvent.result.recordset[0].XAPELLIDO
+
+            let query = await bd.companyValrepQuery().then((res) => res);
+            const company =  query.result.recordset[0].XCOMPANIA
+            const message = 'En ' + company + ' sabemos que estás de cumpleaños, por eso te deseamos que pases un excelente día rodeado de tus seres queridos'
+
+                return { 
+                    status: true, 
+                    list: list,
+                    message : message,
+                    name: name,
+                    apellido: apellido
+                };  
+        }
+            return { 
+                status: true, 
+                list: list
+            }; 
+        }
+    return { 
+    status: false, 
+};
+
+}
+
+router.route('/upload/client-agenda').post((req, res) => {
+    UploadDocumentClub(req.body).then((result) => {
+        if(!result.status){ 
+            res.status(result.code).json({ data: result });
+            return;
+        }
+        res.json({ data: result });
+    }).catch((err) => {
+        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'UploadDocumentClub' } });
+    });
+});
+
+const UploadDocumentClub = async(requestBody) => {
+    let DataDocAgend = {
+        cpropietario: requestBody.cpropietario,
+        xarchivo: requestBody.xarchivo,
+        itipodocumento: requestBody.itipodocumento,
+        fvencimiento: requestBody.fvencimiento,
+        cusuariocreacion: requestBody.cusuariocreacion,
+    };
+
+    let AgendaEvent = await bd.UploadDocAgendaClient(DataDocAgend).then((res) => res);
+    if(AgendaEvent.error){ return { status: false, code: 500, message: Agenda.error }; }
+    if(AgendaEvent.result.rowsAffected > 0){
+        return { 
+            status: true, 
+         
+        };}
 
     return { 
     status: false, 
 
 };
-    
+
+
 }
+
+router.route('/upload/mantenimiento/client-agenda').post((req, res) => {
+    UploadMantenimientoClub(req.body).then((result) => {
+        if(!result.status){ 
+            res.status(result.code).json({ data: result });
+            return;
+        }
+        res.json({ data: result });
+    }).catch((err) => {
+        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'UploadMantenimientoClub' } });
+    });
+});
+
+const UploadMantenimientoClub = async(requestBody) => {
+    let DataDocAgend = {
+        cpropietario: requestBody.cpropietario,
+        fdesde: requestBody.fdesde + 'T' + requestBody.hora + ':00',
+        xmantenimientoPrevent: requestBody.xmantenimientoPrevent,
+        xmantenimientoCorrect: requestBody.xmantenimientoCorrect,
+    };
+
+    let AgendaEventManteniento = await bd.UploadManAgendaClient(DataDocAgend).then((res) => res);
+    if(AgendaEventManteniento.error){ return { status: false, code: 500, message: AgendaEventManteniento.error }; }
+    if(AgendaEventManteniento.result.rowsAffected > 0){
+        let solicitud = [];
+
+        for(let i = 0; i < AgendaEventManteniento.result.recordset.length; i++){
+            solicitud.push({
+                id: AgendaEventManteniento.result.recordset[i].ID, 
+                title: AgendaEventManteniento.result.recordset[i].XTITULO,
+                start: AgendaEventManteniento.result.recordset[i].FDESDE.toISOString().replace(/T.*$/, ''),
+                end: AgendaEventManteniento.result.recordset[i].FHASTA.toISOString().replace(/T.*$/, ''),
+            });
+        }
+        return { 
+            status: true, 
+         
+        };}
+
+    return { 
+    status: false, 
+
+};
+}
+
 module.exports = router;
