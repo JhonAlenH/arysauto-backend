@@ -178,4 +178,195 @@ const operationDetailContractArys = async(authHeader, requestBody) => {
     }
 }
 
+router.route('/search-contract-arys').post((req, res) => {
+    if(!req.header('Authorization')){ 
+        res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } })
+        return;
+    }else{
+        operationSearchContractArys(req.header('Authorization'), req.body).then((result) => {
+            if(!result.status){ 
+                res.status(result.code).json({ data: result });
+                return;
+            }
+            res.json({ data: result });
+        }).catch((err) => {
+            console.log(err.message)
+            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchContractArys' } });
+        });
+    }
+});
+
+const operationSearchContractArys = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    //if(!helper.validateRequestObj(requestBody, ['cpais', 'ccompania', 'ctiposervicio'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
+    let contractArysList = [];
+    let searchContractArys = await bd.searchContractArysQuery().then((res) => res);
+    if(searchContractArys.error){ console.log(searchContractArys.error);return { status: false, code: 500, message: searchContractArys.error }; }
+    if(searchContractArys.result.rowsAffected != 0){
+        for(let i = 0; i < searchContractArys.result.recordset.length; i++){
+            let xnombres = searchContractArys.result.recordset[i].XNOMBRE + ' ' + searchContractArys.result.recordset[i].XAPELLIDO
+            let xvehiculo = searchContractArys.result.recordset[i].XMARCA + ' ' + searchContractArys.result.recordset[i].XMODELO + ' ' + searchContractArys.result.recordset[i].XVERSION
+            let xidentificacion = searchContractArys.result.recordset[i].ICEDULA + ' ' + searchContractArys.result.recordset[i].XDOCIDENTIDAD
+            contractArysList.push({ 
+                xnombres: xnombres, 
+                xvehiculo: xvehiculo, 
+                fano: searchContractArys.result.recordset[i].CANO, 
+                identificacion: xidentificacion,
+                ccodigo_serv: searchContractArys.result.recordset[i].CCODIGO_SERV
+            });
+        }
+    }
+    return { status: true, list: contractArysList }
+}
+
+router.route('/detail-contract-arys').post((req, res) => {
+    if(!req.header('Authorization')){
+        res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } });
+        return;
+    }else{
+        operationDetailAdministrationContractArys(req.header('Authorization'), req.body).then((result) => {
+            if(!result.status){
+                res.status(result.code).json({ data: result });
+                return;
+            }
+            res.json({ data: result });
+        }).catch((err) => {
+            console.log(err.message)
+            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationDetailAdministrationContractArys' } });
+        });
+    }
+});
+
+const operationDetailAdministrationContractArys = async(authHeader, requestBody) => { 
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    //if(!helper.validateRequestObj(requestBody, ['cpais', 'ccompania', 'ccontratoflota'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
+    let contractData = {
+        cpais: requestBody.cpais,
+        ccompania: requestBody.ccompania,
+        ccodigo_serv: requestBody.ccodigo_serv
+    };
+    let getContractArysData = await bd.getContractArysDataQuery(contractData).then((res) => res);
+    if(getContractArysData.error){ return { status: false, code: 500, message: getContractArysData.error }; }
+    if(getContractArysData.result.rowsAffected > 0){
+
+        let getContractArysOwnerData = await bd.getContractArysOwnerDataQuery(contractData, getContractArysData.result.recordset[0].CPROPIETARIO).then((res) => res);
+        if(getContractArysOwnerData.error){ return { status: false, code: 500, message: getContractArysOwnerData.error }; }
+        let telefonopropietario;
+        if(getContractArysOwnerData.result.recordset[0].XTELEFONOCELULAR){
+            telefonopropietario = getContractArysOwnerData.result.recordset[0].XTELEFONOCELULAR;
+        }else{
+            telefonopropietario = getContractArysOwnerData.result.recordset[0].XTELEFONOCASA
+        }
+        if(getContractArysOwnerData.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Fleet Contract Owner not found.' }; }
+ 
+        let getContractArysClientData = await bd.getContractClientDataQuery(getContractArysData.result.recordset[0].CCLIENTE);
+
+        let getPlan = await bd.getPlanData(getContractArysData.result.recordset[0].CPLAN);
+        if(getPlan.error){ return { status: false, code: 500, message: getPlan.error }; }
+        if(getPlan.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Fleet Contract Plan not found.' }; }
+
+        let serviceList = [];
+        let getServiceFromPlan = await bd.getServiceFromPlanQuery(getContractArysData.result.recordset[0].CPLAN);
+        if(getServiceFromPlan.error){ return { status: false, code: 500, message: getServiceFromPlan.error }; }
+        if(getServiceFromPlan.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Fleet Contract Plan not found.' }; }
+        if(getServiceFromPlan.result.recordset != 0){
+            for(let i = 0; i < getServiceFromPlan.result.recordset.length; i++){
+                serviceList.push({
+                    cservicio: getServiceFromPlan.result.recordset[i].CSERVICIO,
+                    xservicio: getServiceFromPlan.result.recordset[i].XSERVICIO,
+                })
+            }
+            console.log(serviceList)
+        }
+        return {
+            status: true,
+            ccarga: getContractArysData.result.recordset[0].ccarga,
+            ccontratoflota: getContractArysData.result.recordset[0].CCONTRATOFLOTA,
+            xrecibo: getContractArysData.result.recordset[0].xrecibo,
+            xpoliza: getContractArysData.result.recordset[0].xpoliza,
+            xtituloreporte: getContractArysData.result.recordset[0].XTITULO_REPORTE,
+            xtransmision: getContractArysData.result.recordset[0].XTRANSMISION,
+            xanexo: getContractArysData.result.recordset[0].XANEXO,
+            xobservaciones: getContractArysData.result.recordset[0].XOBSERVACIONES,
+            xdocidentidadrepresentantelegal: getContractArysData.result.recordset[0].XDOCIDENTIDAD,
+            xnombrerepresentantelegal: getContractArysData.result.recordset[0].XREPRESENTANTELEGAL,
+            ccliente: getContractArysData.result.recordset[0].CCLIENTE,
+            xnombrecliente: getContractArysClientData.result.recordset[0].XCLIENTE,
+            xdocidentidadcliente: getContractArysClientData.result.recordset[0].XDOCIDENTIDAD,
+            xdireccionfiscalcliente: getContractArysClientData.result.recordset[0].XDIRECCIONFISCAL,
+            xtelefonocliente:getContractArysClientData.result.recordset[0].XTELEFONO,
+            xemailcliente: getContractArysClientData.result.recordset[0].XEMAIL,
+            xrepresentantecliente: getContractArysClientData.result.recordset[0].XREPRESENTANTE,
+            xestadocliente: getContractArysClientData.result.recordset[0].XESTADO,
+            xciudadcliente: getContractArysClientData.result.recordset[0].XCIUDAD,
+            casociado:  getContractArysData.result.recordset[0].CASOCIADO,
+            xcertificadogestion: '',//`${getContractArysData.result.recordset[0].CCLIENTE}-${searchQuoteByFleet.result.recordset[0].CCOTIZADORFLOTA}-${getContractArysData.result.recordset[0].CCONTRATOFLOTA}`,
+            xcertificadoasociado: getContractArysData.result.recordset[0].XCERTIFICADOASOCIADO,
+            xsucursalemision: getContractArysData.result.recordset[0].XSUCURSALEMISION,
+            xsucursalsuscriptora: getContractArysData.result.recordset[0].XSUCURSALSUSCRIPTORA,
+            cagrupador: getContractArysData.result.recordset[0].CAGRUPADOR,
+            fsuscripcion: getContractArysData.result.recordset[0].FCREACION,
+            // fdesde: getPlan.result.recordset[0].FDESDE,
+            mtotal_plan: getPlan.result.recordset[0].MCOSTO.toFixed(2),
+            cplan: getPlan.result.recordset[0].CPLAN,
+            finiciorecibo: getContractArysData.result.recordset[0].FDESDE_REC,
+            fhastarecibo: getContractArysData.result.recordset[0].FHASTA_REC,
+            femision: getContractArysData.result.recordset[0].FINICIO,
+            cestatusgeneral: getContractArysData.result.recordset[0].CESTATUSGENERAL,
+            xestatusgeneral: getContractArysData.result.recordset[0].XESTATUSGENERAL,
+            ctrabajador: getContractArysData.result.recordset[0].CTRABAJADOR,
+            cpropietario: getContractArysData.result.recordset[0].CPROPIETARIO,
+            xnombrepropietario: getContractArysOwnerData.result.recordset[0].XNOMBRE,
+            xtipodocidentidadpropietario: getContractArysOwnerData.result.recordset[0].XTIPODOCIDENTIDAD,
+            xdocidentidadpropietario: getContractArysOwnerData.result.recordset[0].XDOCIDENTIDAD,
+            xdireccionpropietario: getContractArysOwnerData.result.recordset[0].XDIRECCION,
+            xtelefonocelularpropietario: telefonopropietario,
+            xestadopropietario: getContractArysOwnerData.result.recordset[0].XESTADO,
+            xciudadpropietario: getContractArysOwnerData.result.recordset[0].XCIUDAD,
+            fnacimientopropietario: getContractArysOwnerData.result.recordset[0].FNACIMIENTO,
+            xapellidopropietario: getContractArysOwnerData.result.recordset[0].XAPELLIDO,
+            xocupacionpropietario: getContractArysOwnerData.result.recordset[0].XOCUPACION,
+            xestadocivilpropietario: getContractArysOwnerData.result.recordset[0].XESTADOCIVIL,
+            xemailpropietario: getContractArysOwnerData.result.recordset[0].XEMAIL,
+            xsexopropietario: getContractArysOwnerData.result.recordset[0].XSEXO,
+            xnacionalidadpropietario: getContractArysOwnerData.result.recordset[0].XNACIONALIDAD,
+            xtelefonopropietario: getContractArysOwnerData.result.recordset[0].telefonopropietario,
+            cvehiculopropietario: getContractArysData.result.recordset[0].CVEHICULOPROPIETARIO,
+            ctipoplan: getContractArysData.result.recordset[0].CTIPOPLAN,
+            cplan: getContractArysData.result.recordset[0].CPLAN,
+            cmetodologiapago: getContractArysData.result.recordset[0].CMETODOLOGIAPAGO,
+            ctiporecibo: getContractArysData.result.recordset[0].CTIPORECIBO,
+            xmarca: getContractArysData.result.recordset[0].XMARCA,
+            xmoneda: getContractArysData.result.recordset[0].xmoneda,
+            xmodelo: getContractArysData.result.recordset[0].XMODELO,
+            xversion: getContractArysData.result.recordset[0].XVERSION,
+            xcolor: getContractArysData.result.recordset[0].XCOLOR,
+            xplaca: getContractArysData.result.recordset[0].XPLACA,
+            xuso: getContractArysData.result.recordset[0].XUSO,
+            xtipovehiculo: getContractArysData.result.recordset[0].XTIPOVEHICULO,
+            fano: getContractArysData.result.recordset[0].FANO,
+            xserialcarroceria: getContractArysData.result.recordset[0].XSERIALCARROCERIA,
+            xserialmotor: getContractArysData.result.recordset[0].XSERIALMOTOR,
+            mpreciovehiculo: getContractArysData.result.recordset[0].MPRECIOVEHICULO,
+            ctipovehiculo: getContractArysData.result.recordset[0].CTIPOVEHICULO,
+            xtipomodelovehiculo: getContractArysData.result.recordset[0].XTIPOMODELO,
+            ncapacidadcargavehiculo: getContractArysData.result.recordset[0].NCAPACIDADCARGA,
+            ncapacidadpasajeros: getContractArysData.result.recordset[0].NPASAJERO,
+            xtomador: getContractArysData.result.recordset[0].XTOMADOR,
+            xprofesion: getContractArysData.result.recordset[0].XPROFESION,
+            xrif: getContractArysData.result.recordset[0].XRIF,
+            xdomicilio: getContractArysData.result.recordset[0].XDOMICILIO,
+            xzona_postal: getContractArysData.result.recordset[0].XZONA_POSTAL,
+            xtelefono: getContractArysData.result.recordset[0].XTELEFONO,
+            xcorreo: getContractArysData.result.recordset[0].XCORREO,
+            xestado: getContractArysData.result.recordset[0].XESTADO,
+            xciudad: getContractArysData.result.recordset[0].XCIUDAD,
+            xclase: getContractArysData.result.recordset[0].XCLASE,
+            nkilometraje: getContractArysData.result.recordset[0].NKILOMETRAJE,
+            xzona_postal_propietario: getContractArysData.result.recordset[0].XZONA_POSTAL_PROPIETARIO,
+            services: serviceList
+        }
+    }else{ return { status: false, code: 404, message: 'Fleet Contract not found.' }; }
+}
+
 module.exports = router;
