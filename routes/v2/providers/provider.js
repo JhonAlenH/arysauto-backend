@@ -264,6 +264,19 @@ const operationDetailProvider = async(authHeader, requestBody) => {
             services.push(service);
         }
     }
+    let documents = [];
+    let getProviderDocumentData = await db.getProviderDocumentsDataQuery(providerData.cproveedor).then((res) => res);
+    if(getProviderDocumentData.error){ return { status: false, code: 500, message: getProviderDocumentData.error }; }
+    if(getProviderDocumentData.result.rowsAffected > 0){
+        for(let i = 0; i < getProviderDocumentData.result.recordset.length; i++){
+            let document = {
+                id: getProviderDocumentData.result.recordset[i].ID,
+                xobservacion: getProviderDocumentData.result.recordset[i].XOBSERVACION,
+                xruta: getProviderDocumentData.result.recordset[i].XRUTA,
+            }
+            documents.push(document);
+        }
+    }
     // let contacts = [];
     // let getProviderContactsData = await db.getProviderContactsDataQuery(providerData.cproveedor).then((res) => res);
     // if(getProviderContactsData.error){ return { status: false, code: 500, message: getProviderContactsData.error }; }
@@ -306,6 +319,7 @@ const operationDetailProvider = async(authHeader, requestBody) => {
         states: states,
         // brands: brands,
         services: services,
+        documents: documents
         // contacts: contacts
     }
 }
@@ -348,7 +362,7 @@ const operationUpdateProvider = async(authHeader, requestBody) => {
         nlimite: requestBody.nlimite,
         xobservacion: requestBody.xobservacion ? requestBody.xobservacion.toUpperCase() : undefined,
         bactivo: requestBody.bactivo,
-        cusuariomodificacion: requestBody.cusuariomodificacion
+        cusuariomodificacion: requestBody.cusuariomodificacion,
     }
     let verifyProviderIdentification = await db.verifyProviderIdentificationToUpdateQuery(providerData).then((res) => res);
     if(verifyProviderIdentification.error){ return { status: false, code: 500, message: verifyProviderIdentification.error }; }
@@ -470,6 +484,32 @@ const operationUpdateProvider = async(authHeader, requestBody) => {
             let createContactsByProviderUpdate = await db.createContactsByProviderUpdateQuery(requestBody.contacts.create, providerData).then((res) => res);
             if(createContactsByProviderUpdate.error){ return { status: false, code: 500, message: createContactsByProviderUpdate.error }; }
             if(createContactsByProviderUpdate.result.rowsAffected < 0){ return { status: false, code: 500, message: 'Server Internal Error.', hint: 'createContactsByProviderUpdate' }; }
+        }
+    }
+    let documentList = [];
+    if(requestBody.documentos){
+        if(requestBody.documentos.create){
+            for(let i = 0; i < requestBody.documentos.create.length; i++){
+                documentList.push({
+                    xobservacion: requestBody.documentos.create[i].xobservacion,
+                    xruta: requestBody.documentos.create[i].xrutaarchivo
+                })
+            }
+            let createDocumentByProviderUpdate = await db.createDocumentsByProviderUpdateQuery(documentList, providerData).then((res) => res);
+            if(createDocumentByProviderUpdate.error){ return { status: false, code: 500, message: createDocumentByProviderUpdate.error }; }
+            if(createDocumentByProviderUpdate.result.rowsAffected < 0){ return { status: false, code: 500, message: 'Server Internal Error.', hint: 'createDocumentByProviderUpdate' }; }
+        }
+        if(requestBody.documentos.update){
+            for(let i = 0; i < requestBody.documentos.update.length; i++){
+                documentList.push({
+                    id: requestBody.documentos.update[i].id,
+                    xobservacion: requestBody.documentos.update[i].xobservacion,
+                    xruta: requestBody.documentos.update[i].xrutaarchivo
+                })
+            }
+            let updateDocumentByProviderUpdate = await db.updateDocumentsByProviderUpdateQuery(documentList, providerData).then((res) => res);
+            if(updateDocumentByProviderUpdate.error){ return { status: false, code: 500, message: updateDocumentByProviderUpdate.error }; }
+            if(updateDocumentByProviderUpdate.result.rowsAffected < 0){ return { status: false, code: 500, message: 'Server Internal Error.', hint: 'updateDocumentByProviderUpdate' }; }
         }
     }
     return { status: true, cproveedor: providerData.cproveedor };
