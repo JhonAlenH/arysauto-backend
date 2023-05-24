@@ -238,18 +238,18 @@ const operationDetailProvider = async(authHeader, requestBody) => {
             states.push(state);
         }
     }
-    // let brands = [];
-    // let getProviderBrandsData = await db.getProviderBrandsDataQuery(providerData.cproveedor).then((res) => res);
-    // if(getProviderBrandsData.error){ return { status: false, code: 500, message: getProviderBrandsData.error }; }
-    // if(getProviderBrandsData.result.rowsAffected > 0){
-    //     for(let i = 0; i < getProviderBrandsData.result.recordset.length; i++){
-    //         let brand = {
-    //             cmarca: getProviderBrandsData.result.recordset[i].CMARCA,
-    //             xmarca: getProviderBrandsData.result.recordset[i].XMARCA
-    //         }
-    //         brands.push(brand);
-    //     }
-    // }
+    let brands = [];
+    let getProviderBrandsData = await db.getProviderBrandsDataQuery(providerData.cproveedor).then((res) => res);
+    if(getProviderBrandsData.error){ return { status: false, code: 500, message: getProviderBrandsData.error }; }
+    if(getProviderBrandsData.result.rowsAffected > 0){
+        for(let i = 0; i < getProviderBrandsData.result.recordset.length; i++){
+            let brand = {
+                cmarca: getProviderBrandsData.result.recordset[i].CMARCA,
+                xmarca: getProviderBrandsData.result.recordset[i].XMARCA
+            }
+            brands.push(brand);
+        }
+    }
     let services = [];
     let getProviderServicesData = await db.getProviderServicesDataQuery(providerData.cproveedor).then((res) => res);
     if(getProviderServicesData.error){ return { status: false, code: 500, message: getProviderServicesData.error }; }
@@ -277,27 +277,27 @@ const operationDetailProvider = async(authHeader, requestBody) => {
             documents.push(document);
         }
     }
-    // let contacts = [];
-    // let getProviderContactsData = await db.getProviderContactsDataQuery(providerData.cproveedor).then((res) => res);
-    // if(getProviderContactsData.error){ return { status: false, code: 500, message: getProviderContactsData.error }; }
-    // if(getProviderContactsData.result.rowsAffected > 0){
-    //     for(let i = 0; i < getProviderContactsData.result.recordset.length; i++){
-    //         let contact = {
-    //             ccontacto: getProviderContactsData.result.recordset[i].CCONTACTO,
-    //             xnombre: getProviderContactsData.result.recordset[i].XNOMBRE,
-    //             xapellido: getProviderContactsData.result.recordset[i].XAPELLIDO,
-    //             ctipodocidentidad: getProviderContactsData.result.recordset[i].CTIPODOCIDENTIDAD,
-    //             xdocidentidad: getProviderContactsData.result.recordset[i].XDOCIDENTIDAD,
-    //             xtelefonocelular: getProviderContactsData.result.recordset[i].XTELEFONOCELULAR,
-    //             xemail: getProviderContactsData.result.recordset[i].XEMAIL,
-    //             xcargo: getProviderContactsData.result.recordset[i].XCARGO ? getProviderContactsData.result.recordset[i].XCARGO : undefined,
-    //             xtelefonocasa: getProviderContactsData.result.recordset[i].XTELEFONOCASA ? getProviderContactsData.result.recordset[i].XTELEFONOCASA : undefined,
-    //             xtelefonooficina: getProviderContactsData.result.recordset[i].XTELEFONOOFICINA ? getProviderContactsData.result.recordset[i].XTELEFONOOFICINA : undefined,
-    //             xfax: getProviderContactsData.result.recordset[i].XFAX ? getProviderContactsData.result.recordset[i].XFAX : undefined,
-    //         }
-    //         contacts.push(contact);
-    //     }
-    // }
+    let contacts = [];
+    let getProviderContactsData = await db.getProviderContactsDataQuery(providerData.cproveedor).then((res) => res);
+    if(getProviderContactsData.error){ return { status: false, code: 500, message: getProviderContactsData.error }; }
+    if(getProviderContactsData.result.rowsAffected > 0){
+        for(let i = 0; i < getProviderContactsData.result.recordset.length; i++){
+            let contact = {
+                ccontacto: getProviderContactsData.result.recordset[i].CCONTACTO,
+                xnombre: getProviderContactsData.result.recordset[i].XNOMBRE,
+                xapellido: getProviderContactsData.result.recordset[i].XAPELLIDO,
+                ctipodocidentidad: getProviderContactsData.result.recordset[i].CTIPODOCIDENTIDAD,
+                xdocidentidad: getProviderContactsData.result.recordset[i].XDOCIDENTIDAD,
+                xtelefonocelular: getProviderContactsData.result.recordset[i].XTELEFONOCELULAR,
+                xemail: getProviderContactsData.result.recordset[i].XEMAIL,
+                xcargo: getProviderContactsData.result.recordset[i].XCARGO ? getProviderContactsData.result.recordset[i].XCARGO : undefined,
+                xtelefonocasa: getProviderContactsData.result.recordset[i].XTELEFONOCASA ? getProviderContactsData.result.recordset[i].XTELEFONOCASA : undefined,
+                xtelefonooficina: getProviderContactsData.result.recordset[i].XTELEFONOOFICINA ? getProviderContactsData.result.recordset[i].XTELEFONOOFICINA : undefined,
+                xfax: getProviderContactsData.result.recordset[i].XFAX ? getProviderContactsData.result.recordset[i].XFAX : undefined,
+            }
+            contacts.push(contact);
+        }
+    }
     return {
         status: true,
         cproveedor: getProviderData.result.recordset[0].CPROVEEDOR,
@@ -317,10 +317,10 @@ const operationDetailProvider = async(authHeader, requestBody) => {
         bactivo: getProviderData.result.recordset[0].BACTIVO,
         banks: banks,
         states: states,
-        // brands: brands,
+        brands: brands,
         services: services,
-        documents: documents
-        // contacts: contacts
+        documents: documents,
+        contacts: contacts
     }
 }
 
