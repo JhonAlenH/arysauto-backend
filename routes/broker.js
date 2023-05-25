@@ -72,7 +72,6 @@ router.route('/create').post((req, res) => {
 
 const operationCreateBroker = async (authHeader, requestBody) => {
     if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
-    if(!helper.validateRequestObj(requestBody, ['cpais', 'ccompania', 'ncorredor', 'xnombre', 'xapellido', 'cactividadempresa', 'ctipodocidentidad', 'xdocidentidad', 'xtelefono', 'xemail', 'xdireccion', 'cestado', 'cciudad', 'bactivo', 'cusuariocreacion'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
     let banks = [];
     if(requestBody.banks){
         banks = requestBody.banks;
@@ -134,7 +133,6 @@ router.route('/detail').post((req, res) => {
 
 const operationDetailBroker = async(authHeader, requestBody) => { 
     if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
-    if(!helper.validateRequestObj(requestBody, ['cpais', 'ccompania', 'ccorredor'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
     let brokerData = {
         cpais: requestBody.cpais,
         ccompania: requestBody.ccompania,
@@ -197,7 +195,6 @@ router.route('/update').post((req, res) => {
 
 const operationUpdateBroker = async(authHeader, requestBody) => {
     if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
-    if(!helper.validateRequestObj(requestBody, ['cpais', 'ccompania', 'ccorredor', 'ncorredor', 'xnombre', 'xapellido', 'cactividadempresa', 'ctipodocidentidad', 'xdocidentidad', 'xtelefono', 'xemail', 'xdireccion', 'cestado', 'cciudad', 'bactivo', 'cusuariomodificacion'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
     let brokerData = {
         cpais: requestBody.cpais,
         ccompania: requestBody.ccompania,
