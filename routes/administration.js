@@ -660,6 +660,15 @@ const operationSearchPayments = async(authHeader, requestBody) => {
         receipts = [];
         if(searchPendingPayments.result.recordset.length > 0){
             for(let i = 0; i < searchPendingPayments.result.recordset.length; i++){
+
+                if (searchPendingPayments.result.recordset[i].NCONSECUTIVO) {
+                    nrecibo = searchPendingPayments.result.recordset[i].XRECIBO + '-' + searchPendingPayments.result.recordset[i].NCONSECUTIVO;
+                } else {
+                    nrecibo = searchPendingPayments.result.recordset[i].XRECIBO;
+                }
+
+                let femision = new Date(searchPendingPayments.result.recordset[i].FEMISION).toLocaleDateString();
+
                 receipt = {
                     xpoliza: searchPendingPayments.result.recordset[i].xpoliza,
                     ccontratoflota: searchPendingPayments.result.recordset[i].CCONTRATOFLOTA,
@@ -667,13 +676,12 @@ const operationSearchPayments = async(authHeader, requestBody) => {
                     xsucursalemision: searchPendingPayments.result.recordset[i].XSUCURSALEMISION,
                     ccorredor: searchPendingPayments.result.recordset[i].CCORREDOR,
                     xcorredor: searchPendingPayments.result.recordset[i].XCORREDOR,
-                    nrecibo: searchPendingPayments.result.recordset[i].XRECIBO + '-' + searchPendingPayments.result.recordset[i].NCONSECUTIVO,
+                    nrecibo: nrecibo,
                     xmoneda: searchPendingPayments.result.recordset[i].xmoneda,
-                    femision: searchPendingPayments.result.recordset[i].FEMISION,
+                    femision: femision,
                     fdesde_rec: searchPendingPayments.result.recordset[i].FDESDE_REC,
                     fhasta_rec: searchPendingPayments.result.recordset[i].FHASTA_REC,
-                    mprima: searchPendingPayments.result.recordset[i].MPRIMA_ANUAL
-
+                    mprima: searchPendingPayments.result.recordset[i].MPRIMA_ANUAL,
                 }
                 receipts.push(receipt);
             }
@@ -686,6 +694,15 @@ const operationSearchPayments = async(authHeader, requestBody) => {
         receipts = [];
         if(searchCollectPayments.result.recordset.length > 0){
             for(let i = 0; i < searchCollectPayments.result.recordset.length; i++){
+
+                if (searchCollectPayments.result.recordset[i].NCONSECUTIVO) {
+                    nrecibo = searchCollectPayments.result.recordset[i].XRECIBO + '-' + searchCollectPayments.result.recordset[i].NCONSECUTIVO;
+                } else {
+                    nrecibo = searchCollectPayments.result.recordset[i].XRECIBO;
+                }
+
+                let femision = new Date(searchCollectPayments.result.recordset[i].FEMISION).toLocaleDateString();
+
                 receipt = {
                     xpoliza: searchCollectPayments.result.recordset[i].xpoliza,
                     ccontratoflota: searchCollectPayments.result.recordset[i].CCONTRATOFLOTA,
@@ -693,9 +710,9 @@ const operationSearchPayments = async(authHeader, requestBody) => {
                     xsucursalemision: searchCollectPayments.result.recordset[i].XSUCURSALEMISION,
                     ccorredor: searchCollectPayments.result.recordset[i].CCORREDOR,
                     xcorredor: searchCollectPayments.result.recordset[i].XCORREDOR,
-                    nrecibo: searchCollectPayments.result.recordset[i].XRECIBO + '-' + searchCollectPayments.result.recordset[i].NCONSECUTIVO,
+                    nrecibo: nrecibo,
                     xmoneda: searchCollectPayments.result.recordset[i].xmoneda,
-                    femision: searchCollectPayments.result.recordset[i].FEMISION,
+                    femision: femision,
                     fdesde_rec: searchCollectPayments.result.recordset[i].FDESDE_REC,
                     fhasta_rec: searchCollectPayments.result.recordset[i].FHASTA_REC,
                     mprima: searchCollectPayments.result.recordset[i].MPRIMA_PAGADA
