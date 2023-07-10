@@ -9287,12 +9287,12 @@ module.exports = {
                     .input('CLOTE', sql.Int, clote)
                     .input('CRECIBO', sql.Int, policiesToRenovate[i].crecibo)
                     .input('XPLACA', sql.NVarChar, policiesToRenovate[i].xplaca)
-                    .input('MSUMA_CASCO', sql.Numeric(11,2), policiesToRenovate[i].msuma_casco)
+                    .input('MSUMA_A_CASCO', sql.Numeric(11,2), policiesToRenovate[i].msuma_casco)
                     .input('MDEDUCIBLE', sql.Numeric(11,2), policiesToRenovate[i].mdeducible)
                     .input('FDESDE_POL', sql.DateTime, fhasta_pol.toISOString())
                     .input('FHASTA_POL', sql.DateTime, fdesde_pol.toISOString())
-                    .query('insert into tmrenovcacion (CPLAN, CCARGA, CLOTE, CRECIBO, XPLACA, MSUMA_CASCO, MDEDUCIBLE, FDESDE_POL, FHASTA_POL) '
-                                            + 'values (@CPLAN, @CCARGA, @CLOTE, @CRECIBO, @XPLACA, @MSUMA_CASCO, @MDEDUCIBLE, @FDESDE_POL, @FHASTA_POL)'
+                    .query('insert into tmrenovcacion (CPLAN, CCARGA, CLOTE, CRECIBO, XPLACA, MSUMA_A_CASCO, MDEDUCIBLE, FDESDE_POL, FHASTA_POL) '
+                                            + 'values (@CPLAN, @CCARGA, @CLOTE, @CRECIBO, @XPLACA, @MSUMA_A_CASCO, @MDEDUCIBLE, @FDESDE_POL, @FHASTA_POL)'
                     )
             }
             return true;
