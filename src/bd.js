@@ -7406,7 +7406,7 @@ module.exports = {
                     .input('ctipovehiculo', sql.Int, vehicleTypes[i].ctipovehiculo)
                     .input('ctipovehiculoregistrotasa', sql.Int, vehicleTypes[i].ctipovehiculoregistrotasa)
                     .input('miniciointervalo', sql.Numeric(11, 2), vehicleTypes[i].miniciointervalo)
-                    .input('mfinalintervalo', sql.Numeric(11, 02), vehicleTypes[i].mfinalintervalo)
+                    .input('mfinalintervalo', sql.Numeric(11, 2), vehicleTypes[i].mfinalintervalo)
                     .input('ptasa', sql.Numeric(5, 2), vehicleTypes[i].ptasa)
                     .input('cusuariomodificacion', sql.Int, feesRegisterData.cusuariomodificacion)
                     .input('fmodificacion', sql.DateTime, new Date())
@@ -9176,6 +9176,37 @@ module.exports = {
             return { error: err.message };
         }
     },
+    createNewCharge: async() => {
+        try{
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .input('XDESCRIPCION_L', sql.NVarChar, 'Renovación de pólizas')
+                .input('FCREACION', sql.DateTime, new Date())
+                .query('insert into SUPOLIZAMATRIZ (XDESCRIPCION_L, FCREACION) output inserted.ccarga '
+                                         + 'values (@XDESCRIPCION_L, @FCREACION)'
+                )
+            return result.recordset[0].ccarga + 1
+        }
+        catch(err){
+            return { error: err.message };
+        }
+    },
+    createNewBatch: async(ccarga) => {
+        try{
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .input('CCARGA', sql.Int, ccarga)
+                .input('XOBSERVACION', sql.NVarChar, 'Renovación de pólizas')
+                .input('FCREACION', sql.DateTime, new Date())
+                .query('insert into SUPOLIZAMATRIZ (CCARGA, XOBSERVACION, FCREACION) output inserted.clote '
+                                         + 'values (@CCARGA, @XOBSERVACION, @FCREACION)'
+                )
+            return result.recordset[0].clote + 1
+        }
+        catch(err){
+            return { error: err.message };
+        }
+    },
     createChargeQuery: async(chargeList, ccarga, clote, maxID) => {
         try{
             if(chargeList.length > 0){
@@ -9240,6 +9271,33 @@ module.exports = {
                 return { result: result };
             }
         }catch(err){
+            console.log(err.message);
+            return { error: err.message };
+        }
+    },
+    createPolicyRenovation: async (ccarga, clote, policiesToRenovate) => {
+        try {
+            let pool = await sql.connect(config);
+            for (let i = 0; i < policiesToRenovate.lenght; i++) {
+                let fhasta_pol = new Date(changeDateFormat(policiesToRenovate[i].fhasta_pol));
+                let fdesde_pol = new Date(changeDateFormat(policiesToRenovate[i].fdesde_pol));
+                await pool.request()
+                    .input('CPLAN', sql.Int, policiesToRenovate[i].cplan)
+                    .input('CCARGA', sql.Int, ccarga)
+                    .input('CLOTE', sql.Int, clote)
+                    .input('CRECIBO', sql.Int, policiesToRenovate[i].crecibo)
+                    .input('XPLACA', sql.NVarChar, policiesToRenovate[i].xplaca)
+                    .input('MSUMA_CASCO', sql.Numeric(11,2), policiesToRenovate[i].msuma_casco)
+                    .input('MDEDUCIBLE', sql.Numeric(11,2), policiesToRenovate[i].mdeducible)
+                    .input('FDESDE_POL', sql.DateTime, fhasta_pol.toISOString())
+                    .input('FHASTA_POL', sql.DateTime, fdesde_pol.toISOString())
+                    .query('insert into tmrenovcacion (CPLAN, CCARGA, CLOTE, CRECIBO, XPLACA, MSUMA_CASCO, MDEDUCIBLE, FDESDE_POL, FHASTA_POL) '
+                                            + 'values (@CPLAN, @CCARGA, @CLOTE, @CRECIBO, @XPLACA, @MSUMA_CASCO, @MDEDUCIBLE, @FDESDE_POL, @FHASTA_POL)'
+                    )
+            }
+            return true;
+        }
+        catch(err) {
             console.log(err.message);
             return { error: err.message };
         }
