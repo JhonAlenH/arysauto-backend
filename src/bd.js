@@ -9176,16 +9176,17 @@ module.exports = {
             return { error: err.message };
         }
     },
-    createNewCharge: async() => {
+    getPoliciesChargeInformation: async(policiesToRenovate) => {
         try{
             let pool = await sql.connect(config);
-            let result = await pool.request()
-                .input('XDESCRIPCION_L', sql.NVarChar, 'Renovación de pólizas')
-                .input('FCREACION', sql.DateTime, new Date())
-                .query('insert into SUPOLIZAMATRIZ (XDESCRIPCION_L, FCREACION) output inserted.ccarga '
-                                         + 'values (@XDESCRIPCION_L, @FCREACION)'
-                )
-            return result.recordset[0].ccarga + 1
+            for (let i = 0; i < policiesToRenovate.length; i++) {
+                let chargeInfo = await pool.request()
+                    .input('XPLACA', sql.NVarChar, policiesToRenovate[i].XPLACA)
+                    .query('SELECT CCARGA, CLOTE FROM TREMISION_FLOTA WHERE XPLACA = @XPLACA')
+                policiesToRenovate[i].ccarga = chargeInfo.recordset[0].CCARGA;
+                policiesToRenovate[i].clote = chargeInfo.recordset[0].CLOTE;
+            }
+            return policiesToRenovate;
         }
         catch(err){
             return { error: err.message };
@@ -9275,23 +9276,23 @@ module.exports = {
             return { error: err.message };
         }
     },
-    createPolicyRenovation: async (ccarga, clote, policiesToRenovate) => {
+    createPolicyRenovation: async (policiesToRenovate) => {
         try {
             let pool = await sql.connect(config);
-            for (let i = 0; i < policiesToRenovate.lenght; i++) {
-                let fhasta_pol = new Date(changeDateFormat(policiesToRenovate[i].fhasta_pol));
-                let fdesde_pol = new Date(changeDateFormat(policiesToRenovate[i].fdesde_pol));
+            for (let i = 0; i < policiesToRenovate.length; i++) {
+                let fhasta_pol = new Date(changeDateFormat(policiesToRenovate[i].FHASTA_POL));
+                let fdesde_pol = new Date(changeDateFormat(policiesToRenovate[i].FDESDE_POL));
                 await pool.request()
-                    .input('CPLAN', sql.Int, policiesToRenovate[i].cplan)
-                    .input('CCARGA', sql.Int, ccarga)
-                    .input('CLOTE', sql.Int, clote)
-                    .input('CRECIBO', sql.Int, policiesToRenovate[i].crecibo)
-                    .input('XPLACA', sql.NVarChar, policiesToRenovate[i].xplaca)
-                    .input('MSUMA_A_CASCO', sql.Numeric(11,2), policiesToRenovate[i].msuma_casco)
-                    .input('MDEDUCIBLE', sql.Numeric(11,2), policiesToRenovate[i].mdeducible)
+                    .input('CPLAN', sql.Int, policiesToRenovate[i].CPLAN)
+                    .input('CCARGA', sql.Int, policiesToRenovate[i].ccarga)
+                    .input('CLOTE', sql.Int, policiesToRenovate[i].clote)
+                    .input('CRECIBO', sql.Int, 0)
+                    .input('XPLACA', sql.NVarChar, policiesToRenovate[i].XPLACA)
+                    .input('MSUMA_A_CASCO', sql.Numeric(11,2), policiesToRenovate[i].MSUMA_CASCO)
+                    .input('MDEDUCIBLE', sql.Numeric(11,2), policiesToRenovate[i].MDEDUCIBLE)
                     .input('FDESDE_POL', sql.DateTime, fhasta_pol.toISOString())
                     .input('FHASTA_POL', sql.DateTime, fdesde_pol.toISOString())
-                    .query('insert into tmrenovcacion (CPLAN, CCARGA, CLOTE, CRECIBO, XPLACA, MSUMA_A_CASCO, MDEDUCIBLE, FDESDE_POL, FHASTA_POL) '
+                    .query('insert into tmrenovacion (CPLAN, CCARGA, CLOTE, CRECIBO, XPLACA, MSUMA_A_CASCO, MDEDUCIBLE, FDESDE_POL, FHASTA_POL) '
                                             + 'values (@CPLAN, @CCARGA, @CLOTE, @CRECIBO, @XPLACA, @MSUMA_A_CASCO, @MDEDUCIBLE, @FDESDE_POL, @FHASTA_POL)'
                     )
             }

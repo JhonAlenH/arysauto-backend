@@ -1379,13 +1379,10 @@ const operationRenovateContracts = async(authHeader, requestBody) => {
         let error = validateChargeContract(requestBody.parsedData[i], i).error;
         if (error) { console.log(error); return { status: false, code: 400, message: error } };
     }*/
-    let chargeMaxId = await bd.createNewCharge();
-    if (chargeMaxId.error){ return { status: 500, message: chargeMaxId.error }; }
-    let batchMaxId = await bd.createNewBatch();
-    if (batchMaxId.error){ return { status: 500, message: batchMaxId.error }; }
-    let processRenovation = await bd.createPolicyRenovation(chargeMaxId, batchMaxId, requestBody.policiesToRenovate);
+    let policiesToRenovate = await bd.getPoliciesChargeInformation(requestBody.policiesToRenovate);
+    if (policiesToRenovate.error){ return { status: 500, message: policiesToRenovate.error }; }
+    let processRenovation = await bd.createPolicyRenovation(policiesToRenovate);
     if(processRenovation.error){ return { status: false, code: 500, message: processRenovation.error }; }
-    if(processRenovation.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Internal Error.' }; }
     return {
         status: true,
         code: 200,
