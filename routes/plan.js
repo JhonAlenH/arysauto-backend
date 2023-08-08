@@ -2,6 +2,11 @@ const router = require('express').Router();
 const bd = require('../src/bd');
 const helper = require('../src/helper');
 
+function changeDateFormat (date) {
+    let dateArray = date.toISOString().substring(0,10).split("-");
+    return dateArray[0] + '-' + dateArray[1] + '-' + dateArray[2];
+  }
+
 router.route('/search').post((req, res) => {
     if(!req.header('Authorization')){ 
         res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } })
@@ -131,11 +136,14 @@ const operationDetailPlan = async(authHeader, requestBody) => {
         ctipoplan: getPlanData.result.recordset[0].CTIPOPLAN,
         brcv: getPlanData.result.recordset[0].BRCV,
         bactivo: getPlanData.result.recordset[0].BACTIVO,
+        cmetodologia: getPlanData.result.recordset[0].CMETODOLOGIAPAGO,
+        caseguradora: getPlanData.result.recordset[0].CASEGURADORA,
+        cpais: getPlanData.result.recordset[0].CPAIS,
+        fdesde: changeDateFormat(getPlanData.result.recordset[0].FDESDE),
+        fhasta: changeDateFormat(getPlanData.result.recordset[0].FHASTA),
         services: servicesTypeList,
         servicesInsurers: servicesInsurers,
         ratesArys: ratesArys,
-        parys: getPlanData.result.recordset[0].PARYS, 
-        paseguradora: getPlanData.result.recordset[0].PASEGURADORA,
         cmoneda: getPlanData.result.recordset[0].CMONEDA,
         ptasa_casco: getPlanData.result.recordset[0].PTASA_CASCO,
         ptasa_catastrofico: getPlanData.result.recordset[0].PTASA_CATASTROFICO,

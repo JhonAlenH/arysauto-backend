@@ -6750,7 +6750,7 @@ module.exports = {
         try{
             let pool = await sql.connect(config);
             let result = await pool.request()
-                .query('SELECT CCARGA, XPOLIZA, XCLIENTE, FINGRESO, XPLACA FROM VWBUSCARFECHACARGAXCLIENTE WHERE CESTATUSGENERAL IS NULL');
+                .query('SELECT DISTINCT CCARGA, XCLIENTE, XPOLIZA FROM VWBUSCARFECHACARGAXCLIENTE WHERE CESTATUSGENERAL IS NULL');
             //sql.close();
             return { result: result };
         }catch(err){
@@ -7420,7 +7420,7 @@ module.exports = {
                     .input('ctipovehiculo', sql.Int, vehicleTypes[i].ctipovehiculo)
                     .input('ctipovehiculoregistrotasa', sql.Int, vehicleTypes[i].ctipovehiculoregistrotasa)
                     .input('miniciointervalo', sql.Numeric(11, 2), vehicleTypes[i].miniciointervalo)
-                    .input('mfinalintervalo', sql.Numeric(11, 02), vehicleTypes[i].mfinalintervalo)
+                    .input('mfinalintervalo', sql.Numeric(11, 2), vehicleTypes[i].mfinalintervalo)
                     .input('ptasa', sql.Numeric(5, 2), vehicleTypes[i].ptasa)
                     .input('cusuariomodificacion', sql.Int, feesRegisterData.cusuariomodificacion)
                     .input('fmodificacion', sql.DateTime, new Date())
@@ -8368,17 +8368,13 @@ module.exports = {
     },
     searchFleetContractManagementQuery: async(searchData) => {
         try{
-            let query = `select * from VWBUSCARCONTRATOFLOTADATA where CCOMPANIA = @ccompania${ searchData.ccliente ? " and CCLIENTE = @ccliente" : '' }${ searchData.ccarga ? " and ccarga = @ccarga" : '' }${ searchData.clote ? " and clote = @clote" : '' }${ searchData.xplaca ? " and XPLACA = @xplaca" : '' }`;
+            let query = `select * from VWBUSCARCONTRATOFLOTADATA where CCOMPANIA = @ccompania${ searchData.ccarga ? " and ccarga = @ccarga" : '' }${ searchData.clote ? " and clote = @clote" : '' }${ searchData.xplaca ? " and XPLACA = @xplaca" : '' }`;
             let pool = await sql.connect(config);
             let result = await pool.request()
                 .input('ccompania', sql.Int, searchData.ccompania)
                 .input('ccliente', sql.Int, searchData.ccliente ? searchData.ccliente : undefined)
                 .input('ccarga', sql.Int, searchData.ccarga ? searchData.ccarga : undefined)
                 .input('clote', sql.Int, searchData.clote ? searchData.clote : undefined)
-                //.input('crecibo', sql.Int, searchData.crecibo ? searchData.crecibo : 1)
-                //.input('cmarca', sql.Int, searchData.cmarca ? searchData.cmarca : 1)
-                //.input('cmodelo', sql.Int, searchData.cmodelo ? searchData.cmodelo : 1)           esto va en el query
-                //.input('cversion', sql.Int, searchData.cversion ? searchData.cversion : 1) ----   ${ searchData.cmarca ? " and CMARCA = @cmarca" : '' }${ searchData.cmodelo ? " and CMODELO = @cmodelo" : '' }${ searchData.cversion ? " and CVERSION = @cversion" : '' }
                 .input('xplaca', sql.NVarChar, searchData.xplaca ? searchData.xplaca : undefined)
                 .query(query);
             //sql.close();
@@ -11162,6 +11158,7 @@ module.exports = {
                 .input('cplan', sql.Int, planData.cplan)
                 .query('select * from POPLAN where CPAIS = @cpais and CCOMPANIA = @ccompania and CPLAN = @cplan');
             //sql.close();
+            console.log(result)
             return { result: result };
         }catch(err){
             return { error: err.message };
