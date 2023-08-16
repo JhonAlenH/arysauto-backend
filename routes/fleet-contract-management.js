@@ -16,6 +16,7 @@ router.route('/search').post((req, res) => {
             }
             res.json({ data: result });
         }).catch((err) => {
+            console.log(err.message)
             res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchFleetContractManagement' } });
         });
     }
@@ -31,12 +32,17 @@ const operationSearchFleetContractManagement = async(authHeader, requestBody) =>
         xplaca: requestBody.xplaca ? requestBody.xplaca : undefined,
         ccompania: requestBody.ccompania
     };
-   
+   let estatus; 
     let searchFleetContractManagement = await bd.searchFleetContractManagementQuery(searchData).then((res) => res);
     if(searchFleetContractManagement.error){ return  { status: false, code: 500, message: searchFleetContractManagement.error }; }
     if(searchFleetContractManagement.result.rowsAffected > 0){
         let jsonList = [];
         for(let i = 0; i < searchFleetContractManagement.result.recordset.length; i++){
+            if(searchFleetContractManagement.result.recordset[i].IRENOVACION == 'NU'){
+                estatus = 'Nuevo';
+            }else if(searchFleetContractManagement.result.recordset[i].IRENOVACION == 'RE'){
+                estatus = 'Renovado';
+            }
             jsonList.push({
                 ccontratoflota: searchFleetContractManagement.result.recordset[i].CCONTRATOFLOTA,
                 cmarca: searchFleetContractManagement.result.recordset[i].CMARCA,
@@ -46,9 +52,9 @@ const operationSearchFleetContractManagement = async(authHeader, requestBody) =>
                 cversion: searchFleetContractManagement.result.recordset[i].CVERSION,
                 xversion: searchFleetContractManagement.result.recordset[i].XVERSION,
                 xplaca: searchFleetContractManagement.result.recordset[i].XPLACA,
+                xnombre: searchFleetContractManagement.result.recordset[i].XNOMBRE,
+                xestatusgeneral: estatus,
                 xcliente: searchFleetContractManagement.result.recordset[i].XCLIENTE,
-                xestatusgeneral: searchFleetContractManagement.result.recordset[i].XESTATUSGENERAL,
-                xpoliza: searchFleetContractManagement.result.recordset[i].xpoliza,
             });
         }
         return { status: true, list: jsonList };
@@ -509,7 +515,7 @@ router.route('/detail').post((req, res) => {
             }
             res.json({ data: result });
         }).catch((err) => {
-
+            console.log(err.message)
             res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationDetailFleetContractManagement' } });
         });
     }
@@ -595,10 +601,10 @@ const operationDetailFleetContractManagement = async(authHeader, requestBody) =>
         if(getPlanData.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Fleet Contract Plan not found.' }; }
         let realCoverages = [];
         let coverageAnnexes = [];
-        let getPlanCoverages = await db.getPlanCoverages(getFleetContractData.result.recordset[0].CPLAN, getFleetContractData.result.recordset[0].CCONTRATOFLOTA);
-        if(getPlanCoverages.error){ return { status: false, code: 500, message: getFleetContractOwnerData.error }; }
-        if(getPlanCoverages.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Fleet Contract Plan Coverages not found.' }; }
-        for (let i = 0; i < getPlanCoverages.result.recordset.length; i++) {
+        // let getPlanCoverages = await db.getPlanCoverages(getFleetContractData.result.recordset[0].CPLAN, getFleetContractData.result.recordset[0].CCONTRATOFLOTA);
+        // if(getPlanCoverages.error){ return { status: false, code: 500, message: getFleetContractOwnerData.error }; }
+        // if(getPlanCoverages.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Fleet Contract Plan Coverages not found.' }; }
+        // for (let i = 0; i < getPlanCoverages.result.recordset.length; i++) {
             /*let getCoverageServices = await db.getCoverageServices(getPlanCoverages.result.recordset[i].ccobertura);
             for(let i = 0; i < getCoverageServices.result.recordset.length; i++) {
                 let service = {
@@ -608,41 +614,41 @@ const operationDetailFleetContractManagement = async(authHeader, requestBody) =>
                 services.push(service);
             }*/
             // Solo se suma si el codigo de la moneda es 2 (usd), si la moneda es bs no lo toma en cuenta
-            if (getPlanCoverages.result.recordset[i].cmoneda == 2 && getPlanCoverages.result.recordset[i].mprima) {
-                mprimatotal = mprimatotal + getPlanCoverages.result.recordset[i].mprima;
-            } 
-            if (getPlanCoverages.result.recordset[i].cmoneda == 2 && getPlanCoverages.result.recordset[i].mprimaprorrata) {
-                mprimaprorratatotal = mprimaprorratatotal + getPlanCoverages.result.recordset[i].mprimaprorrata
-            }
-            let getCoverageAnnexes = await db.getCoverageAnnexesQuery(getPlanCoverages.result.recordset[i].CCOBERTURA)
-            if (getCoverageAnnexes.result) {
-                for (let i = 0; i < getCoverageAnnexes.result.recordset.length; i++) {
-                    let annex = {
-                        ccobertura: getCoverageAnnexes.result.recordset[i].CCOBERTURA,
-                        canexo: getCoverageAnnexes.result.recordset[i].CANEXO,
-                        xanexo: getCoverageAnnexes.result.recordset[i].XANEXO
-                    }
-                    coverageAnnexes.push(annex);
-                }
-            }
-            let coverage = {
-                ccobertura: getPlanCoverages.result.recordset[i].CCOBERTURA,
-                xcobertura: getPlanCoverages.result.recordset[i].XCOBERTURA,
-                ptasa: getPlanCoverages.result.recordset[i].ptasa,
-                msumaasegurada: getPlanCoverages.result.recordset[i].msuma_aseg,
-                mprima: getPlanCoverages.result.recordset[i].mprima,
-                mprimaprorrata: getPlanCoverages.result.recordset[i].mprimaprorrata,
-                ititulo: getPlanCoverages.result.recordset[i].ititulo,
-                xmoneda: getPlanCoverages.result.recordset[i].xmoneda,
-                ccontratoflota: getPlanCoverages.result.recordset[i].ccontratoflota,
-            }
-            realCoverages.push(coverage);
-        }
-        //Se redondea el total de la prima a dos decimales. 96,336 -> 96,34
-        mprimatotal = Math.round10(mprimatotal, -2);
-        if (mprimaprorratatotal > 0) {
-            mprimaprorratatotal = Math.round10(mprimaprorratatotal, -2);
-        }
+        //     if (getPlanCoverages.result.recordset[i].cmoneda == 2 && getPlanCoverages.result.recordset[i].mprima) {
+        //         mprimatotal = mprimatotal + getPlanCoverages.result.recordset[i].mprima;
+        //     } 
+        //     if (getPlanCoverages.result.recordset[i].cmoneda == 2 && getPlanCoverages.result.recordset[i].mprimaprorrata) {
+        //         mprimaprorratatotal = mprimaprorratatotal + getPlanCoverages.result.recordset[i].mprimaprorrata
+        //     }
+        //     let getCoverageAnnexes = await db.getCoverageAnnexesQuery(getPlanCoverages.result.recordset[i].CCOBERTURA)
+        //     if (getCoverageAnnexes.result) {
+        //         for (let i = 0; i < getCoverageAnnexes.result.recordset.length; i++) {
+        //             let annex = {
+        //                 ccobertura: getCoverageAnnexes.result.recordset[i].CCOBERTURA,
+        //                 canexo: getCoverageAnnexes.result.recordset[i].CANEXO,
+        //                 xanexo: getCoverageAnnexes.result.recordset[i].XANEXO
+        //             }
+        //             coverageAnnexes.push(annex);
+        //         }
+        //     }
+        //     let coverage = {
+        //         ccobertura: getPlanCoverages.result.recordset[i].CCOBERTURA,
+        //         xcobertura: getPlanCoverages.result.recordset[i].XCOBERTURA,
+        //         ptasa: getPlanCoverages.result.recordset[i].ptasa,
+        //         msumaasegurada: getPlanCoverages.result.recordset[i].msuma_aseg,
+        //         mprima: getPlanCoverages.result.recordset[i].mprima,
+        //         mprimaprorrata: getPlanCoverages.result.recordset[i].mprimaprorrata,
+        //         ititulo: getPlanCoverages.result.recordset[i].ititulo,
+        //         xmoneda: getPlanCoverages.result.recordset[i].xmoneda,
+        //         ccontratoflota: getPlanCoverages.result.recordset[i].ccontratoflota,
+        //     }
+        //     realCoverages.push(coverage);
+        // }
+        // //Se redondea el total de la prima a dos decimales. 96,336 -> 96,34
+        // mprimatotal = Math.round10(mprimatotal, -2);
+        // if (mprimaprorratatotal > 0) {
+        //     mprimaprorratatotal = Math.round10(mprimaprorratatotal, -2);
+        // }
         let services = [];
         let getFleetContractServices = await db.getFleetContractServices(getFleetContractData.result.recordset[0].ccarga);
         if(getFleetContractServices.error){ return { status: false, code: 500, message: getFleetContractServices.error }; }
@@ -815,13 +821,13 @@ const operationDetailFleetContractManagement = async(authHeader, requestBody) =>
             nkilometraje: getFleetContractData.result.recordset[0].NKILOMETRAJE,
             xzona_postal_propietario: getFleetContractData.result.recordset[0].XZONA_POSTAL_PROPIETARIO,
             xplanservicios: xplanservicios,
-            mprimatotal: mprimatotal,
-            mprimaprorratatotal: mprimaprorratatotal,
+            // mprimatotal: mprimatotal,
+            // mprimaprorratatotal: mprimaprorratatotal,
             accesories: accesories,
             inspections: inspections,
             services:services,
-            realCoverages: realCoverages,
-            coverageAnnexes: coverageAnnexes,
+            // realCoverages: realCoverages,
+            // coverageAnnexes: coverageAnnexes,
             fdesde_pol: getPolicyEffectiveDate.result.recordset[0].FDESDE_POL,
             fhasta_pol: getPolicyEffectiveDate.result.recordset[0].FHASTA_POL
         }

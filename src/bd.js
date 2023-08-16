@@ -6788,7 +6788,7 @@ module.exports = {
             let result = await pool.request()
                 .input('clote', sql.Int, searchData.clote)
                 .input('ccarga', sql.Int, searchData.ccarga)
-                .query('select * from SURECIBO where CLOTE = @clote AND CCARGA = @ccarga ');
+                .query('select * from VWBUSCARRENOVACIONES where CLOTE = @clote AND CCARGA = @ccarga ');
             //sql.close();
             return { result: result };
         }catch(err){
@@ -8368,7 +8368,7 @@ module.exports = {
     },
     searchFleetContractManagementQuery: async(searchData) => {
         try{
-            let query = `select * from VWBUSCARCONTRATOFLOTADATA where CCOMPANIA = @ccompania${ searchData.ccarga ? " and ccarga = @ccarga" : '' }${ searchData.clote ? " and clote = @clote" : '' }${ searchData.xplaca ? " and XPLACA = @xplaca" : '' }`;
+            let query = `select * from VWBUSCARRENOVACIONES where CCOMPANIA = @ccompania AND (IRENOVACION = 'NU' OR IRENOVACION = 'RE')${ searchData.ccarga ? " and ccarga = @ccarga" : '' }${ searchData.clote ? " and clote = @clote" : '' }${ searchData.xplaca ? " and XPLACA = @xplaca" : '' }`;
             let pool = await sql.connect(config);
             let result = await pool.request()
                 .input('ccompania', sql.Int, searchData.ccompania)
@@ -8835,7 +8835,8 @@ module.exports = {
                 .input('cpais', sql.Numeric(4, 0), fleetContractData.cpais ? fleetContractData.cpais: undefined)
                 .input('ccompania', sql.Int, fleetContractData.ccompania)
                 .input('ccodigo_serv', sql.Int, fleetContractData.ccodigo_serv)
-                .query('select * from VWBUSCARSUCONTRATOFLOTADATA where CCODIGO_SERV = @ccodigo_serv and CCOMPANIA = @ccompania');
+                .input('ccontratoflota', sql.Int, fleetContractData.ccontratoflota)
+                .query(`select * from VWBUSCARSUCONTRATOFLOTADATA where CCOMPANIA = @ccompania${ fleetContractData.ccontratoflota ? " and CCONTRATOFLOTA = @ccontratoflota" : '' } ${ fleetContractData.ccodigo_serv ? " and CCODIGO_SERV = @ccodigo_serv" : '' }`);
             //sql.close();
             return { result: result };
         }catch(err){
