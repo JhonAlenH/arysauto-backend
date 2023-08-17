@@ -29,23 +29,85 @@ const operationSearchCorporativeIssuanceCertificates = async(authHeader, request
     let searchData = {
         ccarga: requestBody.ccarga,
         clote: requestBody.clote,
+        ccompania: requestBody.ccompania
     };
+    let estatus; 
     let searchCorporativeIssuanceCertificates = await bd.searchCorporativeIssuanceCertificates(searchData).then((res) => res);
     if(searchCorporativeIssuanceCertificates.error){ return  { status: false, code: 500, message: searchCorporativeIssuanceCertificates.error }; }
     if(searchCorporativeIssuanceCertificates.result.rowsAffected > 0){
         let jsonList = [];
-        for(let i = 0; i < searchCorporativeIssuanceCertificates.result.recordset.length; i++) {
+        for(let i = 0; i < searchCorporativeIssuanceCertificates.result.recordset.length; i++){
+            if(searchCorporativeIssuanceCertificates.result.recordset[i].IRENOVACION == 'NU'){
+                estatus = 'Nuevo';
+            }else if(searchCorporativeIssuanceCertificates.result.recordset[i].IRENOVACION == 'RE'){
+                estatus = 'Renovado';
+            }
             jsonList.push({
-                id: searchCorporativeIssuanceCertificates.result.recordset[i].ID,
-                ccarga: searchCorporativeIssuanceCertificates.result.recordset[i].CCARGA,
-                clote: searchCorporativeIssuanceCertificates.result.recordset[i].CLOTE,
-                xpoliza: searchCorporativeIssuanceCertificates.result.recordset[i].XPOLIZA,
-                xcertificado: searchCorporativeIssuanceCertificates.result.recordset[i].XCERTIFICADO,
-                xnombre: searchCorporativeIssuanceCertificates.result.recordset[i].XNOMBRE,
-                xplaca: searchCorporativeIssuanceCertificates.result.recordset[i].XPLACA,
+                ccontratoflota: searchCorporativeIssuanceCertificates.result.recordset[i].CCONTRATOFLOTA,
+                cmarca: searchCorporativeIssuanceCertificates.result.recordset[i].CMARCA,
                 xmarca: searchCorporativeIssuanceCertificates.result.recordset[i].XMARCA,
+                cmodelo: searchCorporativeIssuanceCertificates.result.recordset[i].CMODELO,
                 xmodelo: searchCorporativeIssuanceCertificates.result.recordset[i].XMODELO,
-                xversion: searchCorporativeIssuanceCertificates.result.recordset[i].XVERSION
+                cversion: searchCorporativeIssuanceCertificates.result.recordset[i].CVERSION,
+                xversion: searchCorporativeIssuanceCertificates.result.recordset[i].XVERSION,
+                xplaca: searchCorporativeIssuanceCertificates.result.recordset[i].XPLACA,
+                xnombre: searchCorporativeIssuanceCertificates.result.recordset[i].XNOMBRE,
+                xestatusgeneral: estatus,
+                xcliente: searchCorporativeIssuanceCertificates.result.recordset[i].XCLIENTE,
+            });
+        }
+        return { status: true, list: jsonList };
+    }
+    else{ return { status: false, code: 404, message: 'Fleet Contract Management not found.' }; }
+}
+
+router.route('/search-all').post((req, res) => {
+    if(!req.header('Authorization')){
+        res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } });
+        return;
+    }else{
+        operationSearchAllCorporativeIssuanceCertificates(req.header('Authorization'), req.body).then((result) => {
+            if(!result.status){
+                res.status(result.code).json({ data: result });
+                return;
+            }
+            res.json({ data: result });
+        }).catch((err) => {
+            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchAllCorporativeIssuanceCertificates' } });
+        });
+    }
+});
+
+const operationSearchAllCorporativeIssuanceCertificates = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    let searchData = {
+        ccarga: requestBody.ccarga,
+        clote: requestBody.clote,
+        ccompania: requestBody.ccompania
+    };
+    let estatus; 
+    let searchAllCorporativeIssuanceCertificates = await bd.searchAllCorporativeIssuanceCertificatesQuery(searchData).then((res) => res);
+    if(searchAllCorporativeIssuanceCertificates.error){ return  { status: false, code: 500, message: searchAllCorporativeIssuanceCertificates.error }; }
+    if(searchAllCorporativeIssuanceCertificates.result.rowsAffected > 0){
+        let jsonList = [];
+        for(let i = 0; i < searchAllCorporativeIssuanceCertificates.result.recordset.length; i++){
+            if(searchAllCorporativeIssuanceCertificates.result.recordset[i].IRENOVACION == 'NU'){
+                estatus = 'Nuevo';
+            }else if(searchAllCorporativeIssuanceCertificates.result.recordset[i].IRENOVACION == 'RE'){
+                estatus = 'Renovado';
+            }
+            jsonList.push({
+                ccontratoflota: searchAllCorporativeIssuanceCertificates.result.recordset[i].CCONTRATOFLOTA,
+                cmarca: searchAllCorporativeIssuanceCertificates.result.recordset[i].CMARCA,
+                xmarca: searchAllCorporativeIssuanceCertificates.result.recordset[i].XMARCA,
+                cmodelo: searchAllCorporativeIssuanceCertificates.result.recordset[i].CMODELO,
+                xmodelo: searchAllCorporativeIssuanceCertificates.result.recordset[i].XMODELO,
+                cversion: searchAllCorporativeIssuanceCertificates.result.recordset[i].CVERSION,
+                xversion: searchAllCorporativeIssuanceCertificates.result.recordset[i].XVERSION,
+                xplaca: searchAllCorporativeIssuanceCertificates.result.recordset[i].XPLACA,
+                xnombre: searchAllCorporativeIssuanceCertificates.result.recordset[i].XNOMBRE,
+                xestatusgeneral: estatus,
+                xcliente: searchAllCorporativeIssuanceCertificates.result.recordset[i].XCLIENTE,
             });
         }
         return { status: true, list: jsonList };
@@ -114,7 +176,7 @@ router.route('/detail').post((req, res) => {
 const operationDetailCorporativeIssuanceCertificate = async(authHeader, requestBody) => {
     if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
     let searchData = {
-        id: requestBody.id
+        ccontratoflota: requestBody.ccontratoflota
     };
     let searchCorporativeIssuanceDetail = await bd.searchCorporativeIssuanceDetail(searchData).then((res) => res);
     if(searchCorporativeIssuanceDetail.error){ return  { status: false, code: 500, message: searchCorporativeIssuanceDetail.error }; }

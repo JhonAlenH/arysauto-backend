@@ -6705,16 +6705,32 @@ module.exports = {
         }
     },
     searchCorporativeIssuanceCertificates: async(searchData) => {
-        try {
+        try{
+            let query = `select * from VWBUSCARRENOVACIONES where CCOMPANIA = @ccompania AND (IRENOVACION = 'NU' OR IRENOVACION = 'RE')${ searchData.ccarga ? " and ccarga = @ccarga" : '' }${ searchData.clote ? " and clote = @clote" : '' }`;
             let pool = await sql.connect(config);
             let result = await pool.request()
-                .input('ccarga', sql.Int, searchData.ccarga)
-                .input('clote', sql.Int, searchData.clote)
-                .query('select ID, CCARGA, CLOTE, XPOLIZA, XCERTIFICADO, XNOMBRE, XPLACA, XMARCA, XMODELO, XVERSION FROM VWBUSCARCERTIFICADOSCORPORATIVOSXCARGA WHERE CCARGA = @ccarga AND CLOTE = @clote')
-            return {result: result};
+                .input('ccompania', sql.Int, searchData.ccompania)
+                .input('ccarga', sql.Int, searchData.ccarga ? searchData.ccarga : undefined)
+                .input('clote', sql.Int, searchData.clote ? searchData.clote : undefined)
+                .query(query);
+            //sql.close();
+            return { result: result };
+        }catch(err){
+            return { error: err.message };
         }
-        catch(err){
-            console.log(err.message);
+    },
+    searchAllCorporativeIssuanceCertificatesQuery: async(searchData) => {
+        try{
+            let query = `select * from VWBUSCARRENOVACIONES where CCOMPANIA = @ccompania${ searchData.ccarga ? " and ccarga = @ccarga" : '' }${ searchData.clote ? " and clote = @clote" : '' }`;
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .input('ccompania', sql.Int, searchData.ccompania)
+                .input('ccarga', sql.Int, searchData.ccarga ? searchData.ccarga : undefined)
+                .input('clote', sql.Int, searchData.clote ? searchData.clote : undefined)
+                .query(query);
+            //sql.close();
+            return { result: result };
+        }catch(err){
             return { error: err.message };
         }
     },
@@ -6722,9 +6738,8 @@ module.exports = {
         try {
             let pool = await sql.connect(config);
             let result = await pool.request()
-                .input('id', sql.Int, searchData.id)
-                .query('select ID, CCARGA, CLOTE, XPOLIZA, XCERTIFICADO, FCARGA, FDESDE_POL, FHASTA_POL, XCLIENTE, XEMAILCLIENTE, XDOCIDENTIDADCLIENTE, XPROPIETARIO, XEMAILPROPIETARIO, XDOCIDENTIDADPROPIETARIO, XMARCA, XMODELO, XVERSION, CANO, XTIPO, XCLASE, XSERIALCARROCERIA, XSERIALMOTOR, XCOLOR, NCAPACIDADPASAJEROS, XPLACA, MSUMA_A_CASCO, MSUMA_OTROS, PTASA_ASEGURADORA, MPRIMA_CASCO, MPRIMA_OTROS, MPRIMA_CATASTROFICO, MGASTOS_RECUPERACION, MBASICA_RCV, MEXCESO_LIMITE, MDEFENSA_PENAL, MMUERTE, MINVALIDEZ, MGASTOS_MEDICOS, MGASTOS_FUNERARIOS, MTOTAL_PRIMA_ASEG, MDEDUCIBLE, XTIPO_DEDUCIBLE, PTASA_FONDO_ANUAL, MFONDO_ARYS, MMEMBRESIA ' 
-                + ' FROM VWBUSCARDETALLECERTIFICADOSCORPORATIVOS WHERE ID = @id')
+                .input('ccontratoflota', sql.Int, searchData.ccontratoflota)
+                .query('select * FROM VWBUSCARDETALLECERTIFICADOSCORPORATIVOS WHERE CCONTRATOFLOTA = @ccontratoflota')
             return {result: result};
         }
         catch(err){
