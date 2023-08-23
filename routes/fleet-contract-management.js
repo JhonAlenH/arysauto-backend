@@ -3,6 +3,7 @@ const helper = require('../src/helper');
 const bd = require('../src/bd');
 const db = require('../data/db');
 const { format } = require('express/lib/response');
+const nodemailer = require('nodemailer');
 
 router.route('/search').post((req, res) => {
     if(!req.header('Authorization')){
@@ -1368,6 +1369,7 @@ router.route('/create/individualContract').post((req, res) => {
         }
         res.json({ data: result });
     }).catch((err) => {
+        console.log(err.message)
         res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationCreateIndividualContract' } });
     });
 });
@@ -1462,6 +1464,101 @@ const operationCreateIndividualContract = async(authHeader, requestBody) => {
     if(userData){
         let operationCreateIndividualContract = await bd.createIndividualContractQuery(userData, paymentList).then((res) => res);
         if(operationCreateIndividualContract.error){ return { status: false, code: 500, message: operationCreateIndividualContract.error }; }
+        if(operationCreateIndividualContract.result.rowsAffected > 0){
+            let transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                  user: 'contactoarysauto@gmail.com',
+                  pass: 'hyyzpwrfwvbwbtsm'
+                }
+              });
+    
+            let mailOptions = {
+                from: 'contactoarysauto@gmail.com',
+                to: `${userData.email}`,
+                subject: '¡Bienvenido a ArysAutoClub!',
+                html: `
+                <html>
+                <head>
+                  <style>
+                    body {
+                      margin: 0;
+                      padding: 0;
+                      background-color: #f5f5f5;
+                    }
+                    .container {
+                      width: 100%;
+                      height: 100vh;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      background-color: #f5f5f5;
+                    }
+                    .inner-container {
+                      text-align: center;
+                      background-color: #ffffff;
+                      border-radius: 10px;
+                      padding: 20px;
+                      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+                    }
+                    .logo {
+                      width: 165px;
+                      height: auto;
+                      margin-right: 20px;
+                    }
+                    .content {
+                      text-align: left;
+                      margin-top: 20px;
+                    }
+                    .content h2,
+                    .content h4,
+                    .content p {
+                      margin: 0;
+                      color: #0070c0;
+                    }
+                  </style>
+                </head>
+                <body>
+                  <div class="container">
+                    <table class="inner-container" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td>
+                          <img class="logo" src="https://i.ibb.co/sPCnfhH/Arys-logo.png" alt="Logo">
+                          <h2>Hola <span style="color: #0070C0;">${userData.xnombre} ${userData.xapellido}</span>,</h2>
+                          <h4>¡Te damos la bienvenida a ArysAutoClub!</h4>
+                          <h4>Ahora podrás disfrutar de todos los beneficios de ArysAutoClub, tu plataforma online</h4>
+                          <div style="display: flex; align-items: center;">
+                            <img class="logo" src="https://i.ibb.co/ThJRqPr/arys-muneco.png" alt="Logo">
+                            <div>
+                              <h4>Para acceder a nuestro canal de autogestión online, puedes hacerlo con:</h4>
+                              <h4>Correo electrónico</h4>
+                              <h2 style="color:#0070c0;">${userData.email}</h2>
+                              <h4>Contraseña</h4>
+                              <h2 style="color:#0070c0;">Ar654321!</h2>
+                            </div>
+                          </div>
+                          <h4>¿Qué ventajas tienes como usuario registrado?</h4>
+                          <p>Realizar trámites y consultas desde el lugar donde estés, acceder y agendar todos los servicios de forma digital asociados a tu perfil.</p>
+                          <h4>Conoce lo que puedes hacer <a href="https://arysauto.com/">Click para ir al sistema</a>.</h4>
+                          <p style="font-size: 18px; font-style: italic; border-radius: 10px; background-color: lightgray; padding: 10px;">Conduce tu vehículo, del resto nos encargamos nosotros</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+                </body>
+                </html>
+                `
+              };
+            
+            transporter.sendMail(mailOptions, function(error, info) {
+              if (error) {
+                console.log('Error al enviar el correo:', error);
+              } else {
+                console.log('Correo enviado correctamente:', info.response);
+                return {status: true}
+              }
+            });
+        }
     }
     if(requestBody.accessory){
         let accessoryData = [];
