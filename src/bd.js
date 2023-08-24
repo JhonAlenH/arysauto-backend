@@ -9253,7 +9253,7 @@ module.exports = {
                         .input('fhasta_pol', sql.DateTime, fpoliza_has.toISOString())
                         .input('caseguradora', sql.Int, chargeList[i].CASEGURADORA)
                         .input('msuma_a_casco', sql.Numeric(11, 2), chargeList[i]["SUMA ASEGURADA"])
-                        .input('msuma_otros', sql.Numeric(11, 2), chargeList[i]["SUMA ASEGURADA OTROS"] ? chargeList[i]["SUMA ASEGURADA OTROS"] : undefined)
+                        .input('msuma_otros', sql.Numeric(18, 2), chargeList[i]["SUMA ASEGURADA OTROS"] ? chargeList[i]["SUMA ASEGURADA OTROS"] : undefined)
                         .input('mdeducible', sql.Numeric(11, 2), chargeList[i]["MONTO DEDUCIBLE"])
                         .input('xtipo_deducible', sql.NVarChar, chargeList[i].XTIPO_DEDUCIBLE)
                         .input('fcreacion', sql.DateTime, fcreacion.toISOString())
@@ -14219,6 +14219,7 @@ createClientQuery: async(clientData) => {
         //sql.close();
         return { result: result };
     }catch(err){
+        console.log(err.message)
         return { error: err.message };
     }
 },
