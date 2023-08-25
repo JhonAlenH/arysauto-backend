@@ -1732,16 +1732,17 @@ const operationCreateIndividualContract = async(authHeader, requestBody) => {
                           <div style="display: flex; align-items: center;">
                             <img class="logo" src="https://i.ibb.co/ThJRqPr/arys-muneco.png" alt="Logo">
                             <div>
-                              <h4>Para acceder a nuestro canal de autogestión online, puedes hacerlo con:</h4>
+                              <h4>A continuación, te indicamos nuestros canales de atención 24/7:</h4>
                               <h4>Correo electrónico</h4>
                               <h2 style="color:#0070c0;">${userData.email}</h2>
-                              <h4>Contraseña</h4>
-                              <h2 style="color:#0070c0;">Ar654321!</h2>
+                              <h4>Número telefónicos:</h4>
+                              <h2>0500.2797288</h2>
+                              <h2>0500.3456222</h2>
+                              <h2>WhatsApp 0414-4128237</h2>
                             </div>
                           </div>
                           <h4>¿Qué ventajas tienes como usuario registrado?</h4>
-                          <p>Realizar trámites y consultas desde el lugar donde estés, acceder y agendar todos los servicios de forma digital asociados a tu perfil.</p>
-                          <h4>Conoce lo que puedes hacer <a href="https://arysauto.com/">Click para ir al sistema</a>.</h4>
+                          <p>Ser atendido de forma oportuna, realizar trámites y consultas desde el lugar donde estés</p>
                           <p style="font-size: 18px; font-style: italic; border-radius: 10px; background-color: lightgray; padding: 10px;">Conduce tu vehículo, del resto nos encargamos nosotros</p>
                         </td>
                       </tr>
