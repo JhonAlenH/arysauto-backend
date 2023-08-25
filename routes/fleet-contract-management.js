@@ -3,6 +3,8 @@ const helper = require('../src/helper');
 const bd = require('../src/bd');
 const db = require('../data/db');
 const { format } = require('express/lib/response');
+const nodemailer = require('nodemailer');
+const { max } = require('moment');
 
 router.route('/search').post((req, res) => {
     if(!req.header('Authorization')){
@@ -16,6 +18,7 @@ router.route('/search').post((req, res) => {
             }
             res.json({ data: result });
         }).catch((err) => {
+            console.log(err.message)
             res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationSearchFleetContractManagement' } });
         });
     }
@@ -31,12 +34,17 @@ const operationSearchFleetContractManagement = async(authHeader, requestBody) =>
         xplaca: requestBody.xplaca ? requestBody.xplaca : undefined,
         ccompania: requestBody.ccompania
     };
-   
+   let estatus; 
     let searchFleetContractManagement = await bd.searchFleetContractManagementQuery(searchData).then((res) => res);
     if(searchFleetContractManagement.error){ return  { status: false, code: 500, message: searchFleetContractManagement.error }; }
     if(searchFleetContractManagement.result.rowsAffected > 0){
         let jsonList = [];
         for(let i = 0; i < searchFleetContractManagement.result.recordset.length; i++){
+            if(searchFleetContractManagement.result.recordset[i].IRENOVACION == 'NU'){
+                estatus = 'Nuevo';
+            }else if(searchFleetContractManagement.result.recordset[i].IRENOVACION == 'RE'){
+                estatus = 'Renovado';
+            }
             jsonList.push({
                 ccontratoflota: searchFleetContractManagement.result.recordset[i].CCONTRATOFLOTA,
                 cmarca: searchFleetContractManagement.result.recordset[i].CMARCA,
@@ -46,9 +54,9 @@ const operationSearchFleetContractManagement = async(authHeader, requestBody) =>
                 cversion: searchFleetContractManagement.result.recordset[i].CVERSION,
                 xversion: searchFleetContractManagement.result.recordset[i].XVERSION,
                 xplaca: searchFleetContractManagement.result.recordset[i].XPLACA,
+                xnombre: searchFleetContractManagement.result.recordset[i].XNOMBRE,
+                xestatusgeneral: estatus,
                 xcliente: searchFleetContractManagement.result.recordset[i].XCLIENTE,
-                xestatusgeneral: searchFleetContractManagement.result.recordset[i].XESTATUSGENERAL,
-                xpoliza: searchFleetContractManagement.result.recordset[i].xpoliza,
             });
         }
         return { status: true, list: jsonList };
@@ -509,7 +517,7 @@ router.route('/detail').post((req, res) => {
             }
             res.json({ data: result });
         }).catch((err) => {
-
+            console.log(err.message)
             res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationDetailFleetContractManagement' } });
         });
     }
@@ -595,10 +603,10 @@ const operationDetailFleetContractManagement = async(authHeader, requestBody) =>
         if(getPlanData.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Fleet Contract Plan not found.' }; }
         let realCoverages = [];
         let coverageAnnexes = [];
-        let getPlanCoverages = await db.getPlanCoverages(getFleetContractData.result.recordset[0].CPLAN, getFleetContractData.result.recordset[0].CCONTRATOFLOTA);
-        if(getPlanCoverages.error){ return { status: false, code: 500, message: getFleetContractOwnerData.error }; }
-        if(getPlanCoverages.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Fleet Contract Plan Coverages not found.' }; }
-        for (let i = 0; i < getPlanCoverages.result.recordset.length; i++) {
+        // let getPlanCoverages = await db.getPlanCoverages(getFleetContractData.result.recordset[0].CPLAN, getFleetContractData.result.recordset[0].CCONTRATOFLOTA);
+        // if(getPlanCoverages.error){ return { status: false, code: 500, message: getFleetContractOwnerData.error }; }
+        // if(getPlanCoverages.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Fleet Contract Plan Coverages not found.' }; }
+        // for (let i = 0; i < getPlanCoverages.result.recordset.length; i++) {
             /*let getCoverageServices = await db.getCoverageServices(getPlanCoverages.result.recordset[i].ccobertura);
             for(let i = 0; i < getCoverageServices.result.recordset.length; i++) {
                 let service = {
@@ -608,41 +616,41 @@ const operationDetailFleetContractManagement = async(authHeader, requestBody) =>
                 services.push(service);
             }*/
             // Solo se suma si el codigo de la moneda es 2 (usd), si la moneda es bs no lo toma en cuenta
-            if (getPlanCoverages.result.recordset[i].cmoneda == 2 && getPlanCoverages.result.recordset[i].mprima) {
-                mprimatotal = mprimatotal + getPlanCoverages.result.recordset[i].mprima;
-            } 
-            if (getPlanCoverages.result.recordset[i].cmoneda == 2 && getPlanCoverages.result.recordset[i].mprimaprorrata) {
-                mprimaprorratatotal = mprimaprorratatotal + getPlanCoverages.result.recordset[i].mprimaprorrata
-            }
-            let getCoverageAnnexes = await db.getCoverageAnnexesQuery(getPlanCoverages.result.recordset[i].CCOBERTURA)
-            if (getCoverageAnnexes.result) {
-                for (let i = 0; i < getCoverageAnnexes.result.recordset.length; i++) {
-                    let annex = {
-                        ccobertura: getCoverageAnnexes.result.recordset[i].CCOBERTURA,
-                        canexo: getCoverageAnnexes.result.recordset[i].CANEXO,
-                        xanexo: getCoverageAnnexes.result.recordset[i].XANEXO
-                    }
-                    coverageAnnexes.push(annex);
-                }
-            }
-            let coverage = {
-                ccobertura: getPlanCoverages.result.recordset[i].CCOBERTURA,
-                xcobertura: getPlanCoverages.result.recordset[i].XCOBERTURA,
-                ptasa: getPlanCoverages.result.recordset[i].ptasa,
-                msumaasegurada: getPlanCoverages.result.recordset[i].msuma_aseg,
-                mprima: getPlanCoverages.result.recordset[i].mprima,
-                mprimaprorrata: getPlanCoverages.result.recordset[i].mprimaprorrata,
-                ititulo: getPlanCoverages.result.recordset[i].ititulo,
-                xmoneda: getPlanCoverages.result.recordset[i].xmoneda,
-                ccontratoflota: getPlanCoverages.result.recordset[i].ccontratoflota,
-            }
-            realCoverages.push(coverage);
-        }
-        //Se redondea el total de la prima a dos decimales. 96,336 -> 96,34
-        mprimatotal = Math.round10(mprimatotal, -2);
-        if (mprimaprorratatotal > 0) {
-            mprimaprorratatotal = Math.round10(mprimaprorratatotal, -2);
-        }
+        //     if (getPlanCoverages.result.recordset[i].cmoneda == 2 && getPlanCoverages.result.recordset[i].mprima) {
+        //         mprimatotal = mprimatotal + getPlanCoverages.result.recordset[i].mprima;
+        //     } 
+        //     if (getPlanCoverages.result.recordset[i].cmoneda == 2 && getPlanCoverages.result.recordset[i].mprimaprorrata) {
+        //         mprimaprorratatotal = mprimaprorratatotal + getPlanCoverages.result.recordset[i].mprimaprorrata
+        //     }
+        //     let getCoverageAnnexes = await db.getCoverageAnnexesQuery(getPlanCoverages.result.recordset[i].CCOBERTURA)
+        //     if (getCoverageAnnexes.result) {
+        //         for (let i = 0; i < getCoverageAnnexes.result.recordset.length; i++) {
+        //             let annex = {
+        //                 ccobertura: getCoverageAnnexes.result.recordset[i].CCOBERTURA,
+        //                 canexo: getCoverageAnnexes.result.recordset[i].CANEXO,
+        //                 xanexo: getCoverageAnnexes.result.recordset[i].XANEXO
+        //             }
+        //             coverageAnnexes.push(annex);
+        //         }
+        //     }
+        //     let coverage = {
+        //         ccobertura: getPlanCoverages.result.recordset[i].CCOBERTURA,
+        //         xcobertura: getPlanCoverages.result.recordset[i].XCOBERTURA,
+        //         ptasa: getPlanCoverages.result.recordset[i].ptasa,
+        //         msumaasegurada: getPlanCoverages.result.recordset[i].msuma_aseg,
+        //         mprima: getPlanCoverages.result.recordset[i].mprima,
+        //         mprimaprorrata: getPlanCoverages.result.recordset[i].mprimaprorrata,
+        //         ititulo: getPlanCoverages.result.recordset[i].ititulo,
+        //         xmoneda: getPlanCoverages.result.recordset[i].xmoneda,
+        //         ccontratoflota: getPlanCoverages.result.recordset[i].ccontratoflota,
+        //     }
+        //     realCoverages.push(coverage);
+        // }
+        // //Se redondea el total de la prima a dos decimales. 96,336 -> 96,34
+        // mprimatotal = Math.round10(mprimatotal, -2);
+        // if (mprimaprorratatotal > 0) {
+        //     mprimaprorratatotal = Math.round10(mprimaprorratatotal, -2);
+        // }
         let services = [];
         let getFleetContractServices = await db.getFleetContractServices(getFleetContractData.result.recordset[0].ccarga);
         if(getFleetContractServices.error){ return { status: false, code: 500, message: getFleetContractServices.error }; }
@@ -815,13 +823,13 @@ const operationDetailFleetContractManagement = async(authHeader, requestBody) =>
             nkilometraje: getFleetContractData.result.recordset[0].NKILOMETRAJE,
             xzona_postal_propietario: getFleetContractData.result.recordset[0].XZONA_POSTAL_PROPIETARIO,
             xplanservicios: xplanservicios,
-            mprimatotal: mprimatotal,
-            mprimaprorratatotal: mprimaprorratatotal,
+            // mprimatotal: mprimatotal,
+            // mprimaprorratatotal: mprimaprorratatotal,
             accesories: accesories,
             inspections: inspections,
             services:services,
-            realCoverages: realCoverages,
-            coverageAnnexes: coverageAnnexes,
+            // realCoverages: realCoverages,
+            // coverageAnnexes: coverageAnnexes,
             fdesde_pol: getPolicyEffectiveDate.result.recordset[0].FDESDE_POL,
             fhasta_pol: getPolicyEffectiveDate.result.recordset[0].FHASTA_POL
         }
@@ -1342,11 +1350,212 @@ const operationChargeContracts = async(authHeader, requestBody) => {
     if (getLastBatchCode.error){ console.log(getLastBatchCode.error); return { status: false, code: 500, message: getLastBatchCode.error }; }
     let createBatchQuery = await bd.createBatchQuery(requestBody.ccarga, requestBody.cusuario, requestBody.xobservacion, getLastBatchCode.result.clote);
     if (createBatchQuery.error){ console.log(createBatchQuery.error); return { status: false, code: 500, message: createBatchQuery.error }; } 
+
     let maxId = await bd.getFleetMaxId();
+    if(maxId == null){
+        maxId = 0;
+    }
+    console.log(maxId)
     if (maxId.error){ return { status: 500, message: maxId.error }; }
+    console.log(requestBody.parsedData)
     let processCharge = await bd.createChargeQuery(requestBody.parsedData, requestBody.ccarga, createBatchQuery.result.clote, maxId + 1);
     if(processCharge.error){ return { status: false, code: 500, message: processCharge.error }; }
     if(processCharge.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Internal Error.' }; }
+    // if(processCharge.result.rowsAffected > 0){
+    //     for(let i = 0; i < requestBody.parsedData.length; i++){
+    //         let transporter = nodemailer.createTransport({
+    //             service: 'gmail',
+    //             auth: {
+    //               user: 'contactoarysauto@gmail.com',
+    //               pass: 'hyyzpwrfwvbwbtsm'
+    //             }
+    //           });
+        
+    //         let mailOptions = {
+    //             from: 'contactoarysauto@gmail.com',
+    //             to: `${requestBody.parsedData[i].EMAIL}`,
+    //             subject: '¡Bienvenido a ArysAutoClub!',
+    //             html: `
+    //             <html>
+    //             <head>
+    //               <style>
+    //                 body {
+    //                   margin: 0;
+    //                   padding: 0;
+    //                   background-color: #f5f5f5;
+    //                 }
+    //                 .container {
+    //                   width: 100%;
+    //                   height: 100vh;
+    //                   display: flex;
+    //                   justify-content: center;
+    //                   align-items: center;
+    //                   background-color: #f5f5f5;
+    //                 }
+    //                 .inner-container {
+    //                   text-align: center;
+    //                   background-color: #ffffff;
+    //                   border-radius: 10px;
+    //                   padding: 20px;
+    //                   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    //                 }
+    //                 .logo {
+    //                   width: 165px;
+    //                   height: auto;
+    //                   margin-right: 20px;
+    //                 }
+    //                 .content {
+    //                   text-align: left;
+    //                   margin-top: 20px;
+    //                 }
+    //                 .content h2,
+    //                 .content h4,
+    //                 .content p {
+    //                   margin: 0;
+    //                   color: #0070c0;
+    //                 }
+    //               </style>
+    //             </head>
+    //             <body>
+    //               <div class="container">
+    //                 <table class="inner-container" cellpadding="0" cellspacing="0" border="0">
+    //                   <tr>
+    //                     <td>
+    //                       <img class="logo" src="https://i.ibb.co/sPCnfhH/Arys-logo.png" alt="Logo">
+    //                       <h2>Hola <span style="color: #0070C0;">${requestBody.parsedData[i].PROPIETARIO}</span>,</h2>
+    //                       <h4>¡Te damos la bienvenida a ArysAutoClub!</h4>
+    //                       <h4>Ahora podrás disfrutar de todos los beneficios de ArysAutoClub, tu plataforma online</h4>
+    //                       <div style="display: flex; align-items: center;">
+    //                         <img class="logo" src="https://i.ibb.co/ThJRqPr/arys-muneco.png" alt="Logo">
+    //                         <div>
+    //                           <h4>Para acceder a nuestro canal de autogestión online, puedes hacerlo con:</h4>
+    //                           <h4>Correo electrónico</h4>
+    //                           <h2 style="color:#0070c0;">${requestBody.parsedData[i].EMAIL}</h2>
+    //                           <h4>Contraseña</h4>
+    //                           <h2 style="color:#0070c0;">Ar654321!</h2>
+    //                         </div>
+    //                       </div>
+    //                       <h4>¿Qué ventajas tienes como usuario registrado?</h4>
+    //                       <p>Realizar trámites y consultas desde el lugar donde estés, acceder y agendar todos los servicios de forma digital asociados a tu perfil.</p>
+    //                       <h4>Conoce lo que puedes hacer <a href="https://arysauto.com/">Click para ir al sistema</a>.</h4>
+    //                       <p style="font-size: 18px; font-style: italic; border-radius: 10px; background-color: lightgray; padding: 10px;">Conduce tu vehículo, del resto nos encargamos nosotros</p>
+    //                     </td>
+    //                   </tr>
+    //                 </table>
+    //               </div>
+    //             </body>
+    //             </html>
+    //             `
+    //           };
+            
+    //         transporter.sendMail(mailOptions, function(error, info) {
+    //           if (error) {
+    //             console.log('Error al enviar el correo:', error);
+    //           } else {
+    //             console.log('Correo enviado correctamente:', info.response);
+    //             return {status: true}
+    //           }
+    //         });
+    //     }
+    // }
+        if(processCharge.result.rowsAffected > 0){
+        for(let i = 0; i < requestBody.parsedData.length; i++){
+            let transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                  user: 'contactoarysauto@gmail.com',
+                  pass: 'hyyzpwrfwvbwbtsm'
+                }
+              });
+        
+            let mailOptions = {
+                from: 'contactoarysauto@gmail.com',
+                to: `${requestBody.parsedData[i].EMAIL}`,
+                subject: '¡Bienvenido a ArysAutoClub!',
+                html: `
+                <html>
+                <head>
+                  <style>
+                    body {
+                      margin: 0;
+                      padding: 0;
+                      background-color: #f5f5f5;
+                    }
+                    .container {
+                      width: 100%;
+                      height: 100vh;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      background-color: #f5f5f5;
+                    }
+                    .inner-container {
+                      text-align: center;
+                      background-color: #ffffff;
+                      border-radius: 10px;
+                      padding: 20px;
+                      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+                    }
+                    .logo {
+                      width: 165px;
+                      height: auto;
+                      margin-right: 20px;
+                    }
+                    .content {
+                      text-align: left;
+                      margin-top: 20px;
+                    }
+                    .content h2,
+                    .content h4,
+                    .content p {
+                      margin: 0;
+                      color: #0070c0;
+                    }
+                  </style>
+                </head>
+                <body>
+                  <div class="container">
+                    <table class="inner-container" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td>
+                          <img class="logo" src="https://i.ibb.co/sPCnfhH/Arys-logo.png" alt="Logo">
+                          <h2>Hola <span style="color: #0070C0;">(${requestBody.parsedData[i].PROPIETARIO})</span></h2>
+                          <h4><span style="color: #0070C0;">¡Te damos la bienvenida a ArysAutoClub!</span></h4>
+                          <h4>Ahora podrás disfrutar de todos los beneficios de ArysAutoClub, tu plataforma online</h4>
+                          <div style="display: flex; align-items: center;">
+                            <img class="logo" src="https://i.ibb.co/ThJRqPr/arys-muneco.png" alt="Logo">
+                            <div>
+                              <h4>A continuación, te indicamos nuestros canales de atención 24/7:</h4>
+                              <h4>Correo electrónico</h4>
+                              <h2 style="color:#0070c0;">${requestBody.parsedData[i].EMAIL}</h2>
+                              <h4>Número telefónicos:</h4>
+                              <h2>0500.2797288</h2>
+                              <h2>0500.3456222</h2>
+                              <h2>WhatsApp 0414-4128237</h2>
+                            </div>
+                          </div>
+                          <h4>¿Qué ventajas tienes como usuario registrado?</h4>
+                          <p>Ser atendido de forma oportuna, realizar trámites y consultas desde el lugar donde estés</p>
+                          <p style="font-size: 18px; font-style: italic; border-radius: 10px; background-color: lightgray; padding: 10px;">Conduce tu vehículo, del resto nos encargamos nosotros</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+                </body>
+                </html>
+                `
+              };
+            
+            transporter.sendMail(mailOptions, function(error, info) {
+              if (error) {
+                console.log('Error al enviar el correo:', error);
+              } else {
+                console.log('Correo enviado correctamente:', info.response);
+                return {status: true}
+              }
+            });
+        }
+    }
     return {
         status: true,
         code: 200,
@@ -1398,6 +1607,7 @@ router.route('/create/individualContract').post((req, res) => {
         }
         res.json({ data: result });
     }).catch((err) => {
+        console.log(err.message)
         res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationCreateIndividualContract' } });
     });
 });
@@ -1492,6 +1702,102 @@ const operationCreateIndividualContract = async(authHeader, requestBody) => {
     if(userData){
         let operationCreateIndividualContract = await bd.createIndividualContractQuery(userData, paymentList).then((res) => res);
         if(operationCreateIndividualContract.error){ return { status: false, code: 500, message: operationCreateIndividualContract.error }; }
+        if(operationCreateIndividualContract.result.rowsAffected > 0){
+            let transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                  user: 'contactoarysauto@gmail.com',
+                  pass: 'hyyzpwrfwvbwbtsm'
+                }
+              });
+    
+            let mailOptions = {
+                from: 'contactoarysauto@gmail.com',
+                to: `${userData.email}`,
+                subject: '¡Bienvenido a ArysAutoClub!',
+                html: `
+                <html>
+                <head>
+                  <style>
+                    body {
+                      margin: 0;
+                      padding: 0;
+                      background-color: #f5f5f5;
+                    }
+                    .container {
+                      width: 100%;
+                      height: 100vh;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      background-color: #f5f5f5;
+                    }
+                    .inner-container {
+                      text-align: center;
+                      background-color: #ffffff;
+                      border-radius: 10px;
+                      padding: 20px;
+                      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+                    }
+                    .logo {
+                      width: 165px;
+                      height: auto;
+                      margin-right: 20px;
+                    }
+                    .content {
+                      text-align: left;
+                      margin-top: 20px;
+                    }
+                    .content h2,
+                    .content h4,
+                    .content p {
+                      margin: 0;
+                      color: #0070c0;
+                    }
+                  </style>
+                </head>
+                <body>
+                  <div class="container">
+                    <table class="inner-container" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td>
+                          <img class="logo" src="https://i.ibb.co/sPCnfhH/Arys-logo.png" alt="Logo">
+                          <h2>Hola <span style="color: #0070C0;">${userData.xnombre} ${userData.xapellido}</span>,</h2>
+                          <h4>¡Te damos la bienvenida a ArysAutoClub!</h4>
+                          <h4>Ahora podrás disfrutar de todos los beneficios de ArysAutoClub, tu plataforma online</h4>
+                          <div style="display: flex; align-items: center;">
+                            <img class="logo" src="https://i.ibb.co/ThJRqPr/arys-muneco.png" alt="Logo">
+                            <div>
+                              <h4>A continuación, te indicamos nuestros canales de atención 24/7:</h4>
+                              <h4>Correo electrónico</h4>
+                              <h2 style="color:#0070c0;">${userData.email}</h2>
+                              <h4>Número telefónicos:</h4>
+                              <h2>0500.2797288</h2>
+                              <h2>0500.3456222</h2>
+                              <h2>WhatsApp 0414-4128237</h2>
+                            </div>
+                          </div>
+                          <h4>¿Qué ventajas tienes como usuario registrado?</h4>
+                          <p>Ser atendido de forma oportuna, realizar trámites y consultas desde el lugar donde estés</p>
+                          <p style="font-size: 18px; font-style: italic; border-radius: 10px; background-color: lightgray; padding: 10px;">Conduce tu vehículo, del resto nos encargamos nosotros</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+                </body>
+                </html>
+                `
+              };
+            
+            transporter.sendMail(mailOptions, function(error, info) {
+              if (error) {
+                console.log('Error al enviar el correo:', error);
+              } else {
+                console.log('Correo enviado correctamente:', info.response);
+                return {status: true}
+              }
+            });
+        }
     }
     if(requestBody.accessory){
         let accessoryData = [];

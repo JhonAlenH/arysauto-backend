@@ -382,6 +382,7 @@ module.exports = {
                 .input('ccontratoflota', sql.Int, ccontratoflota)
                 .query('select * from VWBUSCARCOBERTURASXCONTRATOFLOTA where ccontratoflota = @ccontratoflota');
             //sql.close();
+            console.log(result)
             return { result: result };
         }catch(err){
             return { error: err.message };
@@ -504,6 +505,7 @@ module.exports = {
                 .input('ccarga', sql.Int, ccarga)
                 .query('select * from VWBUSCARSERVICIOSXCONTRATOFLOTA where ccarga = @ccarga');
             //sql.close();
+            console.log(result)
             return { result: result };
         }catch(err){
             return { error: err.message };
