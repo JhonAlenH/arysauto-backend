@@ -396,7 +396,7 @@ const operationCreateClient = async(authHeader, requestBody) => {
         xemail: requestBody.xemail.toUpperCase() ? requestBody.xemail: null,
         finicio: requestBody.finicio ? requestBody.finicio: null,
         xtelefono: requestBody.xtelefono ? requestBody.xtelefono : null,
-        xpaginaweb: requestBody.xpaginaweb.toUpperCase() ? requestBody.xpaginaweb : null,
+        xpaginaweb: requestBody.xpaginaweb ? requestBody.xpaginaweb : null,
         xrutaimagen: requestBody.xrutaimagen ? requestBody.xrutaimagen : null,
         bactivo: requestBody.bactivo,
         cusuariocreacion: requestBody.cusuariocreacion

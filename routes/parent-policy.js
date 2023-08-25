@@ -146,6 +146,7 @@ const operationParentPolicy = async(authHeader, requestBody) => {
     if (getLastPolicyNumber.error){ console.log(getLastPolicyNumber.error); return { status: false, code: 500, message: getLastPolicyNumber.error }; }
     let createParentPolicy = await bd.createParentPolicyQuery(requestBody.polizaMatriz, requestBody.cpais, requestBody.ccompania, requestBody.cusuario, getLastPolicyNumber.result.cpoliza);
     if(createParentPolicy.error){ console.log(createParentPolicy.error);console.log(createParentPolicy.error); return { status: false, code: 500, message: createParentPolicy.error }; }
+    console.log(requestBody.polizaMatriz.lotes)
     return {
         status: true,
         code: 200,
