@@ -9204,6 +9204,38 @@ module.exports = {
             return { error: err.message };
         }
     },
+    getPoliciesChargeInformation: async(policiesToRenovate) => {
+        try{
+            let pool = await sql.connect(config);
+            for (let i = 0; i < policiesToRenovate.length; i++) {
+                let chargeInfo = await pool.request()
+                    .input('XPLACA', sql.NVarChar, policiesToRenovate[i].XPLACA)
+                    .query('SELECT CCARGA, CLOTE FROM TREMISION_FLOTA WHERE XPLACA = @XPLACA')
+                policiesToRenovate[i].ccarga = chargeInfo.recordset[0].CCARGA;
+                policiesToRenovate[i].clote = chargeInfo.recordset[0].CLOTE;
+            }
+            return policiesToRenovate;
+        }
+        catch(err){
+            return { error: err.message };
+        }
+    },
+    createNewBatch: async(ccarga) => {
+        try{
+            let pool = await sql.connect(config);
+            let result = await pool.request()
+                .input('CCARGA', sql.Int, ccarga)
+                .input('XOBSERVACION', sql.NVarChar, 'Renovación de pólizas')
+                .input('FCREACION', sql.DateTime, new Date())
+                .query('insert into SUPOLIZAMATRIZ (CCARGA, XOBSERVACION, FCREACION) output inserted.clote '
+                                         + 'values (@CCARGA, @XOBSERVACION, @FCREACION)'
+                )
+            return result.recordset[0].clote + 1
+        }
+        catch(err){
+            return { error: err.message };
+        }
+    },
     createChargeQuery: async(chargeList, ccarga, clote, maxID) => {
         try{
             if(chargeList.length > 0){
@@ -9268,6 +9300,33 @@ module.exports = {
                 return { result: result };
             }
         }catch(err){
+            console.log(err.message);
+            return { error: err.message };
+        }
+    },
+    createPolicyRenovation: async (policiesToRenovate) => {
+        try {
+            let pool = await sql.connect(config);
+            for (let i = 0; i < policiesToRenovate.length; i++) {
+                let fhasta_pol = new Date(changeDateFormat(policiesToRenovate[i].FHASTA_POL));
+                let fdesde_pol = new Date(changeDateFormat(policiesToRenovate[i].FDESDE_POL));
+                await pool.request()
+                    .input('CPLAN', sql.Int, policiesToRenovate[i].CPLAN)
+                    .input('CCARGA', sql.Int, policiesToRenovate[i].ccarga)
+                    .input('CLOTE', sql.Int, policiesToRenovate[i].clote)
+                    .input('CRECIBO', sql.Int, 0)
+                    .input('XPLACA', sql.NVarChar, policiesToRenovate[i].XPLACA)
+                    .input('MSUMA_A_CASCO', sql.Numeric(11,2), policiesToRenovate[i].MSUMA_CASCO)
+                    .input('MDEDUCIBLE', sql.Numeric(11,2), policiesToRenovate[i].MDEDUCIBLE)
+                    .input('FDESDE_POL', sql.DateTime, fhasta_pol.toISOString())
+                    .input('FHASTA_POL', sql.DateTime, fdesde_pol.toISOString())
+                    .query('insert into tmrenovacion (CPLAN, CCARGA, CLOTE, CRECIBO, XPLACA, MSUMA_A_CASCO, MDEDUCIBLE, FDESDE_POL, FHASTA_POL) '
+                                            + 'values (@CPLAN, @CCARGA, @CLOTE, @CRECIBO, @XPLACA, @MSUMA_A_CASCO, @MDEDUCIBLE, @FDESDE_POL, @FHASTA_POL)'
+                    )
+            }
+            return true;
+        }
+        catch(err) {
             console.log(err.message);
             return { error: err.message };
         }
@@ -15631,21 +15690,169 @@ DataCreateAgendaClient: async(DataAgenda) => {
         let pool = await sql.connect(config);
         let result = await pool.request()
             .input('cpropietario', sql.Int, DataAgenda.cpropietario)
-            .input('id', sql.Int, DataAgenda.id)
             .input('xtitulo', sql.NVarChar, DataAgenda.xtitulo)
-            .input('finicio', sql.Date, DataAgenda.finicio)
+            .input('fdesde', sql.Date, DataAgenda.fdesde)
             .input('fhasta', sql.Date, DataAgenda.fhasta)
-            .input('condicion', sql.Bit, DataAgenda.condicion)
-            .query('insert into TRAGENDA (CPROPIETARIO, ID,XTITULO, FINICIO, FHASTA, CONDICION) values (@cpropietario, @id ,@xtitulo, @finicio, @fhasta, @condicion)');
-        if(result.rowsAffected > 0){
+            .input('xcondicion', sql.Bit, DataAgenda.condicion)
+            .query('insert into TRAGENDA (CPROPIETARIO, XTITULO, FDESDE, FHASTA, XCONDICION) values (@cpropietario,@xtitulo, @fdesde, @fhasta, @xcondicion)');
+            if(result.rowsAffected > 0){
             let query = await pool.request()
                 .input('cpropietario', sql.Int, DataAgenda.cpropietario)
                 .query('SELECT * FROM TRAGENDA  where CPROPIETARIO = @cpropietario');
+
             return { result: query };
         }else{
             return { result: result };
             
         }
+    }catch(err){
+        console.log(err.message);
+        return { error: err.message };
+    }
+},
+UploadDocAgendaClient: async(DataAgenda) => {
+    try{
+        let pool = await sql.connect(config);
+        let upload = await pool.request()
+            .input('cpropietario', sql.Int, DataAgenda.cpropietario)
+            .input('xarchivo', sql.NVarChar, DataAgenda.xarchivo)
+            .input('itipodocumento', sql.NVarChar, DataAgenda.itipodocumento)
+            .input('fvencimiento', sql.Date, DataAgenda.fvencimiento)
+            .input('cusuariocreacion', sql.Bit, DataAgenda.cusuariocreacion)
+            .input('fcreacion', sql.DateTime, new Date())
+            .query('insert into MADOCPROPIETARIO (CPROPIETARIO, XRUTA, ITIPODOCUMENTO, FVENCIMIENTO, CUSUARIOCREACION, FCREACION) values (@cpropietario,@xarchivo, @itipodocumento, @fvencimiento, @cusuariocreacion,@fcreacion )');
+            if(upload.rowsAffected > 0){
+                let pool = await sql.connect(config);
+                let uploadagend = await pool.request()
+                .input('cpropietario', sql.Int, DataAgenda.cpropietario)
+                .input('itipodocumento', sql.NVarChar, ('Renovacion de '+DataAgenda.itipodocumento) )
+                .input('fvencimiento', sql.Date, DataAgenda.fvencimiento)
+                .input('cusuariocreacion', sql.Bit, DataAgenda.cusuariocreacion)
+                .input('fcreacion', sql.DateTime, new Date())
+                .query('insert into TRAGENDA (CPROPIETARIO, XTITULO, FDESDE, FHASTA, CUSUARIOCREACION, FCREACION) values (@cpropietario, @itipodocumento, @fvencimiento, @fvencimiento, @cusuariocreacion,@fcreacion )');
+                if(uploadagend.rowsAffected > 0){
+                    let query = await pool.request()
+                        .input('cpropietario', sql.Int, DataAgenda.cpropietario)
+                        .query('SELECT * FROM MADOCPROPIETARIO  where CPROPIETARIO = @cpropietario');
+    
+                    return { result: query };
+                
+            }
+            }else{
+            return { result: result };
+            
+        }
+    }catch(err){
+        console.log(err.message);
+        return { error: err.message };
+    }
+},
+UploadDocAgendaClient: async(DataDocAgend) => {
+    try{
+        let pool = await sql.connect(config);
+        let upload = await pool.request()
+            .input('cpropietario', sql.Int, DataDocAgend.cpropietario)
+            .input('xarchivo', sql.NVarChar, DataDocAgend.xarchivo)
+            .input('itipodocumento', sql.NVarChar, DataDocAgend.itipodocumento)
+            .input('fvencimiento', sql.Date, DataDocAgend.fvencimiento)
+            .input('cusuariocreacion', sql.Bit, DataDocAgend.cusuariocreacion)
+            .input('fcreacion', sql.DateTime, new Date())
+            .query('insert into MADOCPROPIETARIO (CPROPIETARIO, XRUTA, ITIPODOCUMENTO, FVENCIMIENTO, CUSUARIOCREACION, FCREACION) values (@cpropietario,@xarchivo, @itipodocumento, @fvencimiento, @cusuariocreacion,@fcreacion )');
+            if(upload.rowsAffected > 0){
+                let pool = await sql.connect(config);
+                let uploadagend = await pool.request()
+                .input('cpropietario', sql.Int, DataDocAgend.cpropietario)
+                .input('itipodocumento', sql.NVarChar, ('Renovacion de '+DataDocAgend.itipodocumento) )
+                .input('fvencimiento', sql.Date, DataDocAgend.fvencimiento)
+                .input('cusuariocreacion', sql.Bit, DataDocAgend.cusuariocreacion)
+                .input('fcreacion', sql.DateTime, new Date())
+                .query('insert into TRAGENDA (CPROPIETARIO, XTITULO, FDESDE, FHASTA, CUSUARIOCREACION, FCREACION) values (@cpropietario, @itipodocumento, @fvencimiento, @fvencimiento, @cusuariocreacion,@fcreacion )');
+                if(uploadagend.rowsAffected > 0){
+                    let query = await pool.request()
+                        .input('cpropietario', sql.Int, DataDocAgend.cpropietario)
+                        .query('SELECT * FROM MADOCPROPIETARIO  where CPROPIETARIO = @cpropietario');
+    
+                    return { result: query };
+                
+            }
+            }else{
+            return { result: result };
+            
+        }
+    }catch(err){
+        console.log(err.message);
+        return { error: err.message };
+    }
+},
+    
+UploadManAgendaClient: async(DataDocAgend) => {
+    try{
+        let pool = await sql.connect(config);
+        let upload = await pool.request()
+        .input('cpropietario', sql.Int, DataDocAgend.cpropietario)
+        .input('xmantenimientoCorrect', sql.NVarChar,DataDocAgend.xmantenimientoCorrect )
+        .input('fdesde', sql.DateTime, DataDocAgend.fdesde )
+        .input('cusuariocreacion', sql.Bit, DataDocAgend.cpropietario)
+        .input('fcreacion', sql.DateTime, new Date())
+        .query('insert into TRAGENDA (CPROPIETARIO, XTITULO, FDESDE, FHASTA, CUSUARIOCREACION, FCREACION) values (@cpropietario, @xmantenimientoCorrect, @fdesde,@fdesde, @cusuariocreacion,@fcreacion )');
+                if(upload.rowsAffected > 0){
+                let pool = await sql.connect(config);
+                let uploadagend = await pool.request()
+                .input('cpropietario', sql.Int, DataDocAgend.cpropietario)
+                .input('xmantenimientoPrevent', sql.NVarChar,DataDocAgend.xmantenimientoPrevent )
+                .input('fdesde', sql.DateTime, DataDocAgend.fdesde )
+                .input('cusuariocreacion', sql.Bit, DataDocAgend.cpropietario)
+                .input('fcreacion', sql.DateTime, new Date())
+                .query('insert into TRAGENDA (CPROPIETARIO, XTITULO, FDESDE, FHASTA, CUSUARIOCREACION, FCREACION) values (@cpropietario, @xmantenimientoPrevent, @fdesde, @fdesde, @cusuariocreacion,@fcreacion )');
+                if(uploadagend.rowsAffected > 0){
+                    let query = await pool.request()
+                        .input('cpropietario', sql.Int, DataDocAgend.cpropietario)
+                        .query('SELECT * FROM TRAGENDA  where CPROPIETARIO = @cpropietario');
+    
+                    return { result: query };
+                
+            }
+            }else{
+            return { result: result };
+            
+        }
+    }catch(err){
+        console.log(err.message);
+        return { error: err.message };
+    }
+},
+CountAgendaClient: async(DataAgenda) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+        .input('cpropietario', sql.Int, DataAgenda.cpropietario)
+        .query('select COUNT(CSOLICITUDSERVICIO) AS CSOLICITUDSERVICIO  from VWBUSCARSOLICITUDSERVICIODATA  where CPROPIETARIO = @cpropietario');
+        return { result: result };
+    }catch(err){
+
+        return { error: err.message };
+    }
+},
+UpdateAgenda: async(DataAgenda) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+        .input('cpropietario', sql.Int, DataAgenda.cpropietario)
+        .input('id', sql.Int, DataAgenda.id)
+        .query('update TRAGENDA set BACTIVO = 0 WHERE CPROPIETARIO = @cpropietario and ID = @id');
+        return { result: result };
+    }catch(err){
+
+        return { error: err.message };
+    }
+},
+DataAgendaClientSolicitud: async(DataAgenda) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+        .input('cpropietario', sql.Int, DataAgenda.cpropietario)
+        .query('SELECT FCREACION,CSOLICITUDSERVICIO,XSERVICIO FROM VWBUSCARSOLICITUDSERVICIODATA  where CPROPIETARIO = @cpropietario');
+        return { result: result };
     }catch(err){
         return { error: err.message };
     }
@@ -15656,6 +15863,17 @@ DataAgendaClient: async(DataAgenda) => {
         let result = await pool.request()
         .input('cpropietario', sql.Int, DataAgenda.cpropietario)
         .query('SELECT * FROM TRAGENDA  where CPROPIETARIO = @cpropietario');
+        return { result: result };
+    }catch(err){
+        return { error: err.message };
+    }
+},
+BirthdayClient: async(DataAgenda) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+        .input('cpropietario', sql.Int, DataAgenda.cpropietario)
+        .query('SELECT * FROM TRPROPIETARIO  where CPROPIETARIO = @cpropietario');
         return { result: result };
     }catch(err){
         return { error: err.message };
@@ -15746,12 +15964,11 @@ DataCreateAgendaClient: async(DataAgenda) => {
         let pool = await sql.connect(config);
         let result = await pool.request()
             .input('cpropietario', sql.Int, DataAgenda.cpropietario)
-            .input('id', sql.Int, DataAgenda.id)
             .input('xtitulo', sql.NVarChar, DataAgenda.xtitulo)
-            .input('finicio', sql.Date, DataAgenda.finicio)
+            .input('finicio', sql.Date, DataAgenda.fdesde)
             .input('fhasta', sql.Date, DataAgenda.fhasta)
             .input('condicion', sql.Bit, DataAgenda.condicion)
-            .query('insert into TRAGENDA (CPROPIETARIO, ID,XTITULO, FINICIO, FHASTA, CONDICION) values (@cpropietario, @id ,@xtitulo, @finicio, @fhasta, @condicion)');
+            .query('insert into TRAGENDA (CPROPIETARIO,XTITULO, FDESDE, FHASTA, XCONDICION) values (@cpropietario ,@xtitulo, @finicio, @fhasta, @condicion)');
         if(result.rowsAffected > 0){
             let query = await pool.request()
                 .input('cpropietario', sql.Int, DataAgenda.cpropietario)
