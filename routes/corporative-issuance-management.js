@@ -96,6 +96,8 @@ const operationSearchAllCorporativeIssuanceCertificates = async(authHeader, requ
                 estatus = 'Nuevo';
             }else if(searchAllCorporativeIssuanceCertificates.result.recordset[i].IRENOVACION == 'RE'){
                 estatus = 'Renovado';
+            }else if(searchAllCorporativeIssuanceCertificates.result.recordset[i].IRENOVACION == 'VE'){
+                estatus = 'Vencido';
             }
             jsonList.push({
                 ccontratoflota: searchAllCorporativeIssuanceCertificates.result.recordset[i].CCONTRATOFLOTA,
