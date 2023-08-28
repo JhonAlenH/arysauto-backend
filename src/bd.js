@@ -15880,5 +15880,31 @@ updateReplacementsByQuoteRequestNotificationUpdateQuery: async(quotesProviders) 
         return { error: err.message };
     }
 },
+createRenewalQuery: async(renewalList, data) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        for(let i = 0; i < renewalList.length; i++){
+            let insert = await pool.request()
+                .input('cplan', sql.Int, renewalList[i].cplan)
+                .input('xplaca', sql.NVarChar, renewalList[i].xplaca)
+                .input('msuma_a_casco', sql.Numeric(18, 2), renewalList[i].msuma_a_casco)
+                .input('mdeducible', sql.Numeric(18, 2), renewalList[i].mdeducible)
+                .input('fdesde_pol', sql.DateTime, renewalList[i].fdesde_pol)
+                .input('fhasta_pol', sql.DateTime, renewalList[i].fhasta_pol)
+                .input('ccarga', sql.Int, data.ccarga)
+                .input('clote', sql.Int, data.clote)
+                .input('cusuariocreacion', sql.Int, data.cusuario)
+                .query('INSERT INTO TMRENOVACION (CPLAN, CCARGA, CLOTE, XPLACA, MSUMA_A_CASCO, MDEDUCIBLE, FDESDE_POL, FHASTA_POL, CUSUARIOCREACION) VALUES (@cplan, @ccarga, @clote, @xplaca, @msuma_a_casco, @mdeducible, @fdesde_pol, @fhasta_pol, @cusuariocreacion)')
+            rowsAffected = rowsAffected + insert.rowsAffected;
+        }
+        //sql.close();
+        return { result: { rowsAffected: rowsAffected } };
+    }
+    catch(err){
+        console.log(err.message)
+        return { error: err.message };
+    }
+},
 }
 
