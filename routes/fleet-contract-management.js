@@ -1527,7 +1527,7 @@ const operationChargeContracts = async(authHeader, requestBody) => {
                             <div>
                               <h4>A continuación, te indicamos nuestros canales de atención 24/7:</h4>
                               <h4>Correo electrónico</h4>
-                              <h2 style="color:#0070c0;">${requestBody.parsedData[i].EMAIL}</h2>
+                              <h2 style="color:#0070c0;">siniestros@arysauto.com</h2>
                               <h4>Número telefónicos:</h4>
                               <h2>0500.2797288</h2>
                               <h2>0500.3456222</h2>
@@ -1770,7 +1770,7 @@ const operationCreateIndividualContract = async(authHeader, requestBody) => {
                             <div>
                               <h4>A continuación, te indicamos nuestros canales de atención 24/7:</h4>
                               <h4>Correo electrónico</h4>
-                              <h2 style="color:#0070c0;">${userData.email}</h2>
+                              <h2 style="color:#0070c0;">siniestros@arysauto.com</h2>
                               <h4>Número telefónicos:</h4>
                               <h2>0500.2797288</h2>
                               <h2>0500.3456222</h2>
@@ -2624,6 +2624,70 @@ const operationCreateQuote = async(authHeader, requestBody) => {
         xprofesion: lastQuote.result.recordset[0].XPROFESION, 
         xrif: lastQuote.result.recordset[0].XRIF, 
     };
+}
+
+router.route('/renewal').post((req, res) => {
+    if(!req.header('Authorization')){ 
+        res.status(400).json({ data: { status: false, code: 400, message: 'Required authorization header not found.' } })
+        return;
+    }else{
+        operationRenewal(req.header('Authorization'), req.body).then((result) => {
+            if(!result.status){ 
+                res.status(result.code).json({ data: result });
+                return;
+            }
+            res.json({ data: result });
+        }).catch((err) => {
+            console.log(err.message)
+            res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'operationRenewal' } });
+        });
+    }
+});
+
+const operationRenewal = async(authHeader, requestBody) => {
+    if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
+    let data = {
+        ccarga: requestBody.ccarga,
+        clote: requestBody.clote,
+        parsedData: requestBody.parsedData,
+        cusuario: requestBody.cusuario
+    };
+    let renewalList = [];
+    if(data.parsedData){
+        for (let i = 0; i < data.parsedData.length; i++) {
+            if (data.parsedData[i].FDESDE_POL && data.parsedData[i].FHASTA_POL) {
+                const fdesde_parts = data.parsedData[i].FDESDE_POL.split('/');
+                const fhasta_parts = data.parsedData[i].FHASTA_POL.split('/');
+                const fdesde = new Date(
+                    parseInt(fdesde_parts[2]),    
+                    parseInt(fdesde_parts[1]) - 1,
+                    parseInt(fdesde_parts[0])     
+                );
+            
+                const fhasta = new Date(
+                    parseInt(fhasta_parts[2]),    
+                    parseInt(fhasta_parts[1]) - 1,
+                    parseInt(fhasta_parts[0])     
+                );
+            
+                renewalList.push({
+                    cplan: parseFloat(data.parsedData[i].CPLAN),
+                    xplaca: data.parsedData[i].XPLACA,
+                    msuma_a_casco: parseFloat(data.parsedData[i].MSUMA_A_CASCO),
+                    mdeducible: parseFloat(data.parsedData[i].MDEDUCIBLE),
+                    fdesde_pol: fdesde,  // Aquí asignamos el objeto de fecha
+                    fhasta_pol: fhasta   // Aquí asignamos el objeto de fecha
+                });
+            }
+        }
+    }
+    let createRenewal = await bd.createRenewalQuery(renewalList, data).then((res) => res);
+    if(createRenewal.error){ return { status: false, code: 500, message: createRenewal.error }; }
+    if(createRenewal.result.rowsAffected > 0){
+        return { status: true };            
+    }
+
+    
 }
 
 module.exports = router;
