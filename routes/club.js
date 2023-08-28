@@ -394,6 +394,7 @@ const CreateAgenda = async(requestBody) => {
         fhasta: requestBody.end,
         condicion: requestBody.allDay,
     };
+    console.log(requestBody)
     let Agenda = await bd.DataCreateAgendaClient(DataAgenda).then((res) => res);
     if(Agenda.error){ return { status: false, code: 500, message: Agenda.error }; }
     if(Agenda.rowsAffected == 0){ return { status: false, code: 404 }; }
@@ -640,4 +641,67 @@ const UploadMantenimientoClub = async(requestBody) => {
 };
 }
 
+router.route('/count/service').post((req, res) => {
+    CountServiceClub(req.body).then((result) => {
+        if(!result.status){ 
+            res.status(result.code).json({ data: result });
+            return;
+        }
+        res.json({ data: result });
+    }).catch((err) => {
+        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'CountServiceClub' } });
+    });
+});
+
+const CountServiceClub = async(requestBody) => {
+    let DataAgenda = {
+        cpropietario: requestBody.cpropietario,
+    };
+    let AgendaClientCount = await bd.CountAgendaClient(DataAgenda).then((res) => res);
+    if(AgendaClientCount.error){ return { status: false, code: 500, message: AgendaClientCount.error }; }
+    if(AgendaClientCount.result.rowsAffected > 0){
+        let count = AgendaClientCount.result.recordset[0].CSOLICITUDSERVICIO
+        return { 
+            status: true, 
+            count: count
+        };}
+
+    return { 
+    status: false, 
+
+};
+}
+
+router.route('/deleteventagend').post((req, res) => {
+   DeleteEventAgend(req.body).then((result) => {
+        if(!result.status){ 
+            res.status(result.code).json({ data: result });
+            return;
+        }
+        res.json({ data: result });
+    }).catch((err) => {
+        res.status(500).json({ data: { status: false, code: 500, message: err.message, hint: 'DeleteEventAgend' } });
+    });
+});
+
+const DeleteEventAgend = async(requestBody) => {
+    let DataAgenda = {
+        cpropietario: requestBody.cpropietario,
+        id :  requestBody.id,
+    };
+
+    let AgendaDeleteEvent = await bd.UpdateAgenda(DataAgenda).then((res) => res);
+    if(AgendaDeleteEvent.error){ return { status: false, code: 500, message: AgendaDeleteEvent.error }; }
+    if(AgendaDeleteEvent.result.rowsAffected > 0){
+        return { 
+            status: true, 
+            message: 'Evento eliminado'
+         
+        };}
+
+    return { 
+    status: false, 
+
+};
+}
 module.exports = router;
