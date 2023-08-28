@@ -1527,7 +1527,7 @@ const operationChargeContracts = async(authHeader, requestBody) => {
                             <div>
                               <h4>A continuación, te indicamos nuestros canales de atención 24/7:</h4>
                               <h4>Correo electrónico</h4>
-                              <h2 style="color:#0070c0;">${requestBody.parsedData[i].EMAIL}</h2>
+                              <h2 style="color:#0070c0;">siniestros@arysauto.com</h2>
                               <h4>Número telefónicos:</h4>
                               <h2>0500.2797288</h2>
                               <h2>0500.3456222</h2>
@@ -1734,7 +1734,7 @@ const operationCreateIndividualContract = async(authHeader, requestBody) => {
                             <div>
                               <h4>A continuación, te indicamos nuestros canales de atención 24/7:</h4>
                               <h4>Correo electrónico</h4>
-                              <h2 style="color:#0070c0;">${userData.email}</h2>
+                              <h2 style="color:#0070c0;">siniestros@arysauto.com</h2>
                               <h4>Número telefónicos:</h4>
                               <h2>0500.2797288</h2>
                               <h2>0500.3456222</h2>
