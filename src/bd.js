@@ -15534,7 +15534,7 @@ searchReceiptQuery: async(searchData) => {
         let pool = await sql.connect(config);
         let result = await pool.request()
             .input('ccarga', sql.Int, searchData.ccarga)
-            .query('select * FROM VWBUSCARCLIENTEXRECIBO WHERE CCARGA = @ccarga')
+            .query('select * FROM VWBUSCARCLIENTESXEMISION WHERE CCARGA = @ccarga')
         return {result: result};
     }
     catch(err){

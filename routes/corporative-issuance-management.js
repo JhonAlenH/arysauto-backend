@@ -276,6 +276,7 @@ const operationSearchReceipt = async(authHeader, requestBody) => {
         ccarga: searchReceipt.result.recordset[0].CCARGA,
         ccliente: searchReceipt.result.recordset[0].CCLIENTE,
         xcliente: searchReceipt.result.recordset[0].XCLIENTE,
+        xrif_cliente: searchReceipt.result.recordset[0].XDOCIDENTIDAD,
         fdesde_pol: searchReceipt.result.recordset[0].FDESDE_POL,
         fhasta_pol: searchReceipt.result.recordset[0].FHASTA_POL,
         plan: planList
