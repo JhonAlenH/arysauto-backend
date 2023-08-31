@@ -3228,10 +3228,12 @@ module.exports = {
                 .input('pretencion', sql.Numeric(5, 2), providerData.pretencion ? providerData.pretencion : null)
                 .input('pislr', sql.Numeric(5, 2), providerData.pislr ? providerData.pislr : null)
                 .input('xobservacion', sql.NVarChar, providerData.xobservacion)
+                .input('cestatusgeneral', sql.Int, providerData.cestatusgeneral)
+                .input('xmotivo', sql.Int, providerData.xmotivo)
                 .input('bactivo', sql.Bit, providerData.bactivo)
                 .input('cusuariocreacion', sql.Int, providerData.cusuariocreacion)
                 .input('fcreacion', sql.DateTime, new Date())
-                .query('insert into PRPROVEEDORES (CPAIS, CCOMPANIA, XDOCIDENTIDAD, CESTADO, CCIUDAD, XNOMBRE, XRAZONSOCIAL, XTELEFONO, CENTEIMPUESTO, NLIMITE, XCORREO, PRETENCION, PISLR, XDIRECCION, XOBSERVACION, BACTIVO, CUSUARIOCREACION, FCREACION) output inserted.CPROVEEDOR values (@cpais, @ccompania, @xdocidentidad, @cestado, @cciudad, @xnombre, @xrazonsocial, @xtelefono, @centeimpuesto, @nlimite, @xcorreo, @pretencion, @pislr, @xdireccion, @xobservacion, @bactivo, @cusuariocreacion, @fcreacion)');
+                .query('insert into PRPROVEEDORES (CPAIS, CCOMPANIA, XDOCIDENTIDAD, CESTADO, CCIUDAD, XNOMBRE, XRAZONSOCIAL, XTELEFONO, CENTEIMPUESTO, NLIMITE, XCORREO, PRETENCION, PISLR, XDIRECCION, XOBSERVACION, BACTIVO, CUSUARIOCREACION, FCREACION, CESTATUSGENERAL, XMOTIVO) output inserted.CPROVEEDOR values (@cpais, @ccompania, @xdocidentidad, @cestado, @cciudad, @xnombre, @xrazonsocial, @xtelefono, @centeimpuesto, @nlimite, @xcorreo, @pretencion, @pislr, @xdireccion, @xobservacion, @bactivo, @cusuariocreacion, @fcreacion, @cestatusgeneral, @xmotivo)');
             if(result.rowsAffected > 0 && providerData.banks){
                 for(let i = 0; i < providerData.banks.length; i++){
                     let insert = await pool.request()
@@ -3335,10 +3337,12 @@ module.exports = {
                 .input('centeimpuesto', sql.NVarChar, providerData.centeimpuesto)
                 .input('nlimite', sql.Int, providerData.nlimite)
                 .input('xobservacion', sql.NVarChar, providerData.xobservacion)
+                .input('cestatusgeneral', sql.NVarChar, providerData.cestatusgeneral)
+                .input('xmotivo', sql.NVarChar, providerData.xmotivo)
                 .input('bactivo', sql.Bit, 1)
                 .input('cusuariomodificacion', sql.Int, providerData.cusuariomodificacion)
                 .input('fmodificacion', sql.DateTime, new Date())
-                .query('update PRPROVEEDORES set XNOMBRE = @xnombre, XDOCIDENTIDAD = @xdocidentidad, CESTADO = @cestado, CCIUDAD = @cciudad, XDIRECCION = @xdireccion, XTELEFONO = @xtelefono, XCORREO = @xcorreo, PRETENCION = @pretencion, CENTEIMPUESTO = @centeimpuesto, NLIMITE = @nlimite, PISLR = @pislr, XOBSERVACION = @xobservacion, BACTIVO = @bactivo, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion where CPROVEEDOR = @cproveedor and CPAIS = @cpais and CCOMPANIA = @ccompania');
+                .query('update PRPROVEEDORES set XNOMBRE = @xnombre, XDOCIDENTIDAD = @xdocidentidad, CESTADO = @cestado, CCIUDAD = @cciudad, XDIRECCION = @xdireccion, XTELEFONO = @xtelefono, XCORREO = @xcorreo, PRETENCION = @pretencion, CENTEIMPUESTO = @centeimpuesto, NLIMITE = @nlimite, PISLR = @pislr, XOBSERVACION = @xobservacion, BACTIVO = @bactivo, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion, CESTATUSGENERAL = @cestatusgeneral, XMOTIVO = @xmotivo where CPROVEEDOR = @cproveedor and CPAIS = @cpais and CCOMPANIA = @ccompania');
             //sql.close();
             return { result: result };
         }catch(err){
