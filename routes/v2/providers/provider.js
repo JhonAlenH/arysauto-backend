@@ -130,6 +130,8 @@ const operationCreateProvider = async(authHeader, requestBody) => {
         xobservacion: requestBody.xobservacion.toUpperCase(),
         bactivo: requestBody.bactivo,
         pislr: requestBody.pislr,
+        cestatusgeneral: requestBody.cestatusgeneral,
+        xmotivo: requestBody.xmotivo ? requestBody.xmotivo: undefined,
         cusuariocreacion: requestBody.cusuariocreacion
     }
     let verifyProviderIdentification = await db.verifyProviderIdentificationToCreateQuery(providerData).then((res) => res);
@@ -315,6 +317,8 @@ const operationDetailProvider = async(authHeader, requestBody) => {
         xcorreo: getProviderData.result.recordset[0].XCORREO ? getProviderData.result.recordset[0].XCORREO : undefined,
         xobservacion: getProviderData.result.recordset[0].XOBSERVACION,
         bactivo: getProviderData.result.recordset[0].BACTIVO,
+        cestatusgeneral: getProviderData.result.recordset[0].CESTATUSGENERAL,
+        xmotivo: getProviderData.result.recordset[0].XMOTIVO,
         banks: banks,
         states: states,
         brands: brands,
@@ -363,6 +367,8 @@ const operationUpdateProvider = async(authHeader, requestBody) => {
         xobservacion: requestBody.xobservacion ? requestBody.xobservacion.toUpperCase() : undefined,
         bactivo: requestBody.bactivo,
         cusuariomodificacion: requestBody.cusuariomodificacion,
+        cestatusgeneral: requestBody.cestatusgeneral,
+        xmotivo: requestBody.xmotivo ? requestBody.xmotivo: undefined,
     }
     let verifyProviderIdentification = await db.verifyProviderIdentificationToUpdateQuery(providerData).then((res) => res);
     if(verifyProviderIdentification.error){ return { status: false, code: 500, message: verifyProviderIdentification.error }; }

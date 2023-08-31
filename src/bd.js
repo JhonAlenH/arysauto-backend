@@ -15593,7 +15593,7 @@ searchReceiptQuery: async(searchData) => {
         let pool = await sql.connect(config);
         let result = await pool.request()
             .input('ccarga', sql.Int, searchData.ccarga)
-            .query('select * FROM VWBUSCARCLIENTEXRECIBO WHERE CCARGA = @ccarga')
+            .query('select * FROM VWBUSCARCLIENTESXEMISION WHERE CCARGA = @ccarga')
         return {result: result};
     }
     catch(err){
@@ -16120,6 +16120,40 @@ createRenewalQuery: async(renewalList, data) => {
     }
     catch(err){
         console.log(err.message)
+        return { error: err.message };
+    }
+},
+excludePropietaryQuery: async(updateData) => {
+    try{
+        let rowsAffected = 0;
+        let pool = await sql.connect(config);
+        let update = await pool.request()
+            .input('ccontratoflota', sql.Int, updateData.ccontratoflota)
+            .input('cestatusgeneral', sql.Int, updateData.cestatusgeneral)
+            .query('update SUCONTRATOFLOTA set CESTATUSGENERAL = @cestatusgeneral where CCONTRATOFLOTA = @ccontratoflota');
+        rowsAffected = rowsAffected + update.rowsAffected;
+            if(rowsAffected > 0){
+                let update = await pool.request()
+                .input('ccontratoflota', sql.Int, updateData.ccontratoflota)
+                .input('irenovacion', sql.NVarChar, 'EX')
+                .query('update TREMISION_FLOTA set IRENOVACION = @irenovacion where CCONTRATOFLOTA = @ccontratoflota');
+            }
+
+        return { result: { rowsAffected: rowsAffected } };
+    }
+    catch(err){
+        return { error: err.message };
+    }
+},
+statusValrepQuery: async(searchData) => {
+    try{
+        let pool = await sql.connect(config);
+        let result = await pool.request()
+            .query('select * from MAESTATUSGENERAL where CESTATUSGENERAL = 2 OR CESTATUSGENERAL = 19');
+        //sql.close();
+        return { result: result };
+    }catch(err){
+        console.log(err.message);
         return { error: err.message };
     }
 },
