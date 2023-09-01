@@ -65,18 +65,12 @@ router.route('/create').post((req, res) => {
 
 const operationCreateReplacement = async(authHeader, requestBody) => {
     if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
-    if(!helper.validateRequestObj(requestBody, ['cpais', 'ccompania', 'ctiporepuesto', 'xrepuesto', 'bizquierda', 'bderecha', 'bsuperior', 'binferior', 'bdelantero', 'btrasero', 'bactivo', 'cusuariocreacion'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
+    if(!helper.validateRequestObj(requestBody, ['cpais', 'ccompania', 'ctiporepuesto', 'xrepuesto', 'bactivo', 'cusuariocreacion'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
     let replacementData = {
         ccompania: requestBody.ccompania,
         cpais: requestBody.cpais,
         xrepuesto: requestBody.xrepuesto.toUpperCase(),
         ctiporepuesto: requestBody.ctiporepuesto,
-        bizquierda: requestBody.bizquierda,
-        bderecha: requestBody.bderecha,
-        bsuperior: requestBody.bsuperior,
-        binferior: requestBody.binferior,
-        bdelantero: requestBody.bdelantero,
-        btrasero: requestBody.btrasero,
         bactivo: requestBody.bactivo,
         cusuariocreacion: requestBody.cusuariocreacion
     };
@@ -124,12 +118,6 @@ const operationDetailReplacement = async(authHeader, requestBody) => {
             crepuesto: getReplacementData.result.recordset[0].CREPUESTO,
             xrepuesto: getReplacementData.result.recordset[0].XREPUESTO,
             ctiporepuesto: getReplacementData.result.recordset[0].CTIPOREPUESTO,
-            bizquierda: getReplacementData.result.recordset[0].BIZQUIERDA,
-            bderecha: getReplacementData.result.recordset[0].BDERECHA,
-            bsuperior: getReplacementData.result.recordset[0].BSUPERIOR,
-            binferior: getReplacementData.result.recordset[0].BINFERIOR,
-            bdelantero: getReplacementData.result.recordset[0].BDELANTERO,
-            btrasero: getReplacementData.result.recordset[0].BTRASERO,
             bactivo: getReplacementData.result.recordset[0].BACTIVO
         }
     }else{ return { status: false, code: 404, message: 'Replacement not found.' }; }
@@ -154,19 +142,13 @@ router.route('/update').post((req, res) => {
 
 const operationUpdateReplacement = async(authHeader, requestBody) => {
     if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
-    if(!helper.validateRequestObj(requestBody, ['cpais', 'ccompania', 'crepuesto', 'ctiporepuesto', 'xrepuesto', 'bizquierda', 'bderecha', 'bsuperior', 'binferior', 'bdelantero', 'btrasero', 'bactivo', 'cusuariomodificacion'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
+    if(!helper.validateRequestObj(requestBody, ['cpais', 'ccompania', 'crepuesto', 'ctiporepuesto', 'xrepuesto', 'bactivo', 'cusuariomodificacion'])){ return { status: false, code: 400, message: 'Required params not found.' }; }
     let replacementData = {
         ccompania: requestBody.ccompania,
         cpais: requestBody.cpais,
         crepuesto: requestBody.crepuesto,
         xrepuesto: requestBody.xrepuesto.toUpperCase(),
         ctiporepuesto: requestBody.ctiporepuesto,
-        bizquierda: requestBody.bizquierda,
-        bderecha: requestBody.bderecha,
-        bsuperior: requestBody.bsuperior,
-        binferior: requestBody.binferior,
-        bdelantero: requestBody.bdelantero,
-        btrasero: requestBody.btrasero,
         bactivo: requestBody.bactivo,
         cusuariomodificacion: requestBody.cusuariomodificacion 
     };
