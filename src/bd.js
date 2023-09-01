@@ -4584,19 +4584,13 @@ module.exports = {
             let pool = await sql.connect(config);
             let result = await pool.request()
                 .input('xrepuesto', sql.NVarChar, replacementData.xrepuesto)
-                .input('bizquierda', sql.Bit, replacementData.bizquierda)
-                .input('bderecha', sql.Bit, replacementData.bderecha)
-                .input('bsuperior', sql.Bit, replacementData.bsuperior)
-                .input('binferior', sql.Bit, replacementData.binferior)
-                .input('bdelantero', sql.Bit, replacementData.bdelantero)
-                .input('btrasero', sql.Bit, replacementData.btrasero)
                 .input('bactivo', sql.Bit, replacementData.bactivo)
                 .input('cpais', sql.Numeric(4, 0), replacementData.cpais)
                 .input('ccompania', sql.Int, replacementData.ccompania)
                 .input('ctiporepuesto', sql.Int, replacementData.ctiporepuesto)
                 .input('cusuariocreacion', sql.Int, replacementData.cusuariocreacion)
                 .input('fcreacion', sql.DateTime, new Date())
-                .query('insert into MAREPUESTO (XREPUESTO, CTIPOREPUESTO, BIZQUIERDA, BDERECHA, BSUPERIOR, BINFERIOR, BDELANTERO, BTRASERO, BACTIVO, CPAIS, CCOMPANIA, CUSUARIOCREACION, FCREACION) values (@xrepuesto, @ctiporepuesto, @bizquierda, @bderecha, @bsuperior, @binferior, @bdelantero, @btrasero, @bactivo, @cpais, @ccompania, @cusuariocreacion, @fcreacion)');
+                .query('insert into MAREPUESTO (XREPUESTO, CTIPOREPUESTO, BACTIVO, CPAIS, CCOMPANIA, CUSUARIOCREACION, FCREACION) values (@xrepuesto, @ctiporepuesto, @bactivo, @cpais, @ccompania, @cusuariocreacion, @fcreacion)');
             if(result.rowsAffected > 0){
                 let query = await pool.request()
                     .input('xrepuesto', sql.NVarChar, replacementData.xrepuesto)
@@ -4611,6 +4605,7 @@ module.exports = {
                 return { result: result };
             }
         }catch(err){
+            console.log(err.message)
             return { error: err.message };
         }
     },
@@ -4653,16 +4648,10 @@ module.exports = {
                 .input('crepuesto', sql.Int, replacementData.crepuesto)
                 .input('xrepuesto', sql.NVarChar, replacementData.xrepuesto)
                 .input('ctiporepuesto', sql.NVarChar, replacementData.ctiporepuesto)
-                .input('bizquierda', sql.Bit, replacementData.bizquierda)
-                .input('bderecha', sql.Bit, replacementData.bderecha)
-                .input('bsuperior', sql.Bit, replacementData.bsuperior)
-                .input('binferior', sql.Bit, replacementData.binferior)
-                .input('bdelantero', sql.Bit, replacementData.bdelantero)
-                .input('btrasero', sql.Bit, replacementData.btrasero)
                 .input('bactivo', sql.Bit, replacementData.bactivo)
                 .input('cusuariomodificacion', sql.Int, replacementData.cusuariomodificacion)
                 .input('fmodificacion', sql.DateTime, new Date())
-                .query('update MAREPUESTO set XREPUESTO = @xrepuesto, CTIPOREPUESTO = @ctiporepuesto, BIZQUIERDA = @bizquierda, BDERECHA = @bderecha, BSUPERIOR = @bsuperior, BINFERIOR = @binferior, BDELANTERO = @bdelantero, BTRASERO = @btrasero, BACTIVO = @bactivo, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion where CREPUESTO = @crepuesto and CPAIS = @cpais and CCOMPANIA = @ccompania');
+                .query('update MAREPUESTO set XREPUESTO = @xrepuesto, CTIPOREPUESTO = @ctiporepuesto, BACTIVO = @bactivo, CUSUARIOMODIFICACION = @cusuariomodificacion, FMODIFICACION = @fmodificacion where CREPUESTO = @crepuesto and CPAIS = @cpais and CCOMPANIA = @ccompania');
             //sql.close();
             return { result: result };
         }catch(err){
