@@ -9228,7 +9228,7 @@ module.exports = {
                         .input('xmarca', sql.NVarChar, chargeList[i].XMARCA)
                         .input('xmodelo', sql.NVarChar, chargeList[i].XMODELO)
                         .input('xversion', sql.NVarChar, chargeList[i].XVERSION)
-                        .input('cano', sql.Int, chargeList[i]["AÑO"])
+                        .input('cano', sql.Int, chargeList[i]["CANO"])
                         .input('xcolor', sql.NVarChar, chargeList[i].COLOR)
                         .input('xtipo', sql.NVarChar, chargeList[i]["Tipo Vehiculo"])
                         .input('xclase', sql.NVarChar, chargeList[i].CLASE)
