@@ -6765,8 +6765,8 @@ module.exports = {
         try{
             let pool = await sql.connect(config);
             let result = await pool.request()
-                .input('itipocliente', sql.NVarChar, 'C')
-                .query('SELECT CCARGA, XPOLIZA, XCLIENTE FROM VWBUSCARCARGAXCLIENTECORPORATIVO WHERE CESTATUSGENERAL IS NULL AND ITIPOCLIENTE = @itipocliente');
+                // .input('itipocliente', sql.NVarChar, 'C')
+                .query('SELECT CCARGA, XPOLIZA, XCLIENTE FROM VWBUSCARCARGAXCLIENTECORPORATIVO WHERE CESTATUSGENERAL IS NULL');
             //sql.close();
             return { result: result };
         }catch(err){
