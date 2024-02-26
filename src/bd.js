@@ -8846,6 +8846,7 @@ module.exports = {
             //sql.close();
             return { result: result };
         }catch(err){
+            console.log(err.message);
             return { error: err.message };
         }
     },
@@ -8883,6 +8884,7 @@ module.exports = {
             .query('select * from macorredores where ccorredor = @ccorredor');
             return { result: result }
         }catch(err){
+             console.log(err.message);
             return { error: err.message };
         }
     },
@@ -8946,6 +8948,7 @@ module.exports = {
             //sql.close();
             return { result: result };
         }catch(err){
+             console.log(err.message);
             return { error: err.message };
         }
     },
@@ -12751,6 +12754,7 @@ TypeMetodologia: async(searchData) => {
         .query('select PTARIFA from MATARIFA_OTROS WHERE XCOBERTURA = @xcobertura');
        return{ result: result }
     }catch(err){
+        console.log(err.message)
         return { error: err.message };
         }
 },
@@ -12762,7 +12766,7 @@ SearchTarifaCasco: async(searchData) => {
         .input('xmarca', sql.NVarChar, searchData.xmarca)
         .input('xmodelo', sql.NVarChar, searchData.xmodelo)
         .input('cano', sql.SmallInt, searchData.cano)
-        .query('select XCLASE from MACLASIFICACION_VEH WHERE XTIPO = @xtipo AND XMARCA = @xmarca AND XMODELO = @xmodelo');
+        .query('select XCLASE from MACLASIFICACION_VEH WHERE XMARCA = @xmarca AND XMODELO = @xmodelo');
         if(result.rowsAffected > 0 ) {
             let pool = await sql.connect(config);
             let query= await pool.request()
@@ -12775,6 +12779,7 @@ SearchTarifaCasco: async(searchData) => {
             return{result: result}
              } 
     }catch(err){
+        console.log(err.message)
         return { error: err.message };
         }
 },
@@ -12800,6 +12805,7 @@ SearchTarifaPerdida: async(searchData) => {
         return { result: result };
        } 
     }catch(err){
+        console.log(err.message)
         return { error: err.message };
         }
 },
@@ -15891,6 +15897,7 @@ getContractArysDataQuery: async(contractData) => {
         //sql.close();
         return { result: result };
     }catch(err){
+        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -15905,6 +15912,7 @@ getContractArysOwnerDataQuery: async(contractData, cpropietario) => {
         //sql.close();
         return { result: result };
     }catch(err){
+        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -15933,6 +15941,7 @@ getPlanData: async(cplan) => {
         console.log(result)
         return { result: result };
     }catch(err){
+        console.log(err.message)
         return { error: err.message };
     }
 },
@@ -15944,6 +15953,7 @@ getServiceFromPlanQuery: async(cplan) => {
             .query('select * from VWBUSCARSERVICIOSXPLAN where CPLAN = @cplan');
             return { result: result };
         }catch(err){
+            console.log(err.message)
             return { error: err.message };
         }
     

@@ -372,6 +372,7 @@ module.exports = {
             //sql.close();
             return { result: result };
         }catch(err){
+            console.log(err.message);
             return { error: err.message };
         }
     },//this function is for the fleetcontract module
@@ -421,6 +422,7 @@ module.exports = {
             //sql.close();
             return { result: result };
         }catch(err){
+            console.log(err.message);
             return { error: err.message };
         }
     },
@@ -498,16 +500,17 @@ module.exports = {
             return { error: err.message };
         }
     },
-    getFleetContractServices: async(ccarga) => {
+    getFleetContractServices: async(ccontratoflota) => {
         try{
             let pool = await sql.connect(config);
             let result = await pool.request()
-                .input('ccarga', sql.Int, ccarga)
-                .query('select * from VWBUSCARSERVICIOSXCONTRATOFLOTA where ccarga = @ccarga');
+                .input('ccontratoflota', sql.Int, ccontratoflota)
+                .query('select * from VWBUSCARSERVICIOSXCONTRATOFLOTA where ccontratoflota = @ccontratoflota');
             //sql.close();
             console.log(result)
             return { result: result };
         }catch(err){
+            console.log(err.message);
             return { error: err.message };
         }
     },
@@ -4150,6 +4153,7 @@ module.exports = {
             //sql.close();
             return { result: result };
         }catch(err){
+            console.log(err.message);
             return { error: err.message };
         }
     },

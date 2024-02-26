@@ -652,7 +652,7 @@ const operationDetailFleetContractManagement = async(authHeader, requestBody) =>
         //     mprimaprorratatotal = Math.round10(mprimaprorratatotal, -2);
         // }
         let services = [];
-        let getFleetContractServices = await db.getFleetContractServices(getFleetContractData.result.recordset[0].ccarga);
+        let getFleetContractServices = await db.getFleetContractServices(getFleetContractData.result.recordset[0].CCONTRATOFLOTA);
         if(getFleetContractServices.error){ return { status: false, code: 500, message: getFleetContractServices.error }; }
         if(getFleetContractServices.result.rowsAffected < 0){ return { status: false, code: 404, message: 'Fleet Contract Service not found.' }; }
         if (getFleetContractServices.result.rowsAffected > 0) {
@@ -1937,13 +1937,15 @@ router.route('/tarifa-casco').post((req, res) => {
 const operationTarifaCasco = async(authHeader, requestBody) => {
     if(!helper.validateAuthorizationToken(authHeader)){ return { status: false, code: 401, condition: 'token-expired', expired: true }; }
     let searchData = {
-        xtipo: requestBody.xtipo,
+        xtipo: requestBody.ctipovehiculo,
         xmarca: requestBody.xmarca,
         xmodelo: requestBody.xmodelo,
         cano: parseInt(requestBody.cano),
         xcobertura:requestBody.xcobertura,
     };
     if(requestBody.xcobertura == 'AMPLIA'){
+        console.log('hola')
+        console.log(searchData)
         let query = await bd.SearchTarifaCasco(searchData).then((res) => res);
         if(query.error){ return { status: false, code: 500, message: operationTarifaCasco.error };  }
         if(query.result){

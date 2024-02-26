@@ -342,6 +342,7 @@ const operationDetailAdministrationContractArys = async(authHeader, requestBody)
         ccompania: requestBody.ccompania,
         ccodigo_serv: requestBody.ccodigo_serv
     };
+    console.log(contractData)
     let getContractArysData = await bd.getContractArysDataQuery(contractData).then((res) => res);
     if(getContractArysData.error){ return { status: false, code: 500, message: getContractArysData.error }; }
     if(getContractArysData.result.rowsAffected > 0){
