@@ -8372,7 +8372,7 @@ module.exports = {
     },
     searchFleetContractManagementQuery: async(searchData) => {
         try{
-            let query = `select * from VWBUSCARRENOVACIONES where CCOMPANIA = @ccompania AND (IRENOVACION = 'NU' OR IRENOVACION = 'RE')${ searchData.ccarga ? " and ccarga = @ccarga" : '' }${ searchData.clote ? " and clote = @clote" : '' }${ searchData.xplaca ? " and XPLACA = @xplaca" : '' }`;
+            let query = `select * from VWBUSCARRENOVACIONES where CCOMPANIA = @ccompania AND (IRENOVACION = 'NU' OR IRENOVACION = 'RE')${ searchData.ccarga ? " and ccarga = @ccarga" : '' }${ searchData.clote ? " and clote = @clote" : '' }${ searchData.xplaca ? " and XPLACA = @xplaca" : '' } ORDER BY CCONTRATOFLOTA`;
             let pool = await sql.connect(config);
             let result = await pool.request()
                 .input('ccompania', sql.Int, searchData.ccompania)

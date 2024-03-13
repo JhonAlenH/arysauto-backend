@@ -88,7 +88,7 @@ const operationSearchContractVehicle = async(authHeader, requestBody) => {
         for(let i = 0; i < searchFleetContractManagement.result.recordset.length; i++){
             let propietario = searchFleetContractManagement.result.recordset[i].XNOMBRE + ' ' + searchFleetContractManagement.result.recordset[i].XAPELLIDO
             let telefonopropietario;
-            if(searchFleetContractManagement.result.recordset[0].XTELEFONOCELULAR){
+            if(searchFleetContractManagement.result.recordset[0].XTELEFONOCELULAR != null){
                 telefonopropietario = searchFleetContractManagement.result.recordset[0].XTELEFONOCELULAR;
             }else{
                 telefonopropietario = searchFleetContractManagement.result.recordset[0].XTELEFONOCASA
@@ -105,7 +105,7 @@ const operationSearchContractVehicle = async(authHeader, requestBody) => {
                 xmodelo: searchFleetContractManagement.result.recordset[i].XMODELO,
                 xversion: searchFleetContractManagement.result.recordset[i].XVERSION,
                 xplaca: searchFleetContractManagement.result.recordset[i].XPLACA,
-                fano: searchFleetContractManagement.result.recordset[i].FANO,
+                fano: searchFleetContractManagement.result.recordset[i].CANO,
                 xcolor: searchFleetContractManagement.result.recordset[i].XCOLOR,
                 xtipo: searchFleetContractManagement.result.recordset[i].XTIPO,
                 xserialcarroceria: searchFleetContractManagement.result.recordset[i].XSERIALCARROCERIA,
