@@ -479,7 +479,7 @@ const operationDetailOwner = async(authHeader, requestBody) => {
         cparentesco: getOwnerData.result.recordset[0].CPARENTESCO,
         bactivo: getOwnerData.result.recordset[0].BACTIVO,
         cprocedencia: getOwnerData.result.recordset[0].CPROCEDENCIA,
-        //documents: documents,
+        documents: documents,
         vehicles: vehicles
     }
 }
