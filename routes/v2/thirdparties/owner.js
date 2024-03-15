@@ -394,7 +394,7 @@ const operationDetailOwner = async(authHeader, requestBody) => {
     let getOwnerData = await db.getOwnerDataQuery(ownerData).then((res) => res);
     if(getOwnerData.error){ return { status: false, code: 500, message: getOwnerData.error }; }
     if(getOwnerData.result.rowsAffected == 0){ return { status: false, code: 404, message: 'Owner not found.' }; }
-    /*let documents = [];
+    let documents = [];
     let getOwnerDocumentsData = await db.getOwnerDocumentsDataQuery(ownerData.cpropietario).then((res) => res);
     if(getOwnerDocumentsData.error){ return { status: false, code: 500, message: getOwnerDocumentsData.error }; }
     if(getOwnerDocumentsData.result.rowsAffected > 0){
@@ -407,14 +407,14 @@ const operationDetailOwner = async(authHeader, requestBody) => {
             }
             documents.push(document);
         }
-    }*/
+    }
     let vehicles = [];
     let getOwnerVehiclesData = await db.getOwnerVehiclesDataQuery(ownerData.cpropietario).then((res) => res);
     if(getOwnerVehiclesData.error){ return { status: false, code: 500, message: getOwnerVehiclesData.error }; }
     if(getOwnerVehiclesData.result.rowsAffected > 0){
         for(let i = 0; i < getOwnerVehiclesData.result.recordset.length; i++){
             let images = [];
-            /*let getImagesVehicleData = await db.getImagesVehicleDataQuery(getOwnerVehiclesData.result.recordset[i].CVEHICULOPROPIETARIO).then((res) => res);
+            let getImagesVehicleData = await db.getImagesVehicleDataQuery(getOwnerVehiclesData.result.recordset[i].CVEHICULOPROPIETARIO).then((res) => res);
             if(getImagesVehicleData.error){ return { status: false, code: 500, message: getImagesVehicleData.error }; }
             if(getImagesVehicleData.result.rowsAffected > 0){
                 for(let i = 0; i < getImagesVehicleData.result.recordset.length; i++){
@@ -425,7 +425,7 @@ const operationDetailOwner = async(authHeader, requestBody) => {
                     }
                     images.push(image);
                 }
-            }*/
+            }
             let vehicle = {
                 cvehiculopropietario: getOwnerVehiclesData.result.recordset[i].CVEHICULOPROPIETARIO,
                 cmarca: getOwnerVehiclesData.result.recordset[i].CMARCA,
